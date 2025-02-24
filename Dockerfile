@@ -12,9 +12,13 @@ RUN npm install
 
 COPY --chown=node:node . .
 
-RUN npx prisma db push
 RUN npx prisma generate
 
 EXPOSE 4005
+
+# Make the entrypoint executable
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
 
 CMD [ "npx", "tsx", "app.ts" ]
