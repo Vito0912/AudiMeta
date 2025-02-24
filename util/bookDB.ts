@@ -1,4 +1,4 @@
-import {BookInput, BookInputFactory, getFullBook, getFullBooks, insertBook} from "./book";
+import {BookInput, BookInputFactory, getFullBook, getFullBooks, insertBook, insertBooks} from "./book";
 import axios from "axios";
 import {Book} from "@prisma/client";
 import {HEADERS, regionMap} from "../app";

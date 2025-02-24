@@ -101,9 +101,12 @@ export class BookInputFactory {
     }
 }
 
-export async function insertBook(data: BookInput): Promise<Book> {
-    if (!data.asin) throw new Error("ASIN is required to insert a book");
-    return prisma.book.upsert({
+export async function insertBook(data: BookInput) {
+    if (!data.asin) {
+        console.log("No asin provided");
+    }
+
+    await prisma.book.upsert({
         where: { asin: data.asin },
         create: {
             asin: data.asin,
@@ -122,70 +125,87 @@ export async function insertBook(data: BookInput): Promise<Book> {
             rating: data.rating,
             regions: data.regions || [],
             releaseDate: data.releaseDate,
-            series:
-                data.seriesBooks?.length
-                    ? {
-                        create: data.seriesBooks.map((sb) => ({
-                            position: sb.position,
-                            series: {
-                                connectOrCreate: {
-                                    where: { asin: sb.seriesAsin },
-                                    create: {
-                                        asin: sb.seriesAsin,
-                                        // Assumes that series title and description are provided as part of the seriesBooks input.
-                                        // Replace the following with appropriate default values or optional chaining if needed.
-                                        title: sb.seriesTitle,
-                                        description: sb.seriesDescription,
-                                    },
-                                },
-                            },
-                        })),
-                    }
-                    : undefined,
-            authors:
-                data.authors?.length
-                    ? {
-                        connectOrCreate: data.authors.map((author) => {
-                            if (!author.asin) {
-                                author.asin = author.name;
-                            }
-                            return {
-                                where: { asin: author.asin },
+            series: data.seriesBooks?.length
+                ? {
+                    create: data.seriesBooks.map((sb) => ({
+                        position: sb.position,
+                        series: {
+                            connectOrCreate: {
+                                where: { asin: sb.seriesAsin },
                                 create: {
-                                    asin: author.asin,
-                                    name: author.name,
-                                    description: author.description,
+                                    asin: sb.seriesAsin,
+                                    title: sb.seriesTitle,
+                                    description: sb.seriesDescription,
                                 },
-                            };
-                        }),
-                    }
-                    : undefined,
-            narrators:
-                data.narrators?.length
-                    ? {
-                        connectOrCreate: data.narrators.map((narrator) => ({
-                            where: { name: narrator.name },
-                            create: { name: narrator.name },
-                        })),
-                    }
-                    : undefined,
-            genres:
-                data.genres?.length
-                    ? {
-                        connectOrCreate: data.genres.map((genre) => ({
-                            where: { asin: genre.asin },
-                            create: {
-                                asin: genre.asin,
-                                name: genre.name,
-                                type: genre.type,
                             },
-                        })),
-                    }
-                    : undefined,
+                        },
+                    })),
+                }
+                : undefined,
+            authors: data.authors?.length
+                ? {
+                    connectOrCreate: data.authors.map((author) => {
+                        if (!author.asin) {
+                            author.asin = author.name;
+                        }
+                        return {
+                            where: { asin: author.asin },
+                            create: {
+                                asin: author.asin,
+                                name: author.name,
+                                description: author.description,
+                            },
+                        };
+                    }),
+                }
+                : undefined,
+            narrators: data.narrators?.length
+                ? {
+                    connectOrCreate: data.narrators.map((narrator) => ({
+                        where: { name: narrator.name },
+                        create: { name: narrator.name },
+                    })),
+                }
+                : undefined,
+            genres: data.genres?.length
+                ? {
+                    connectOrCreate: data.genres.map((genre) => ({
+                        where: { asin: genre.asin },
+                        create: {
+                            asin: genre.asin,
+                            name: genre.name,
+                            type: genre.type,
+                        },
+                    })),
+                }
+                : undefined,
         },
-        update: {},
+        update: {
+            title: data.title,
+            subtitle: data.subtitle,
+            copyRight: data.copyRight,
+            description: data.description,
+            summary: data.summary,
+            bookFormat: data.bookFormat,
+            lengthMin: data.lengthMin,
+            image: data.image,
+            explicit: data.explicit,
+            isbn: data.isbn,
+            language: data.language,
+            publisherName: data.publisherName,
+            rating: data.rating,
+            regions: data.regions || [],
+            releaseDate: data.releaseDate,
+            // NOTE: Nested relations are not updated here.
+        },
     });
 }
+
+
+export async function insertBooks(data: BookInput[]) {
+    return await Promise.all(data.map((book) => insertBook(book)));
+}
+
 
 
 export async function getFullBook(asin: string, region: string): Promise<Book | null> {

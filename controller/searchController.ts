@@ -1,8 +1,9 @@
 import axios from "axios";
-import {getBooksFromOtherRegions} from "../util/book";
-import {app, HEADERS, prisma, regionMap} from "../app";
+import {BookInput, getBooksFromOtherRegions} from "../util/book";
+import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import {Book} from "@prisma/client";
 import {getBooks} from "../util/bookDB";
+import {oaBook, oaRegion} from "../util/openApiModels";
 
 
 /**
@@ -20,7 +21,46 @@ import {getBooks} from "../util/bookDB";
  */
 
 // @ts-ignore
-app.get('/search', async (req, res) => {
+app.get('/search', oapi.path({
+    tags: ['search'],
+    summary: 'Search for books',
+    parameters: [
+        {
+            name: 'author',
+            in: 'query',
+            description: 'The author of the book. Needs to be provided if title is not provided',
+            required: false,
+            schema: {
+                type: 'string'
+            }
+        },
+        {
+            name: 'title',
+            in: 'query',
+            description: 'The title of the book. Needs to be provided if author is not provided',
+            required: false,
+            schema: {
+                type: 'string'
+            }
+        },
+        oaRegion
+    ],
+    responses: {
+        200: {
+            description: 'Server reachable',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: oaBook
+                    }
+                }
+            }
+        }
+    }
+}),
+    // @ts-ignore
+    async (req, res) => {
     const author: string | null = req.query.author ? req.query.author.toString() : null;
     const title: string = req.query.title ? req.query.title.toString() : '';
     const region: string = (req.query.region || 'US').toString();

@@ -2,6 +2,7 @@ import express = require('express');
 import {Express} from "express";
 import rateLimit, {RateLimitRequestHandler} from "express-rate-limit";
 import {PrismaClient} from '@prisma/client';
+import openapi = require('@wesleytodd/openapi');
 
 export const prisma = new PrismaClient();
 
@@ -12,9 +13,24 @@ export const HEADERS = {
     'User-Agent': 'Audible/3.0.0 Android/11',
 }
 
+export const oapi = openapi({
+    openapi: '3.0.0',
+    info: {
+        title: 'AudiMeta API',
+        description: 'API to retrieve information about Book, Series and Search',
+        version: '1.0.1',
+    },
+    servers: [
+        {
+            url: 'https://audimeta.de/',
+            description: 'Public Instance',
+        },
+    ],
+})
 
 export const app: Express = express();
 app.use(express.json());
+app.use(oapi);
 
 const limiter: RateLimitRequestHandler = rateLimit({
     windowMs: 5 * 60 * 1000,
@@ -47,16 +63,33 @@ export const regionMap = {
  * /ping:
  *
  */
-app.get('/ping', (req, res) => {
-    res.send('pong');
+app.get('/ping', oapi.path({
+    responses: {
+        200: {
+            description: 'Server reachable',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            reachable: { type: 'boolean' }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}),(req, res) => {
+    res.send({reachable: true});
 });
 
 
 // Load all controllers
 require('./controller/bookController');
 require('./controller/searchController');
+require('./controller/seriesController');
 
-
+app.use('/swaggerui', oapi.swaggerui())
 
 app.listen(PORT, () => {
   console.log("Server Listening on PORT:", PORT);
