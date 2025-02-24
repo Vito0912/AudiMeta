@@ -27,7 +27,7 @@ app.get('/series/:asin', async (req, res) => {
             const now = new Date();
             const diff = now.getTime() - series.updatedAt.getTime();
             // If a day has passed since the last update, update the series
-            if (diff > 86400000) {
+            if (diff > 86400000 || (series.updatedAt == series.createdAt)) {
                 return res.send(await updateSeries(req, res, region));
             }
         } else if(series === undefined || series === null) {
