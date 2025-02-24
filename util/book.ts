@@ -196,15 +196,190 @@ export async function insertBook(data: BookInput) {
             rating: data.rating,
             regions: data.regions || [],
             releaseDate: data.releaseDate,
-            // NOTE: Nested relations are not updated here.
         },
     });
 }
 
 
 export async function insertBooks(data: BookInput[]) {
-    return await Promise.all(data.map((book) => insertBook(book)));
+    // Helper to process items in batches to limit concurrent DB requests.
+    async function processInBatches<T>(
+        items: T[],
+        batchSize: number,
+        callback: (item: T) => Promise<any>
+    ) {
+        for (let i = 0; i < items.length; i += batchSize) {
+            const batch = items.slice(i, i + batchSize);
+            await Promise.all(batch.map(callback));
+        }
+    }
+
+    // 1. Filter out books that already exist.
+    const inputAsins = data.map((b) => b.asin).filter(Boolean);
+    const existingBooks = await prisma.book.findMany({
+        where: { asin: { in: inputAsins } },
+        select: { asin: true },
+    });
+    const existingAsins = new Set(existingBooks.map((b) => b.asin));
+    const newBooks = data.filter((b) => b.asin && !existingAsins.has(b.asin));
+
+    // 2. Prepare records for bulk creation of books (only scalar fields; nested relations will be processed separately).
+    const bookRecords = newBooks.map((b) => ({
+        asin: b.asin,
+        title: b.title,
+        subtitle: b.subtitle,
+        copyRight: b.copyRight,
+        description: b.description,
+        summary: b.summary,
+        bookFormat: b.bookFormat,
+        lengthMin: b.lengthMin,
+        image: b.image,
+        explicit: b.explicit,
+        isbn: b.isbn,
+        language: b.language,
+        publisherName: b.publisherName,
+        rating: b.rating,
+        regions: b.regions || [],
+        releaseDate: b.releaseDate,
+    }));
+
+    if (bookRecords.length > 0) {
+        await prisma.book.createMany({ data: bookRecords });
+    }
+
+    // 3. Process Series & SeriesBook relations.
+    const seriesMap = new Map<string, { asin: string; title: string; description?: string }>();
+    const seriesBookRecords: Array<{ seriesAsin: string; bookAsin: string; position: number }> = [];
+    newBooks.forEach((b) => {
+        if (b.seriesBooks && b.seriesBooks.length) {
+            b.seriesBooks.forEach((sb) => {
+                seriesBookRecords.push({
+                    seriesAsin: sb.seriesAsin,
+                    bookAsin: b.asin,
+                    position: sb.position,
+                });
+                if (!seriesMap.has(sb.seriesAsin)) {
+                    seriesMap.set(sb.seriesAsin, {
+                        asin: sb.seriesAsin,
+                        title: sb.seriesTitle,
+                        description: sb.seriesDescription,
+                    });
+                }
+            });
+        }
+    });
+    if (seriesMap.size > 0) {
+        const seriesRecords = Array.from(seriesMap.values());
+        await prisma.series.createMany({ data: seriesRecords, skipDuplicates: true });
+        if (seriesBookRecords.length > 0) {
+            await prisma.seriesBook.createMany({ data: seriesBookRecords });
+        }
+    }
+
+    // 4. Process Authors and connect them to books.
+    const authorMap = new Map<string, { asin: string; name: string; description?: string }>();
+    const bookAuthorConnections: Array<{ bookAsin: string; authorAsin: string }> = [];
+    newBooks.forEach((b) => {
+        if (b.authors && b.authors.length) {
+            b.authors.forEach((author) => {
+                const authorAsin = author.asin || author.name;
+                if (!authorMap.has(authorAsin)) {
+                    authorMap.set(authorAsin, {
+                        asin: authorAsin,
+                        name: author.name,
+                        description: author.description,
+                    });
+                }
+                bookAuthorConnections.push({
+                    bookAsin: b.asin,
+                    authorAsin,
+                });
+            });
+        }
+    });
+    if (authorMap.size > 0) {
+        const authorRecords = Array.from(authorMap.values());
+        await prisma.author.createMany({ data: authorRecords, skipDuplicates: true });
+
+        // Connect authors to books in controlled batches.
+        await processInBatches(
+            bookAuthorConnections,
+            10, // Adjust concurrency here as needed.
+            async (rel) =>
+                prisma.book.update({
+                    where: { asin: rel.bookAsin },
+                    data: { authors: { connect: { asin: rel.authorAsin } } },
+                })
+        );
+    }
+
+    // 5. Process Narrators and connect them to books.
+    const narratorMap = new Map<string, { name: string }>();
+    const bookNarratorConnections: Array<{ bookAsin: string; narratorName: string }> = [];
+    newBooks.forEach((b) => {
+        if (b.narrators && b.narrators.length) {
+            b.narrators.forEach((narrator) => {
+                if (!narratorMap.has(narrator.name)) {
+                    narratorMap.set(narrator.name, { name: narrator.name });
+                }
+                bookNarratorConnections.push({
+                    bookAsin: b.asin,
+                    narratorName: narrator.name,
+                });
+            });
+        }
+    });
+    if (narratorMap.size > 0) {
+        const narratorRecords = Array.from(narratorMap.values());
+        await prisma.narrator.createMany({ data: narratorRecords, skipDuplicates: true });
+        await processInBatches(
+            bookNarratorConnections,
+            10,
+            async (rel) =>
+                prisma.book.update({
+                    where: { asin: rel.bookAsin },
+                    data: { narrators: { connect: { name: rel.narratorName } } },
+                })
+        );
+    }
+
+    // 6. Process Genres and connect them to books.
+    const genreMap = new Map<string, { asin: string; name: string; type: string }>();
+    const bookGenreConnections: Array<{ bookAsin: string; genreAsin: string }> = [];
+    newBooks.forEach((b) => {
+        if (b.genres && b.genres.length) {
+            b.genres.forEach((genre) => {
+                if (!genreMap.has(genre.asin)) {
+                    genreMap.set(genre.asin, {
+                        asin: genre.asin,
+                        name: genre.name,
+                        type: genre.type,
+                    });
+                }
+                bookGenreConnections.push({
+                    bookAsin: b.asin,
+                    genreAsin: genre.asin,
+                });
+            });
+        }
+    });
+    if (genreMap.size > 0) {
+        const genreRecords = Array.from(genreMap.values());
+        await prisma.genre.createMany({ data: genreRecords, skipDuplicates: true });
+        await processInBatches(
+            bookGenreConnections,
+            10,
+            async (rel) =>
+                prisma.book.update({
+                    where: { asin: rel.bookAsin },
+                    data: { genres: { connect: { asin: rel.genreAsin } } },
+                })
+        );
+    }
+
+    return { insertedBooks: newBooks.length };
 }
+
 
 
 

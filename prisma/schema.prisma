@@ -103,12 +103,6 @@ model Series {
   @@index(asin)
 }
 
-model mappedAsins {
-  id        Int     @id @default(autoincrement())
-  asin      String  @unique
-  createdAt DateTime @default(now())
-}
-
 model BookSearch {
   id        Int     @id @default(autoincrement())
   query     String  @unique
