@@ -4,8 +4,8 @@ FROM node:22-alpine
 RUN mkdir -p /app && chown node:node /app
 WORKDIR /app
 
-COPY package.json ./
-COPY package-lock.json ./
+COPY --chown=node:node package.json ./
+COPY --chown=node:node package-lock.json ./
 
 USER node
 RUN npm install
