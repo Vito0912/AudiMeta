@@ -1,5 +1,5 @@
 import {getBooksInSeries, getSeriesAsins} from "../util/series";
-import {app, prisma} from "../app";
+import {app, prisma, regionMap} from "../app";
 import {getBooks} from "../util/bookDB";
 import {Book} from "@prisma/client";
 
@@ -11,28 +11,13 @@ app.get('/series/:asin', async (req, res) => {
 
     const region: string = req.query.region as string;
 
-    if (!region) {
+    if (!region || !regionMap[region.toLowerCase()]) {
         return res.status(400).send("Region not provided");
     }
 
     const forceUpdate = req.query.forceUpdate;
     if (forceUpdate !== undefined) {
-        const series = await prisma.series.findUnique({
-            where: {
-                asin: req.params.asin
-            }
-          })
-
-        if ((series !== undefined && series !== null) && series.updatedAt) {
-            const now = new Date();
-            const diff = now.getTime() - series.updatedAt.getTime();
-            // If a day has passed since the last update, update the series
-            if (diff > 86400000 || (series.updatedAt == series.createdAt)) {
-                return res.send(await updateSeries(req, res, region));
-            }
-        } else if(series === undefined || series === null) {
-            return res.send(await updateSeries(req, res, region));
-        }
+        return res.send(await updateSeries(req, res, region));
     }
 
     return res.send(await getBooksInSeries(req.params.asin))
