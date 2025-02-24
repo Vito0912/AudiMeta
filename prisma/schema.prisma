@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Book {
+  asin      String  @id @unique
+
+  title     String
+  subtitle  String?
+  copyRight String?
+  description String?
+  summary   String?
+  bookFormat    String?
+  lengthMin    Float?
+
+  image     String?
+  explicit   Boolean?
+  isbn      String?
+  language  String?
+  publisherName String?
+
+  rating    Float?
+  regions   String[]
+
+  series SeriesBook[]
+  authors Author[] @relation("AuthorBooks")
+  narrators Narrator[] @relation("NarratorBooks")
+  genres Genre[] @relation("GenreBooks")
+
+  releaseDate DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index(asin)
+}
+
+model SeriesBook {
+  series     Series  @relation(fields: [seriesAsin], references: [asin])
+  seriesAsin String
+
+  book       Book    @relation(fields: [bookAsin], references: [asin])
+  bookAsin   String
+
+  position   Int
+
+  @@id([seriesAsin, bookAsin])
+}
+
+model Genre {
+  asin      String  @id @unique
+  name      String
+  type      String
+
+  books     Book[] @relation("GenreBooks")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index(asin)
+}
+
+model Narrator {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+
+  books     Book[] @relation("NarratorBooks")
+}
+
+model Author {
+  asin      String  @id @unique
+  name      String
+  description String?
+
+  books     Book[] @relation("AuthorBooks")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index(asin)
+}
+
+
+model Series {
+  asin      String  @id @unique
+  title     String
+  description String?
+  books     SeriesBook[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index(asin)
+}
+
+model mappedAsins {
+  id        Int     @id @default(autoincrement())
+  asin      String  @unique
+  createdAt DateTime @default(now())
+}
+
+model BookSearch {
+  id        Int     @id @default(autoincrement())
+  query     String  @unique
+  result    String[]
+  count     Int   @default(1)
+  createdAt DateTime @default(now())
+}

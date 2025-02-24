@@ -1,0 +1,91 @@
+import {BookInput, BookInputFactory, getFullBook, getFullBooks, insertBook} from "./book";
+import axios from "axios";
+import {Book} from "@prisma/client";
+import {HEADERS, regionMap} from "../app";
+
+export async function getBook(asin: string, region: string, req: any) {
+
+    const bookResult = await getFullBook(asin, region);
+
+    if (bookResult) {
+        return bookResult;
+    }
+
+    const reqParams = {
+        'response_groups': 'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders'
+    }
+
+    const url = `https://api.audible${regionMap[region]}/1.0/catalog/products/`;
+
+    const response = await axios.get(url + req.params.asin, {
+        headers: HEADERS,
+        params: reqParams
+    });
+
+    if (response.status === 200 && response.data !== undefined) {
+        const json: any = response.data;
+
+        const parsedBook: BookInput = BookInputFactory.fromAudibleDate(json.product, region.toUpperCase())
+
+        if(parsedBook === undefined) {
+            throw new Error("Book not found");
+        }
+
+        await insertBook(parsedBook);
+
+        console.log("Added book", parsedBook.asin);
+
+        return await getFullBook(asin, region);
+    }
+
+    throw new Error("Failed to fetch book data");
+}
+
+export async function getBooks(asins: string[], region: string, req: any) {
+
+    let bookResults: Book[] = await getFullBooks(asins, region);
+
+    let foundAsins: string[] = [];
+
+    if (bookResults) {
+        if (bookResults.length === asins.length) {
+            return asins.map(asin => bookResults.find(book => book.asin === asin));
+        } else {
+            foundAsins = bookResults.map(book => book.asin);
+        }
+    }
+
+    const notFoundAsins = asins.filter(asin => !foundAsins.includes(asin));
+    const reqParams = {
+        'response_groups': 'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
+        'asins': notFoundAsins.join(',')
+    }
+
+    const url = `https://api.audible${regionMap[region]}/1.0/catalog/products`;
+
+    const response = await axios.get(url, {
+        headers: HEADERS,
+        params: reqParams
+    });
+
+    if (response.status === 200) {
+        const json: any = response.data;
+
+        let parsedBooksList: BookInput[] = [];
+        for (const product of json.products) {
+            const parsedBook: BookInput = BookInputFactory.fromAudibleDate(product, region.toUpperCase())
+
+            if(parsedBook !== undefined) {
+                parsedBooksList.push(parsedBook);
+                console.log("Added book", parsedBook.asin);
+            }
+        }
+        await insertBooks(parsedBooksList);
+
+        const allBooks = [...bookResults, ...await getFullBooks(notFoundAsins, region)];
+
+        return asins.map(asin => allBooks.find(book => book.asin === asin));
+    }
+
+    throw new Error("Failed to fetch book data");
+}
