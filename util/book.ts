@@ -101,6 +101,10 @@ export class BookInputFactory {
     }
 }
 
+/**
+ * Inserts a book into the database.
+ * @param data
+ */
 export async function insertBook(data: BookInput) {
     if (!data.asin) {
         console.log("No asin provided");
@@ -200,7 +204,11 @@ export async function insertBook(data: BookInput) {
     });
 }
 
-
+/**
+ * Inserts multiple books into the database.
+ * TODO: Optimize this function to reduce the number of DB requests.
+ * @param data
+ */
 export async function insertBooks(data: BookInput[]) {
     // Helper to process items in batches to limit concurrent DB requests.
     async function processInBatches<T>(
@@ -381,8 +389,11 @@ export async function insertBooks(data: BookInput[]) {
 }
 
 
-
-
+/**
+ * Returns a book based on the asin
+ * @param asin
+ * @param region
+ */
 export async function getFullBook(asin: string, region: string): Promise<Book | null> {
     return prisma.book.findFirst({
         where: {asin: asin
@@ -401,6 +412,9 @@ export async function getFullBook(asin: string, region: string): Promise<Book | 
     });
 }
 
+/**
+ * Returns all books that match the asin and caches them in the database
+ */
 export async function getFullBooks(asins: string[], region: string): Promise<Book[] | null> {
     return prisma.book.findMany({
         where: {asin: {in: asins}
@@ -419,19 +433,32 @@ export async function getFullBooks(asins: string[], region: string): Promise<Boo
     });
 }
 
+/**
+ * Returns books from other regions based on title (subtitle or description) and author
+ *
+ * @param title - Title of the book
+ * @param author - Author of the book
+ */
 export async function getBooksFromOtherRegions(title: string, author: string) {
     const authorFilter = author ? { authors: { some: { name: author } } } : undefined;
+
+    const titleFilter = title ? {
+        OR: [
+            {subtitle: {contains: title, mode: "insensitive"}},
+            {title: {contains: title, mode: "insensitive"}},
+            {summary: {contains: title, mode: "insensitive"}},
+        ],
+    } : undefined;
+
+    if(!titleFilter && !authorFilter) {
+        throw new Error("Title or author must be provided");
+    }
 
     return prisma.book.findMany({
         where: {
             AND: [
-                {
-                    OR: [
-                        {subtitle: {contains: title, mode: "insensitive"}},
-                        {title: {contains: title, mode: "insensitive"}},
-                        {summary: {contains: title, mode: "insensitive"}},
-                    ],
-                },
+                // @ts-ignore
+                ...[titleFilter ?? {}],
                 ...[authorFilter ?? {}],
             ]
         },
