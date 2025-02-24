@@ -23,14 +23,14 @@ app.get('/series/:asin', async (req, res) => {
             }
           })
 
-        if (series !== undefined && series.updatedAt) {
+        if ((series !== undefined && series !== null) && series.updatedAt) {
             const now = new Date();
             const diff = now.getTime() - series.updatedAt.getTime();
             // If a day has passed since the last update, update the series
             if (diff > 86400000) {
                 return res.send(await updateSeries(req, res, region));
             }
-        } else if(series === undefined) {
+        } else if(series === undefined || series === null) {
             return res.send(await updateSeries(req, res, region));
         }
     }
