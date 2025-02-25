@@ -33,8 +33,8 @@ app.use(express.json());
 app.use(oapi);
 
 const limiter: RateLimitRequestHandler = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    limit: 100,
+    windowMs: 60 * 1000,
+    limit: 150,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
 })

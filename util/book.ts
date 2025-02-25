@@ -66,7 +66,7 @@ export class BookInputFactory {
                     // First one is tag, all others are genres
                     cat.ladder.forEach((genre: any, index: number) => {
                         genres.push({
-                            asin: genre.asin,
+                            asin: genre.id,
                             name: genre.name,
                             type: index === 0 ? "Tags" : cat.root,
                         });
