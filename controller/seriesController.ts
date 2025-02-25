@@ -45,5 +45,6 @@ async function updateSeries(req: any, res: any, region: string) {
             books = books.concat(await getBooks(chunk, region, req));
         }
 
-        return books;
+        // Only return not null books
+        return books.filter(book => book != null);
 }

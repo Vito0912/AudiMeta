@@ -84,7 +84,7 @@ export async function getBooks(asins: string[], region: string, req: any) {
 
         const allBooks = [...bookResults, ...await getFullBooks(notFoundAsins, region)];
 
-        return asins.map(asin => allBooks.find(book => book.asin === asin));
+        return asins.map(asin => allBooks.find(book => book.asin === asin)).filter(book => book !== undefined);
     }
 
     throw new Error("Failed to fetch book data");

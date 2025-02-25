@@ -40,11 +40,7 @@ app.get('/book/:asin',
     // @ts-ignore
     async (req, res) => {
     const asin: string = req.params.asin;
-    const region: string = (req.query.region || 'US').toString();
-
-    if (!regionMap[region.toLowerCase()]) {
-        return res.status(400).send("Invalid region");
-    }
+    const region: string = (req.query.region || 'US').toString().toLowerCase();
 
     try {
         const book = await getBook(asin, region, req);
@@ -98,7 +94,7 @@ app.get('/book',
     // @ts-ignore
     async (req, res) => {
     const asinsQuery: string = req.query.asins as string;
-    const region: string = (req.query.region || 'US').toString();
+    const region: string = (req.query.region || 'US').toString().toLowerCase();
 
     if(!asinsQuery) {
         return res.status(400).send("No asins provided");

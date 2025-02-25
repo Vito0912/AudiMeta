@@ -63,11 +63,13 @@ export class BookInputFactory {
         if (product.category_ladders && Array.isArray(product.category_ladders)) {
             product.category_ladders.forEach((cat: any) => {
                 if (cat.ladder && Array.isArray(cat.ladder) && cat.ladder.length) {
-                    const last = cat.ladder[cat.ladder.length - 1];
-                    genres.push({
-                        asin: last.id,
-                        name: last.name,
-                        type: cat.root,
+                    // First one is tag, all others are genres
+                    cat.ladder.forEach((genre: any, index: number) => {
+                        genres.push({
+                            asin: genre.asin,
+                            name: genre.name,
+                            type: index === 0 ? "Tags" : cat.root,
+                        });
                     });
                 }
             });

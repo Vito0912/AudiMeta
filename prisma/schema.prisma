@@ -110,3 +110,13 @@ model BookSearch {
   count     Int   @default(1)
   createdAt DateTime @default(now())
 }
+
+model Chapter {
+  id        Int     @id @default(autoincrement())
+  bookAsin  String  @unique
+
+  content   Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
