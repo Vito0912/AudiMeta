@@ -43,34 +43,7 @@ const limiter: RateLimitRequestHandler = rateLimit({
 console.log("limiter", limiter)
 app.use(limiter)
 
-app.use((req, res, next) => {
-
-    if (req.query.asin) {
-        // Check if asin is 10 characters long
-        if (req.params.asin.length !== 10) {
-            res.status(400).send("Invalid ASIN");
-            return;
-        }
-    }
-    if (req.query.asins) {
-        const asins = req.query.asins as string;
-        // Check if asin is 10 characters long
-        if (req.query.asins.length === 0 || asins.split(',').some((asin: string) => asin.length !== 10)) {
-            res.status(400).send("One or more ASINs are invalid");
-            return;
-        }
-    }
-    if (req.query.region) {
-        const region = req.query.region as string;
-        if (!regionMap[region.toLowerCase()]) {
-            res.status(400).send("Invalid region");
-            return;
-        }
-    }
-
-    next()
-})
-
+require('./util/validationMiddleware');
 
 export const regionMap = {
     us: '.com',

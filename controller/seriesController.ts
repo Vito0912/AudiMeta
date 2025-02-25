@@ -3,6 +3,7 @@ import {app, oapi, prisma, regionMap} from "../app";
 import {getBooks} from "../util/bookDB";
 import {Book} from "@prisma/client";
 import {oaBook, oaRegion} from "../util/openApiModels";
+import {BookModel} from "../models/type_model";
 
 /**
  * Returns all books in a series
@@ -53,7 +54,11 @@ app.get('/series/books/:asin',
         return;
     }
 
-    res.send(await getBooksInSeries(req.params.asin));
+    let books: BookModel[] = await getBooksInSeries(req.params.asin);
+
+    // TODO: Add sorting by position in series
+
+    res.send(books);
 });
 
 async function updateSeries(req: any, res: any, region: string) {
@@ -72,7 +77,7 @@ async function updateSeries(req: any, res: any, region: string) {
             return resultArray
         }, []);
 
-        let books: Book[] = [];
+        let books: BookModel[] = [];
 
         for (const chunk of asins) {
             books = books.concat(await getBooks(chunk, region, req));

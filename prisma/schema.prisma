@@ -36,7 +36,7 @@ model Book {
   regions   String[]
 
   series SeriesBook[]
-  authors Author[] @relation("AuthorBooks")
+  authors BookAuthor[]
   narrators Narrator[] @relation("NarratorBooks")
   genres Genre[] @relation("GenreBooks")
 
@@ -79,18 +79,30 @@ model Narrator {
 }
 
 model Author {
-  asin      String  @id @unique
-  name      String
+  asin String
+  region String
+  name String
   description String?
 
-  books     Book[] @relation("AuthorBooks")
+  books BookAuthor[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@id([asin, region])
   @@index(asin)
 }
 
+model BookAuthor {
+  book Book @relation(fields: [bookAsin], references: [asin])
+  bookAsin String
+
+  author Author @relation(fields: [authorAsin, authorRegion], references: [asin, region])
+  authorAsin String
+  authorRegion String
+
+  @@id([bookAsin, authorAsin, authorRegion])
+}
 
 model Series {
   asin      String  @id @unique
@@ -112,8 +124,7 @@ model BookSearch {
 }
 
 model Chapter {
-  id        Int     @id @default(autoincrement())
-  bookAsin  String  @unique
+  bookAsin  String  @unique @id
 
   content   Json
 

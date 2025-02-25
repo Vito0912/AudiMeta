@@ -1,11 +1,11 @@
-import {BookInput, BookInputFactory, getFullBook, getFullBooks, insertBook, insertBooks} from "./book";
+import {BookInput, BookInputFactory, getFullBooks, insertBook, insertBooks} from "./book";
 import axios from "axios";
-import {Book} from "@prisma/client";
 import {HEADERS, regionMap} from "../app";
+import {BookModel} from "../models/type_model";
 
-export async function getBook(asin: string, region: string, req: any) {
+export async function getBook(asin: string, region: string, req: any): Promise<BookModel> {
 
-    const bookResult = await getFullBook(asin, region);
+    const bookResult: BookModel = (await getFullBooks(asin, region)) as BookModel;
 
     if (bookResult) {
         return bookResult;
@@ -35,7 +35,7 @@ export async function getBook(asin: string, region: string, req: any) {
 
         console.log("Added book", parsedBook.asin);
 
-        return await getFullBook(asin, region);
+        return await getFullBooks(asin, region) as BookModel;
     }
 
     throw new Error("Failed to fetch book data");
@@ -43,7 +43,7 @@ export async function getBook(asin: string, region: string, req: any) {
 
 export async function getBooks(asins: string[], region: string, req: any) {
 
-    let bookResults: Book[] = await getFullBooks(asins, region);
+    let bookResults: BookModel[] = await getFullBooks(asins, region) as BookModel[];
 
     let foundAsins: string[] = [];
 
@@ -82,7 +82,7 @@ export async function getBooks(asins: string[], region: string, req: any) {
         }
         await insertBooks(parsedBooksList);
 
-        const allBooks = [...bookResults, ...await getFullBooks(notFoundAsins, region)];
+        const allBooks: BookModel[] = [...bookResults, ...(await getFullBooks(notFoundAsins, region) as BookModel[])];
 
         return asins.map(asin => allBooks.find(book => book.asin === asin)).filter(book => book !== undefined);
     }

@@ -1,5 +1,6 @@
 import {Book} from "@prisma/client";
 import {prisma} from "../app";
+import {BookModel, mapBook} from "../models/type_model";
 
 export type BookInput = {
     asin: string;
@@ -16,9 +17,9 @@ export type BookInput = {
     language?: string;
     publisherName: string;
     rating?: number;
-    regions?: string[];
+    regions: string[];
     releaseDate?: Date;
-
+    authorRegion: string;
     seriesBooks?: {
         seriesAsin: string;
         seriesTitle: string;
@@ -96,6 +97,7 @@ export class BookInputFactory {
             regions: [region],
             releaseDate: product.release_date ? new Date(product.release_date) : undefined,
             seriesBooks,
+            authorRegion: region,
             authors: product.authors,
             narrators: product.narrators,
             genres,
@@ -150,17 +152,27 @@ export async function insertBook(data: BookInput) {
                 : undefined,
             authors: data.authors?.length
                 ? {
-                    connectOrCreate: data.authors.map((author) => {
+                    create: data.authors.map((author) => {
                         if (!author.asin) {
                             author.asin = author.name;
                         }
                         return {
-                            where: { asin: author.asin },
-                            create: {
-                                asin: author.asin,
-                                name: author.name,
-                                description: author.description,
-                            },
+                            author: {
+                                connectOrCreate: {
+                                    where: {
+                                        asin_region: {
+                                            asin: author.asin,
+                                            region: data.authorRegion
+                                        }
+                                    },
+                                    create: {
+                                        asin: author.asin,
+                                        region: data.authorRegion,
+                                        name: author.name,
+                                        description: author.description,
+                                    },
+                                }
+                            }
                         };
                     }),
                 }
@@ -309,16 +321,26 @@ export async function insertBooks(data: BookInput[]) {
     });
     if (authorMap.size > 0) {
         const authorRecords = Array.from(authorMap.values());
-        await prisma.author.createMany({ data: authorRecords, skipDuplicates: true });
+        await prisma.author.createMany({
+            data: authorRecords.map(author => ({
+                asin: author.asin,
+                region: data[0].authorRegion,
+                name: author.name,
+                description: author.description
+            })),
+            skipDuplicates: true
+        });
 
-        // Connect authors to books in controlled batches.
         await processInBatches(
             bookAuthorConnections,
-            10, // Adjust concurrency here as needed.
+            10,
             async (rel) =>
-                prisma.book.update({
-                    where: { asin: rel.bookAsin },
-                    data: { authors: { connect: { asin: rel.authorAsin } } },
+                prisma.bookAuthor.create({
+                    data: {
+                        bookAsin: rel.bookAsin,
+                        authorAsin: rel.authorAsin,
+                        authorRegion: data[0].authorRegion
+                    }
                 })
         );
     }
@@ -392,35 +414,15 @@ export async function insertBooks(data: BookInput[]) {
 
 
 /**
- * Returns a book based on the asin
- * @param asin
- * @param region
- */
-export async function getFullBook(asin: string, region: string): Promise<Book | null> {
-    return prisma.book.findFirst({
-        where: {asin: asin
-            //, regions: {has: region.toUpperCase()}
-            },
-        include: {
-            series: {
-                include: {
-                    series: true,
-                },
-            },
-            authors: true,
-            narrators: true,
-            genres: true,
-        },
-    });
-}
-
-/**
  * Returns all books that match the asin and caches them in the database
  */
-export async function getFullBooks(asins: string[], region: string): Promise<Book[] | null> {
-    return prisma.book.findMany({
-        where: {asin: {in: asins}
-            //, regions: {has: region.toUpperCase()}
+export async function getFullBooks(asins: string[] | string, region: string | undefined): Promise<BookModel[] | BookModel | null> {
+
+    const asinsArray = Array.isArray(asins) ? asins : [asins];
+    const books = await prisma.book.findMany({
+        where: {
+            asin: {in: asinsArray},
+            // ...(region !== undefined ? {has: region.toUpperCase()} : undefined)
         },
         include: {
             series: {
@@ -428,11 +430,27 @@ export async function getFullBooks(asins: string[], region: string): Promise<Boo
                     series: true,
                 },
             },
-            authors: true,
+            authors: {
+                include: {
+                    author: true
+                }
+            },
             narrators: true,
             genres: true,
         },
     });
+
+    if (!books) {
+        return null;
+    }
+
+    if (Array.isArray(asins)) {
+        return books.map(book => (mapBook(book)));
+    }
+    if (books.length === 0) {
+        return null;
+    }
+    return mapBook(books[0]);
 }
 
 /**
@@ -442,7 +460,15 @@ export async function getFullBooks(asins: string[], region: string): Promise<Boo
  * @param author - Author of the book
  */
 export async function getBooksFromOtherRegions(title: string, author: string) {
-    const authorFilter = author ? { authors: { some: { name: author } } } : undefined;
+    const authorFilter = author ? {
+        authors: {
+            some: {
+                author: {
+                    name: author
+                }
+            }
+        }
+    } : undefined;
 
     const titleFilter = title ? {
         OR: [
@@ -456,7 +482,7 @@ export async function getBooksFromOtherRegions(title: string, author: string) {
         throw new Error("Title or author must be provided");
     }
 
-    return prisma.book.findMany({
+    const books = await prisma.book.findMany({
         where: {
             AND: [
                 // @ts-ignore
@@ -470,9 +496,19 @@ export async function getBooksFromOtherRegions(title: string, author: string) {
                     series: true
                 }
             },
-            authors: true,
+            authors: {
+                include: {
+                    author: true
+                }
+            },
             narrators: true,
             genres: true
         }
     });
+
+    if (!books || books.length === 0) {
+        return [];
+    }
+
+    return books.map(book => (mapBook(book)));
 }

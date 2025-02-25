@@ -1,10 +1,11 @@
 import {Book} from "@prisma/client";
 import {HEADERS, prisma} from "../app";
 import axios from "axios";
+import {BookModel, mapBook} from "../models/type_model";
 
-export async function getBooksInSeries(seriesAsin: string): Promise<Book[]> {
+export async function getBooksInSeries(seriesAsin: string): Promise<BookModel[]> {
     console.log("Getting books in series", seriesAsin);
-    return prisma.book.findMany({
+    const books = await prisma.book.findMany({
         where: {
             series: {
                 some: {
@@ -20,11 +21,21 @@ export async function getBooksInSeries(seriesAsin: string): Promise<Book[]> {
                     series: true,
                 },
             },
-            authors: true,
+            authors: {
+                include: {
+                    author: true
+                }
+            },
             narrators: true,
             genres: true,
         },
     });
+
+    if (books == null || books.length === 0) {
+        return [];
+    }
+
+    return books.map(book => mapBook(book));
 }
 
 export async function getSeriesAsins(asin: string): Promise<string[]> {

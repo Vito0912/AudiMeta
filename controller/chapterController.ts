@@ -34,6 +34,19 @@ app.get('/chapters/:asin', async (req, res) => {
         chapterInfo.runtimeLengthMs = chapterMeta.runtime_length_ms;
         chapterInfo.runtimeLengthSec = chapterMeta.runtime_length_sec;
 
+        await prisma.chapter.upsert({
+            where: {
+                bookAsin: asin
+            },
+            update: {
+                content: chapterInfo.chapters,
+            },
+            create: {
+                bookAsin: asin,
+                content: chapterInfo.chapters
+            }
+        });
+
         res.send(chapterInfo);
     }
 });
