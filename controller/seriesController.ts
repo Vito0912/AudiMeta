@@ -1,26 +1,59 @@
 import {getBooksInSeries, getSeriesAsins} from "../util/series";
-import {app, prisma, regionMap} from "../app";
+import {app, oapi, prisma, regionMap} from "../app";
 import {getBooks} from "../util/bookDB";
 import {Book} from "@prisma/client";
+import {oaBook, oaRegion} from "../util/openApiModels";
 
 /**
  * Returns all books in a series
  */
 // @ts-ignore
-app.get('/series/:asin', async (req, res) => {
+app.get('/series/books/:asin',
+    oapi.path({
+        tags: ['series'],
+        summary: 'Gets all books in a series',
+        parameters: [
+            oaRegion,
+            {
+                name: 'asin',
+                in: 'path',
+                description: 'The asin of the series',
+                required: true,
+                schema: {
+                    type: 'string'
+                }
+            }
+        ],
+        responses: {
+            200: {
+                description: 'Server reachable',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: oaBook
+                        }
+                    }
+                }
+            }
+        }
+    }),
+    async (req, res) => {
 
     const region: string = req.query.region as string;
 
     if (!region || !regionMap[region.toLowerCase()]) {
-        return res.status(400).send("Region not provided");
+         res.status(400).send("Region not provided");
+        return;
     }
 
     const forceUpdate = req.query.forceUpdate;
     if (forceUpdate !== undefined) {
-        return res.send(await updateSeries(req, res, region));
+         res.send(await updateSeries(req, res, region));
+        return;
     }
 
-    return res.send(await getBooksInSeries(req.params.asin))
+    res.send(await getBooksInSeries(req.params.asin));
 });
 
 async function updateSeries(req: any, res: any, region: string) {
