@@ -12,6 +12,12 @@ type SeriesModel = {
     description: string | null;
 }
 
+export type SeriesInfoModel = {
+    asin: string;
+    title: string;
+    description: string | undefined;
+}
+
 type NarratorModel = {
     name: string;
 }

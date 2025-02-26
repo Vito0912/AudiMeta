@@ -39,11 +39,6 @@ app.get('/chapters/:asin', async (req, res) => {
             }
         });
 
-        // TODO: Check why not added
-        chapterInfo.isAccurate = chapterMeta.is_accurate;
-        chapterInfo.runtimeLengthMs = chapterMeta.runtime_length_ms;
-        chapterInfo.runtimeLengthSec = chapterMeta.runtime_length_sec;
-
         await prisma.chapter.upsert({
             where: {
                 bookAsin: asin

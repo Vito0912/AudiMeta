@@ -4,6 +4,7 @@ import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import {Book} from "@prisma/client";
 import {getBooks} from "../util/bookDB";
 import {oaBook, oaRegion} from "../util/openApiModels";
+import {BookModel} from "../models/type_model";
 
 
 /**
@@ -200,7 +201,7 @@ app.get('/search', oapi.path({
             }
         }
 
-        const books: Book[] = await getBooks(asins, region, req);
+        const books: BookModel[] = await getBooks(asins, region, req);
 
         if (books.length === 0) {
             console.log("No books found for", key);
