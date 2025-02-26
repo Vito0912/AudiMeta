@@ -1,6 +1,6 @@
 import {app, oapi, regionMap} from "../app";
 import {getBook, getBooks} from "../util/bookDB";
-import {oaBook, oaRegion} from "../util/openApiModels";
+import {oaAsinPath, oaAsinQuery, oaBook, oaRegion} from "../util/openApiModels";
 
 /**
  * Returns all books that match the asin and caches them in the database
@@ -13,19 +13,11 @@ app.get('/book/:asin',
         summary: 'Get a book',
         parameters: [
             oaRegion,
-            {
-                name: 'asin',
-                in: 'path',
-                description: 'The asin of the book',
-                required: true,
-                schema: {
-                    type: 'string'
-                }
-            }
+            oaAsinPath
         ],
         responses: {
             200: {
-                description: 'Server reachable',
+                description: 'Book found',
                 content: {
                     'application/json': {
                         schema: {
@@ -64,19 +56,11 @@ app.get('/book',
         summary: 'Get multiple books',
         parameters: [
             oaRegion,
-            {
-                name: 'asins',
-                in: 'query',
-                description: 'The asins of the book in a comma separated list',
-                required: true,
-                schema: {
-                    type: 'string'
-                }
-            }
+            oaAsinQuery
         ],
         responses: {
             200: {
-                description: 'Server reachable',
+                description: 'Books',
                 content: {
                     'application/json': {
                         schema: {

@@ -1,10 +1,29 @@
 import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import {AuthorModel, GenreModel, mapAuthors} from "../models/type_model";
 import {getAuthors, upsertAuthor} from "../util/authors";
+import {oaAsinPath, oaAuthor, oaBook, oaRegion} from "../util/openApiModels";
 
 app.get('/author/:asin',
     oapi.path({
-
+        tags: ['author'],
+        summary: 'Get an author',
+        parameters: [
+            oaRegion,
+            oaAsinPath
+        ],
+        responses: {
+            200: {
+                description: 'Book found',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: oaAuthor
+                        }
+                    }
+                }
+            }
+        }
     }),
     async (req, res) => {
 

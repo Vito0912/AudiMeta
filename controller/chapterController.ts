@@ -1,11 +1,34 @@
-import {app, HEADERS, prisma, regionMap} from "../app";
+import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import axios from "axios";
 import {mapChapter} from "../models/type_model";
+import {oaAsinQuery, oaBook, oaChapter, oaRegion} from "../util/openApiModels";
 
 /**
  * Returns the chapters of a book
  */
-app.get('/chapters/:asin', async (req, res) => {
+app.get('/chapters/:asin',
+    oapi.path({
+        tags: ['chapter'],
+        summary: 'Get the chapters of a book',
+        parameters: [
+            oaRegion,
+            oaAsinQuery
+        ],
+        responses: {
+            200: {
+                description: 'Chapters found',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: oaChapter
+                        }
+                    }
+                }
+            }
+        }
+    }),
+    async (req, res) => {
     const asin: string = req.params.asin;
     const region: string = (req.query.region || 'US').toString().toLowerCase();
 
