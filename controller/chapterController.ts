@@ -1,5 +1,6 @@
 import {app, HEADERS, prisma, regionMap} from "../app";
 import axios from "axios";
+import {mapChapter} from "../models/type_model";
 
 /**
  * Returns the chapters of a book
@@ -7,6 +8,15 @@ import axios from "axios";
 app.get('/chapters/:asin', async (req, res) => {
     const asin: string = req.params.asin;
     const region: string = (req.query.region || 'US').toString().toLowerCase();
+
+
+    const chapter = await prisma.chapter.findUnique({
+        where: {bookAsin: asin}});
+
+    if (chapter) {
+        res.send(mapChapter(chapter));
+        return;
+    }
 
     const URL = `https://api.audible${regionMap[region]}/1.0/content/${asin}/metadata`;
 
@@ -39,11 +49,11 @@ app.get('/chapters/:asin', async (req, res) => {
                 bookAsin: asin
             },
             update: {
-                content: chapterInfo.chapters,
+                content: chapterInfo,
             },
             create: {
                 bookAsin: asin,
-                content: chapterInfo.chapters
+                content: chapterInfo
             }
         });
 

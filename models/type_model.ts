@@ -104,3 +104,19 @@ export function mapBook(book: any): BookModel {
         }))
     };
 }
+
+export function mapChapter(chapter: any): ChapterModel {
+    console.log(chapter);
+    return {
+        asin: chapter.bookAsin,
+        chapters: chapter.content.map((chapter: any) => ({
+            title: chapter.title,
+            lengthMs: chapter.lengthMs,
+            startOffsetMs: chapter.startOffsetMs,
+            startOffsetSec: chapter.startOffsetSec
+        })),
+        isAccurate: chapter.content.is_accurate,
+        runtimeLengthMs: chapter.content.runtime_length_ms,
+        runtimeLengthSec: chapter.content.runtime_length_sec
+    };
+}
