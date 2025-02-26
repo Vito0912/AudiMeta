@@ -2,6 +2,21 @@ import {Book} from "@prisma/client";
 import {prisma} from "../app";
 import {BookModel, mapBook} from "../models/type_model";
 
+const bookInclude = {
+        series: {
+            include: {
+                series: true,
+            },
+        },
+        authors: {
+            include: {
+                author: true
+            }
+        },
+        narrators: true,
+        genres: true,
+    };
+
 export type BookInput = {
     asin: string;
     title: string;
@@ -82,7 +97,7 @@ export class BookInputFactory {
             subtitle: product.subtitle,
             copyRight: product.copyright,
             description: product.extended_product_description,
-            summary: product.merchandising_summary,
+            summary: product.publisher_summary,
             bookFormat: product.format_type,
             lengthMin: product.runtime_length_min,
             image: product.product_images ? product.product_images["500"] : undefined,
@@ -114,9 +129,8 @@ export async function insertBook(data: BookInput) {
         console.log("No asin provided");
     }
 
-    await prisma.book.upsert({
-        where: { asin: data.asin },
-        create: {
+    await prisma.book.create({
+        data: {
             asin: data.asin,
             title: data.title,
             subtitle: data.subtitle,
@@ -197,23 +211,6 @@ export async function insertBook(data: BookInput) {
                     })),
                 }
                 : undefined,
-        },
-        update: {
-            title: data.title,
-            subtitle: data.subtitle,
-            copyRight: data.copyRight,
-            description: data.description,
-            summary: data.summary,
-            bookFormat: data.bookFormat,
-            lengthMin: data.lengthMin,
-            image: data.image,
-            explicit: data.explicit,
-            isbn: data.isbn,
-            language: data.language,
-            publisherName: data.publisherName,
-            rating: data.rating,
-            regions: data.regions || [],
-            releaseDate: data.releaseDate,
         },
     });
 }
@@ -424,20 +421,7 @@ export async function getFullBooks(asins: string[] | string, region: string | un
             asin: {in: asinsArray},
             // ...(region !== undefined ? {has: region.toUpperCase()} : undefined)
         },
-        include: {
-            series: {
-                include: {
-                    series: true,
-                },
-            },
-            authors: {
-                include: {
-                    author: true
-                }
-            },
-            narrators: true,
-            genres: true,
-        },
+        include: bookInclude
     });
 
     if (!books) {
@@ -490,24 +474,32 @@ export async function getBooksFromOtherRegions(title: string, author: string) {
                 ...[authorFilter ?? {}],
             ]
         },
-        include: {
-            series: {
-                include: {
-                    series: true
-                }
-            },
-            authors: {
-                include: {
-                    author: true
-                }
-            },
-            narrators: true,
-            genres: true
-        }
+        include: bookInclude
     });
 
     if (!books || books.length === 0) {
         return [];
+    }
+
+    return books.map(book => (mapBook(book)));
+}
+
+export async function getBooksFromAuthor(authorAsin: string, region: string, limit: number, offset: number): Promise<BookModel[] | undefined> {
+    const books = (await prisma.book.findMany({
+        where: {
+            authors: {
+                some: {
+                    authorAsin: authorAsin
+                }
+            }
+        },
+        take: limit,
+        skip: offset,
+        include: bookInclude
+    }))
+
+    if (!books) {
+        return undefined;
     }
 
     return books.map(book => (mapBook(book)));

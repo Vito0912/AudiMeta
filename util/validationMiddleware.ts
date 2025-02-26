@@ -27,6 +27,13 @@ app.use((req, res, next) => {
             return;
         }
     }
+    if (req.query.limit) {
+        const limit = parseInt(req.query.limit as string);
+        if (isNaN(limit) || limit <= 0 || limit > 50) {
+            res.status(400).send("Invalid limit");
+            return;
+        }
+    }
 
     next()
 })

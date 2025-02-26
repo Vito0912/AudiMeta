@@ -48,6 +48,7 @@ export async function getBooks(asins: string[], region: string, req: any) {
     let foundAsins: string[] = [];
 
     if (bookResults) {
+        console.log(bookResults.length, asins.length);
         if (bookResults.length === asins.length) {
             return asins.map(asin => bookResults.find(book => book.asin === asin));
         } else {
@@ -56,6 +57,12 @@ export async function getBooks(asins: string[], region: string, req: any) {
     }
 
     const notFoundAsins = asins.filter(asin => !foundAsins.includes(asin));
+
+    if (notFoundAsins.length === 0) {
+        console.log(bookResults.length, asins.length);
+        return asins.map(asin => bookResults.find(book => book.asin === asin));
+    }
+
     const reqParams = {
         'response_groups': 'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
         'asins': notFoundAsins.join(',')

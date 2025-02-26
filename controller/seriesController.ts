@@ -30,7 +30,10 @@ app.get('/series/books/:asin',
                     'application/json': {
                         schema: {
                             type: 'array',
-                            items: oaBook
+                            items: {
+                                type: 'object',
+                                properties: oaBook
+                            }
                         }
                     }
                 }
@@ -73,7 +76,10 @@ app.get('/series/:asin',
                 description: 'Server reachable',
                 content: {
                     'application/json': {
-                        schema: oaSeries
+                        schema: {
+                            type: 'object',
+                            properties: oaSeries
+                        }
                     }
                 }
             }

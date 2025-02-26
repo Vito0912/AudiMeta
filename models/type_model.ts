@@ -90,26 +90,26 @@ export function mapBook(book: any): BookModel {
         releaseDate: book.releaseDate,
 
         rating: book.rating,
-        series: book.series.map(series => ({
+        series: book.series ? book.series.map(series => ({
             asin: series.series.asin,
             name: series.series.title,
             position: series.position,
             description: series.series.description
-        })),
-        authors: book.authors.map(bookToAuthor => ({
+        })) : null,
+        authors: book.authors ? book.authors.map(bookToAuthor => ({
             asin: bookToAuthor.author.asin,
             region: bookToAuthor.author.region,
             name: bookToAuthor.author.name,
             description: bookToAuthor.author.description
-        })),
-        narrators: book.narrators.map(narrator => ({
+        })) : null,
+        narrators: book.narrators ? book.narrators.map(narrator => ({
             name: narrator.name
-        })),
-        genres: book.genres.map(genre => ({
+        })) : null,
+        genres: book.genres ? book.genres.map(genre => ({
             asin: genre.asin,
             name: genre.name,
             type: genre.type
-        }))
+        })) : null
     };
 }
 
@@ -140,6 +140,6 @@ export function mapAuthors(author: any): AuthorModel {
             asin: genre.genre.asin,
             name: genre.genre.name,
             type: genre.genre.type
-        })) : []
+        })) : null
     };
 }

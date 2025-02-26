@@ -12,7 +12,7 @@ export const oaAuthor = {
     name: { type: 'string', required: true, description: 'The name of the author' },
     description: { type: 'string', description: 'The description of the author' },
     image: { type: 'string', description: 'The image of the author. 512x512 resolution' },
-    genres: { type: 'array', items: oaGenre, description: 'The genres of the author' }
+    genres: { type: 'array', items: {type: 'object', properties: oaGenre}, description: 'The genres of the author' }
 }
 
 export const oaSeries = {
@@ -60,10 +60,10 @@ export const oaBook = {
 
     rating: { type: 'number', description: 'The rating of the book' },
 
-    series: { type: 'array', items: oaSeries, description: 'The series of the book' },
-    authors: { type: 'array', items: oaAuthor, description: 'The authors of the book' },
-    narrators: { type: 'array', items: oaNarrator, description: 'The narrators of the book' },
-    genres: { type: 'array', items: oaGenre, description: 'The genres of the book' },
+    series: { type: 'array', items: {type: 'object', properties: oaSeries}, description: 'The series of the book' },
+    authors: { type: 'array', items: {type: 'object', properties: oaAuthor}, description: 'The authors of the book' },
+    narrators: { type: 'array', items: {type: 'object', properties: oaNarrator}, description: 'The narrators of the book' },
+    genres: { type: 'array', items: {type: 'object', properties: oaGenre}, description: 'The genres of the book' },
 
     releaseDate: { type: 'string', description: 'The release date of the book' },
 };
@@ -95,5 +95,17 @@ export const oaAsinQuery = {
     required: true,
     schema: {
         type: 'string'
+    }
+}
+
+export const oaLimit = {
+    name: 'limit',
+    in: 'query',
+    description: 'The limit of books to return',
+    required: true,
+    schema: {
+        type: 'number',
+        minimum: 1,
+        maximum: 50
     }
 }
