@@ -64,6 +64,7 @@ model Genre {
   type      String
 
   books     Book[] @relation("GenreBooks")
+  authors   AuthorGenre[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,11 +79,25 @@ model Narrator {
   books     Book[] @relation("NarratorBooks")
 }
 
+model AuthorGenre {
+  author Author @relation(fields: [authorAsin, authorRegion], references: [asin, region])
+  authorAsin String
+  authorRegion String
+
+  genre Genre @relation(fields: [genreAsin], references: [asin])
+  genreAsin String
+
+  @@id([authorAsin, authorRegion, genreAsin])
+}
+
 model Author {
   asin String
   region String
   name String
+
+  image String?
   description String?
+  genres AuthorGenre[]
 
   books BookAuthor[]
 

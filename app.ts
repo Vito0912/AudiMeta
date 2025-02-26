@@ -90,6 +90,7 @@ require('./controller/bookController');
 require('./controller/searchController');
 require('./controller/seriesController');
 require('./controller/chapterController');
+require('./controller/authorController');
 
 app.use('/', oapi.swaggerui())
 

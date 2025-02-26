@@ -1,8 +1,10 @@
-type AuthorModel = {
+export type AuthorModel = {
     asin: string;
     region: string;
     name: string;
     description: string | null;
+    image: string | null;
+    genres: GenreModel[] | null;
 }
 
 type SeriesModel = {
@@ -22,7 +24,7 @@ type NarratorModel = {
     name: string;
 }
 
-type GenreModel = {
+export type GenreModel = {
     asin: string;
     name: string;
     type: string;
@@ -124,5 +126,20 @@ export function mapChapter(chapter: any): ChapterModel {
         isAccurate: chapter.content.is_accurate,
         runtimeLengthMs: chapter.content.runtime_length_ms,
         runtimeLengthSec: chapter.content.runtime_length_sec
+    };
+}
+
+export function mapAuthors(author: any): AuthorModel {
+    return {
+        asin: author.asin,
+        region: author.region,
+        name: author.name,
+        description: author.description,
+        image: author.image,
+        genres: author.genres ? author.genres.map(genre => ({
+            asin: genre.genre.asin,
+            name: genre.genre.name,
+            type: genre.genre.type
+        })) : []
     };
 }
