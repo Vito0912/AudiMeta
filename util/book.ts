@@ -594,7 +594,7 @@ export async function getBooksFromAuthor(authorAsin: string, region: string, lim
     return books.map(book => (mapBook(book)));
 }
 
-export async function selectLocalBooks(inputs: { localTitle: string, localAuthor: string, localNarrator: string, localGenre: string, localSeries: string }, limit: number | undefined, page: number | undefined): Promise<BookModel[] | undefined> {
+export async function selectLocalBooks(inputs: { localTitle: string, localAuthor: string, localNarrator: string, localGenre: string, localSeries: string, localSeriesPosition: string }, limit: number | undefined, page: number | undefined): Promise<BookModel[] | undefined> {
     const conditions = [];
 
     if (inputs.localTitle) {
@@ -658,7 +658,7 @@ export async function selectLocalBooks(inputs: { localTitle: string, localAuthor
     }
 
     if (inputs.localSeries) {
-        conditions.push({
+        const seriesCondition: any = {
             series: {
                 some: {
                     series: {
@@ -669,7 +669,13 @@ export async function selectLocalBooks(inputs: { localTitle: string, localAuthor
                     }
                 }
             }
-        });
+        };
+
+        if (inputs.localSeriesPosition) {
+            seriesCondition.series.some.position = parseInt(inputs.localSeriesPosition);
+        }
+
+        conditions.push(seriesCondition);
     }
 
     const whereClause = conditions.length > 0 ? { OR: conditions } : {};
@@ -684,20 +690,7 @@ export async function selectLocalBooks(inputs: { localTitle: string, localAuthor
 
     const books = await prisma.book.findMany({
         where: whereClause,
-        include: {
-            series: {
-                include: {
-                    series: true
-                }
-            },
-            authors: {
-                include: {
-                    author: true
-                }
-            },
-            narrators: true,
-            genres: true
-        },
+        include: bookInclude,
         ...paginationOptions
     });
 

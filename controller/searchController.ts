@@ -90,6 +90,15 @@ app.get('/search',
                     type: 'string'
                 }
             },
+            {
+                name: 'localSeriesPosition',
+                in: 'query',
+                description: 'Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match',
+                required: false,
+                schema: {
+                    type: 'number'
+                }
+            },
             oaRegion,
             oaCache
         ],
@@ -116,6 +125,7 @@ app.get('/search',
     const localNarrator: string | null = req.query.localNarrator ? req.query.localNarrator.toString() : null;
     const localGenre: string | null = req.query.localGenre ? req.query.localGenre.toString() : null;
     const localSeries: string | null = req.query.localSeries ? req.query.localSeries.toString() : null;
+    const localSeriesPosition: string | null = req.query.localSeriesPosition ? req.query.localSeriesPosition.toString() : null;
 
     const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
     const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
@@ -125,7 +135,7 @@ app.get('/search',
 
     if ((title == null || title.length === 0) && (author == null || author.length === 0)) {
 
-        const inputs = {localTitle, localAuthor, localNarrator, localGenre, localSeries}
+        const inputs = {localTitle, localAuthor, localNarrator, localGenre, localSeries, localSeriesPosition}
 
         if(Object.values(inputs).filter(value => value).length === 0) {
             res.status(400).send("Author or title or any local search must be provided");
@@ -138,6 +148,9 @@ app.get('/search',
             res.send(books);
             return;
         }
+
+        res.status(404).send("No books found");
+        return;
 
     }
 
