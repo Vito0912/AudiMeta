@@ -114,7 +114,6 @@ export function mapBook(book: any): BookModel {
 }
 
 export function mapChapter(chapter: any): ChapterModel {
-    console.log(chapter);
     return {
         asin: chapter.bookAsin,
         chapters: chapter.content.chapters.map((chapter: any) => ({

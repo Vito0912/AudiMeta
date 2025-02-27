@@ -1,5 +1,5 @@
 import axios from "axios";
-import {BookInput, getBooksFromOtherRegions} from "../util/book";
+import {BookInput, getBooksFromOtherRegions, selectLocalBooks} from "../util/book";
 import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import {getBooks} from "../util/bookDB";
 import {oaBook, oaCache, oaRegion} from "../util/openApiModels";
@@ -125,14 +125,19 @@ app.get('/search',
 
     if ((title == null || title.length === 0) && (author == null || author.length === 0)) {
 
-        const inputs = [localTitle, localAuthor, localNarrator, localGenre, localSeries];
+        const inputs = {localTitle, localAuthor, localNarrator, localGenre, localSeries}
 
-        if(inputs.every(input => !input)) {
+        if(Object.values(inputs).filter(value => value).length === 0) {
             res.status(400).send("Author or title or any local search must be provided");
             return;
         }
 
-        //TODO: Implement local search
+        const books = await selectLocalBooks(inputs, limit, page);
+
+        if (books && books.length >= 1) {
+            res.send(books);
+            return;
+        }
 
     }
 

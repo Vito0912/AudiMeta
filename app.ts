@@ -43,6 +43,7 @@ const limiter: RateLimitRequestHandler = rateLimit({
 // apply to all requests
 console.log("limiter", limiter)
 app.use(limiter)
+app.set('env', 'production');
 
 require('./util/validationMiddleware');
 

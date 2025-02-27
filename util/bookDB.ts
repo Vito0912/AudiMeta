@@ -66,7 +66,6 @@ export async function getBooks(asins: string[], region: string, req: any, limit?
     const notFoundAsins = asins.filter(asin => !foundAsins.includes(asin));
 
     if (notFoundAsins.length === 0) {
-        console.log(bookResults.length, asins.length);
         return asins.map(asin => bookResults.find(book => book.asin === asin));
     }
 

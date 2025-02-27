@@ -65,7 +65,6 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
             headers: HEADERS
         });
 
-        console.log(response.request.path);
         if (response.status === 200) {
 
             if (response.request.path.includes("ipRedirectOriginalURL=404")) {

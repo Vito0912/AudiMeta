@@ -593,3 +593,117 @@ export async function getBooksFromAuthor(authorAsin: string, region: string, lim
 
     return books.map(book => (mapBook(book)));
 }
+
+export async function selectLocalBooks(inputs: { localTitle: string, localAuthor: string, localNarrator: string, localGenre: string, localSeries: string }, limit: number | undefined, page: number | undefined): Promise<BookModel[] | undefined> {
+    const conditions = [];
+
+    if (inputs.localTitle) {
+        conditions.push({
+            OR: [
+                {
+                    title: {
+                        contains: inputs.localTitle,
+                        mode: "insensitive"
+                    }
+                },
+                {
+                    subtitle: {
+                        contains: inputs.localTitle,
+                        mode: "insensitive"
+                    }
+                }
+            ]
+        });
+    }
+
+    if (inputs.localAuthor) {
+        conditions.push({
+            authors: {
+                some: {
+                    author: {
+                        name: {
+                            contains: inputs.localAuthor,
+                            mode: "insensitive"
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (inputs.localNarrator) {
+        conditions.push({
+            narrators: {
+                some: {
+                    name: {
+                        contains: inputs.localNarrator,
+                        mode: "insensitive"
+                    }
+                }
+            }
+        });
+    }
+
+    if (inputs.localGenre) {
+        conditions.push({
+            genres: {
+                some: {
+                    name: {
+                        contains: inputs.localGenre,
+                        mode: "insensitive"
+                    }
+                }
+            }
+        });
+    }
+
+    if (inputs.localSeries) {
+        conditions.push({
+            series: {
+                some: {
+                    series: {
+                        title: {
+                            contains: inputs.localSeries,
+                            mode: "insensitive"
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    const whereClause = conditions.length > 0 ? { OR: conditions } : {};
+
+    const paginationOptions = {};
+    if(limit === undefined) limit = 10;
+    paginationOptions['take'] = limit;
+
+    if (page !== undefined) {
+        paginationOptions['skip'] = (page - 1) * limit;
+    }
+
+    const books = await prisma.book.findMany({
+        where: whereClause,
+        include: {
+            series: {
+                include: {
+                    series: true
+                }
+            },
+            authors: {
+                include: {
+                    author: true
+                }
+            },
+            narrators: true,
+            genres: true
+        },
+        ...paginationOptions
+    });
+
+    if (!books) {
+        return undefined;
+    }
+
+    return books.map(book => (mapBook(book)));
+}
