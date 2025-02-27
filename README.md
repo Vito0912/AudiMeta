@@ -8,7 +8,6 @@ The public instance of AudiMeta is available at [audimeta.de](https://audimeta.d
 An uptime status page is available at [status.audimeta.de](https://status.audimeta.de).
 
 Rate limits are in place to ensure fair usage of the service.
-RPS (Requests per Second) limit is 5.\
 RPM (Requests per Minute) limit is 150.\
 
 ## Overview

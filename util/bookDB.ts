@@ -3,7 +3,7 @@ import axios from "axios";
 import {HEADERS, regionMap} from "../app";
 import {BookModel} from "../models/type_model";
 
-export async function getBook(asin: string, region: string, req: any, cache: string | undefined): Promise<BookModel> {
+export async function getBook(asin: string, region: string, req: any, cache: string | undefined): Promise<BookModel | undefined> {
 
     if(!cache || cache !== 'false') {
         const bookResult: BookModel = (await getFullBooks(asin, region)) as BookModel;
@@ -32,7 +32,7 @@ export async function getBook(asin: string, region: string, req: any, cache: str
         const parsedBook: BookInput = BookInputFactory.fromAudibleDate(json.product, region.toUpperCase())
 
         if(parsedBook === undefined) {
-            throw new Error("Book not found");
+            return undefined;
         }
 
         await insertBook(parsedBook);

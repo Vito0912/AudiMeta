@@ -121,7 +121,7 @@ app.get('/series/:asin',
                 }
             }));
         } catch (e) {
-            res.status(202).send(e.message);
+            res.status(202).send('Try again later');
         }
     }
 );

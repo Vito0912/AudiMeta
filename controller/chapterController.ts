@@ -32,6 +32,11 @@ app.get('/chapters/:asin',
     const asin: string = req.params.asin;
     const region: string = (req.query.region || 'US').toString().toLowerCase();
 
+    if (!asin) {
+        res.status(400).send("No asin provided");
+        return;
+    }
+
 
     const chapter = await prisma.chapter.findUnique({
         where: {bookAsin: asin}});
@@ -41,47 +46,57 @@ app.get('/chapters/:asin',
         return;
     }
 
-    const URL = `https://api.audible${regionMap[region]}/1.0/content/${asin}/metadata`;
+    try {
+        const URL = `https://api.audible${regionMap[region]}/1.0/content/${asin}/metadata`;
 
-    const response = await axios.get(URL, {
-        headers: HEADERS,
-        params: {'response_groups': 'chapter_info, content_reference, content_url'}
-    });
-
-    if (response.status === 200) {
-
-        const chapterMeta = response.data.content_metadata;
-        const chapterInfo = chapterMeta.chapter_info;
-
-        chapterInfo.chapters = chapterInfo.chapters.map((chapter: any) => {
-            return {
-                lengthMs: chapter.length_ms,
-                startOffsetMs: chapter.start_offset_ms,
-                startOffsetSec: chapter.start_offset_sec,
-                title: chapter.title
-            }
+        const response = await axios.get(URL, {
+            headers: HEADERS,
+            params: {'response_groups': 'chapter_info, content_reference, content_url'}
         });
 
-        await prisma.chapter.upsert({
-            where: {
-                bookAsin: asin
-            },
-            update: {
-                content: chapterInfo,
-            },
-            create: {
-                bookAsin: asin,
-                content: chapterInfo
-            }
-        });
-
-        if (chapterInfo) {
-            res.send(chapterInfo);
+        if(response.status === 404) {
+            res.status(404).send("Chapters not found");
             return;
         }
 
-        res.send(chapterInfo);
+        if (response.status === 200) {
+
+            const chapterMeta = response.data.content_metadata;
+            const chapterInfo = chapterMeta.chapter_info;
+
+            chapterInfo.chapters = chapterInfo.chapters.map((chapter: any) => {
+                return {
+                    lengthMs: chapter.length_ms,
+                    startOffsetMs: chapter.start_offset_ms,
+                    startOffsetSec: chapter.start_offset_sec,
+                    title: chapter.title
+                }
+            });
+
+            await prisma.chapter.upsert({
+                where: {
+                    bookAsin: asin
+                },
+                update: {
+                    content: chapterInfo,
+                },
+                create: {
+                    bookAsin: asin,
+                    content: chapterInfo
+                }
+            });
+
+            if (chapterInfo) {
+                res.send(chapterInfo);
+                return;
+            }
+        }
+
+    } catch (e) {
+        res.status(404).send("Chapters not found");
+        return;
     }
+
 
     res.status(404).send("Chapters not found");
 });

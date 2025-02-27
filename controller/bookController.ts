@@ -105,6 +105,6 @@ app.get('/book',
         res.send(books);
     } catch (e) {
         console.log(e);
-        res.status(404).send(e.message);
+        res.status(500).send('Internal server error')
     }
 });
