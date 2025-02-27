@@ -3,12 +3,16 @@ import axios from "axios";
 import {HEADERS, regionMap} from "../app";
 import {BookModel} from "../models/type_model";
 
-export async function getBook(asin: string, region: string, req: any): Promise<BookModel> {
+export async function getBook(asin: string, region: string, req: any, cache: string | undefined): Promise<BookModel> {
 
-    const bookResult: BookModel = (await getFullBooks(asin, region)) as BookModel;
+    if(!cache || cache !== 'false') {
+        const bookResult: BookModel = (await getFullBooks(asin, region)) as BookModel;
 
-    if (bookResult) {
-        return bookResult;
+        if (bookResult) {
+            return bookResult;
+        }
+    } else {
+        console.log("Cache disabled for book", asin);
     }
 
     const reqParams = {
@@ -41,14 +45,17 @@ export async function getBook(asin: string, region: string, req: any): Promise<B
     throw new Error("Failed to fetch book data");
 }
 
-export async function getBooks(asins: string[], region: string, req: any) {
+export async function getBooks(asins: string[], region: string, req: any, limit?: number, page?: number): Promise<BookModel[]> {
+
+    if (limit && page) {
+        asins = asins.slice(page * limit, (page + 1) * limit);
+    }
 
     let bookResults: BookModel[] = await getFullBooks(asins, region) as BookModel[];
 
     let foundAsins: string[] = [];
 
     if (bookResults) {
-        console.log(bookResults.length, asins.length);
         if (bookResults.length === asins.length) {
             return asins.map(asin => bookResults.find(book => book.asin === asin));
         } else {

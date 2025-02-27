@@ -129,8 +129,9 @@ export async function insertBook(data: BookInput) {
         console.log("No asin provided");
     }
 
-    await prisma.book.create({
-        data: {
+    await prisma.book.upsert({
+        where: { asin: data.asin },
+        create: {
             asin: data.asin,
             title: data.title,
             subtitle: data.subtitle,
@@ -212,7 +213,93 @@ export async function insertBook(data: BookInput) {
                 }
                 : undefined,
         },
+        update: {
+            title: data.title,
+            subtitle: data.subtitle,
+            copyRight: data.copyRight,
+            description: data.description,
+            summary: data.summary,
+            bookFormat: data.bookFormat,
+            lengthMin: data.lengthMin,
+            image: data.image,
+            explicit: data.explicit,
+            isbn: data.isbn,
+            language: data.language,
+            publisherName: data.publisherName,
+            rating: data.rating,
+            regions: data.regions || [],
+            releaseDate: data.releaseDate,
+            series: data.seriesBooks?.length
+                ? {
+                    deleteMany: {},
+                    create: data.seriesBooks.map((sb) => ({
+                        position: sb.position,
+                        series: {
+                            connectOrCreate: {
+                                where: { asin: sb.seriesAsin },
+                                create: {
+                                    asin: sb.seriesAsin,
+                                    title: sb.seriesTitle,
+                                    description: sb.seriesDescription,
+                                },
+                            },
+                        },
+                    })),
+                }
+                : { deleteMany: {} },
+            authors: data.authors?.length
+                ? {
+                    deleteMany: {},
+                    create: data.authors.map((author) => {
+                        if (!author.asin) {
+                            author.asin = author.name;
+                        }
+                        return {
+                            author: {
+                                connectOrCreate: {
+                                    where: {
+                                        asin_region: {
+                                            asin: author.asin,
+                                            region: data.authorRegion
+                                        }
+                                    },
+                                    create: {
+                                        asin: author.asin,
+                                        region: data.authorRegion,
+                                        name: author.name,
+                                        description: author.description,
+                                    },
+                                }
+                            }
+                        };
+                    }),
+                }
+                : { deleteMany: {} },
+            narrators: data.narrators?.length
+                ? {
+                    set: [],  // Clear existing relations
+                    connectOrCreate: data.narrators.map((narrator) => ({
+                        where: { name: narrator.name },
+                        create: { name: narrator.name },
+                    })),
+                }
+                : { set: [] },
+            genres: data.genres?.length
+                ? {
+                    set: [],
+                    connectOrCreate: data.genres.map((genre) => ({
+                        where: { asin: genre.asin },
+                        create: {
+                            asin: genre.asin,
+                            name: genre.name,
+                            type: genre.type,
+                        },
+                    })),
+                }
+                : { set: [] },
+        }
     });
+
 }
 
 /**
@@ -443,7 +530,7 @@ export async function getFullBooks(asins: string[] | string, region: string | un
  * @param title - Title of the book
  * @param author - Author of the book
  */
-export async function getBooksFromOtherRegions(title: string, author: string) {
+export async function getBooksFromOtherRegions(title: string, author: string, limit?: number, page?: number): Promise<BookModel[] | undefined> {
     const authorFilter = author ? {
         authors: {
             some: {
@@ -474,7 +561,9 @@ export async function getBooksFromOtherRegions(title: string, author: string) {
                 ...[authorFilter ?? {}],
             ]
         },
-        include: bookInclude
+        include: bookInclude,
+        ...(limit ? {take: limit} : {}),
+        ...(page ? {skip: page * limit} : {})
     });
 
     if (!books || books.length === 0) {

@@ -1,7 +1,7 @@
 import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import {AuthorModel, BookModel, GenreModel, mapAuthors, mapBook} from "../models/type_model";
 import {getAuthors, upsertAuthor} from "../util/authors";
-import {oaAsinPath, oaAuthor, oaBook, oaLimit, oaRegion} from "../util/openApiModels";
+import {oaAsinPath, oaAuthor, oaBook, oaCache, oaLimit, oaPage, oaRegion} from "../util/openApiModels";
 import axios from "axios";
 import {BookInput, BookInputFactory, getBooksFromAuthor, getFullBooks, insertBooks} from "../util/book";
 import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "../util/searchCache";
@@ -67,7 +67,9 @@ app.get('/author/books/:asin',
         parameters: [
             oaRegion,
             oaAsinPath,
-            oaLimit
+            oaLimit,
+            oaPage,
+            oaCache
         ],
         responses: {
             200: {
@@ -88,12 +90,13 @@ app.get('/author/books/:asin',
     }),
    async  (req, res) => {
         const asin: string = req.params.asin;
-        const limit: number = parseInt(req.query.limit as string || '10');
+        const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
+        const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
         const region: string = (req.query.region || 'US').toString().toLowerCase();
 
        const query = generateSearchKey('author/books', asin, region, limit.toString());
 
-       const results = await getSearchCacheResult(query);
+       const results = await getSearchCacheResult(query, req);
 
        if (results) {
            const books = await getBooks(results, region, req)
@@ -102,7 +105,7 @@ app.get('/author/books/:asin',
        }
 
         // Get first book of author
-        let books = await getBooksFromAuthor(asin, region, limit, 0) as BookModel[];
+        let books = await getBooksFromAuthor(asin, region, limit ?? 10, page ?? 0) as BookModel[];
 
         if (books === undefined || books.length === 0) {
             res.status(404).send("No book found for author. Please search for a book of this author first and try again.");
@@ -114,7 +117,7 @@ app.get('/author/books/:asin',
 
        const reqParams = {
            'similarity_type': 'ByTheSameAuthor',
-           'num_results': limit,
+           'num_results': limit ?? 10,
            'response_groups': 'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
        }
        const url = `https://api.audible${regionMap[region]}/1.0/catalog/products/${bookAsin}/sims`;
@@ -151,6 +154,10 @@ app.get('/author/books/:asin',
          );
 
        await insertSearchCacheResult(query, books.map(book => book.asin));
+
+       if (limit && page) {
+              books = books.slice(page * limit, (page + 1) * limit);
+       }
 
        res.send(books);
     })

@@ -36,7 +36,7 @@ app.use((req, res, next) => {
     }
     if (req.query.page) {
         const page = parseInt(req.query.page as string);
-        if (isNaN(page) || page <= 0) {
+        if (isNaN(page) || page < 0) {
             res.status(400).send("Invalid page");
             return;
         }

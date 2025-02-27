@@ -1,8 +1,13 @@
 import {prisma} from "../app";
 import hash = require('object-hash');
 
-export async function getSearchCacheResult(search: string): Promise<string[] | undefined> {
-    const result = await prisma.bookSearch.findUnique({
+export async function getSearchCacheResult(search: string, req, limit?: number, page?: number): Promise<string[]> {
+    if(req.query.cache && req.query.cache === 'false') {
+        console.log("Cache disabled");
+        return [];
+    }
+
+    const resultDB = await prisma.bookSearch.findUnique({
         where: {
             query: search
         },
@@ -11,7 +16,19 @@ export async function getSearchCacheResult(search: string): Promise<string[] | u
         }
     });
 
-    return result?.result;
+    if (resultDB == null) {
+        return [];
+    }
+
+    let result: string[];
+
+    if (limit != null && page != null) {
+        result = resultDB.result.slice(page * limit, (page + 1) * limit);
+    } else {
+        result = resultDB.result;
+    }
+
+    return result;
 }
 
 export async function insertSearchCacheResult(search: string, result: string[]): Promise<void> {
@@ -22,7 +39,8 @@ export async function insertSearchCacheResult(search: string, result: string[]):
         update: {
             count: {
                 increment: 1
-            }
+            },
+            result: result
         },
         create: {
             query: search,

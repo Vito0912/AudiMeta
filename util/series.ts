@@ -5,7 +5,7 @@ import {BookModel, mapBook, SeriesInfoModel} from "../models/type_model";
 import parse from "node-html-parser";
 import {getBooks} from "./bookDB";
 
-export async function getBooksInSeries(seriesAsin: string): Promise<BookModel[]> {
+export async function getBooksInSeries(seriesAsin: string, limit?: number, page?: number): Promise<BookModel[]> {
     console.log("Getting books in series", seriesAsin);
     const books = await prisma.book.findMany({
         where: {
@@ -31,6 +31,8 @@ export async function getBooksInSeries(seriesAsin: string): Promise<BookModel[]>
             narrators: true,
             genres: true,
         },
+        ...(limit ? {take: limit} : {}),
+        ...(page ? {skip: page * limit} : {})
     });
 
     if (books == null || books.length === 0) {
@@ -111,9 +113,13 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
     }
 }
 
-export async function updateSeries(req: any, res: any, region: string) {
+export async function updateSeries(req: any, res: any, region: string, limit?: number, page?: number) {
+    let seriesAsins = await getSeriesAsins(req.params.asin);
 
-    const seriesAsins = await getSeriesAsins(req.params.asin);
+    if (limit && page) {
+        seriesAsins = seriesAsins.slice(page * limit, (page + 1) * limit);
+    }
+
     // Split in chunks of 50
     const asins = seriesAsins.reduce((resultArray: string[][], item, index) => {
         const chunkIndex = Math.floor(index/50)
@@ -133,6 +139,5 @@ export async function updateSeries(req: any, res: any, region: string) {
         books = books.concat(await getBooks(chunk, region, req));
     }
 
-    // Only return not null books
     return books.filter(book => book != null);
 }

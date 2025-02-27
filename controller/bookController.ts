@@ -1,6 +1,6 @@
 import {app, oapi, regionMap} from "../app";
 import {getBook, getBooks} from "../util/bookDB";
-import {oaAsinPath, oaAsinQuery, oaBook, oaRegion} from "../util/openApiModels";
+import {oaAsinPath, oaAsinQuery, oaBook, oaCache, oaRegion} from "../util/openApiModels";
 
 /**
  * Returns all books that match the asin and caches them in the database
@@ -13,7 +13,8 @@ app.get('/book/:asin',
         summary: 'Get a book',
         parameters: [
             oaRegion,
-            oaAsinPath
+            oaAsinPath,
+            oaCache
         ],
         responses: {
             200: {
@@ -33,13 +34,17 @@ app.get('/book/:asin',
     async (req, res) => {
     const asin: string = req.params.asin;
     const region: string = (req.query.region || 'US').toString().toLowerCase();
+    const cache: string = req.query.cache as string;
 
     try {
-        const book = await getBook(asin, region, req);
+        const book = await getBook(asin, region, req, cache);
+        if (!book) {
+            return res.status(404).send("Book not found");
+        }
         res.send(book);
     } catch (e) {
         console.log(e);
-        res.status(404).send(e.message);
+        res.status(500).send('Internal server error');
     }
 });
 
@@ -87,7 +92,7 @@ app.get('/book',
     const asins = asinsQuery.split(',');
     if (asins.length === 0) {
         return res.status(400).send("No asins provided");
-    } else if (asins.length > 20) {
+    } else if (asins.length > 50) {
         return res.status(400).send("Too many asins provided");
     }
 

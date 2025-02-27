@@ -75,6 +75,13 @@ app.get('/chapters/:asin',
             }
         });
 
+        if (chapterInfo) {
+            res.send(chapterInfo);
+            return;
+        }
+
         res.send(chapterInfo);
     }
+
+    res.status(404).send("Chapters not found");
 });

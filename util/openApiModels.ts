@@ -109,3 +109,23 @@ export const oaLimit = {
         maximum: 50
     }
 }
+
+export const oaCache = {
+    name: 'cache',
+    in: 'query',
+    description: 'boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source',
+    schema: {
+        type: 'boolean'
+    }
+}
+
+export const oaPage = {
+    name: 'page',
+    in: 'query',
+    description: 'The page of the books to return',
+    required: true,
+    schema: {
+        type: 'number',
+        minimum: 0
+    }
+}

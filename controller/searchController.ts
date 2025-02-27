@@ -3,7 +3,7 @@ import {BookInput, getBooksFromOtherRegions} from "../util/book";
 import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import {Book} from "@prisma/client";
 import {getBooks} from "../util/bookDB";
-import {oaBook, oaRegion} from "../util/openApiModels";
+import {oaBook, oaCache, oaRegion} from "../util/openApiModels";
 import {BookModel} from "../models/type_model";
 import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "../util/searchCache";
 
@@ -91,7 +91,8 @@ app.get('/search',
                     type: 'string'
                 }
             },
-            oaRegion
+            oaRegion,
+            oaCache
         ],
         responses: {
             200: {
@@ -116,6 +117,9 @@ app.get('/search',
     const localNarrator: string | null = req.query.localNarrator ? req.query.localNarrator.toString() : null;
     const localGenre: string | null = req.query.localGenre ? req.query.localGenre.toString() : null;
     const localSeries: string | null = req.query.localSeries ? req.query.localSeries.toString() : null;
+
+    const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
+    const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
 
     const region: string = (req.query.region || 'us').toString();
 
@@ -142,16 +146,16 @@ app.get('/search',
     let asins: string[] = [];
 
     try {
-        asins = await getSearchCacheResult(key);
+        asins = await getSearchCacheResult(key, req, limit, page);
     } catch (e) {
 
     }
 
 
     try {
-        if (asins.length === 0) {
+        if (!asins || asins.length === 0) {
             const reqParams = {
-                num_results: '20',
+                num_results: limit === undefined ? '10' :  limit.toString(),
                 products_sort_by: 'Relevance'
             }
             if (author) {
@@ -160,9 +164,6 @@ app.get('/search',
             if (title) {
                 reqParams['title'] = title;
             }
-
-            console.log(reqParams);
-
             const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
 
             const response = await axios.get(url, {
@@ -177,16 +178,18 @@ app.get('/search',
 
                 if(asins.length >= 1) {
                     await insertSearchCacheResult(key, asins);
-                    console.log("Search created and asins added", key, asins);
                 }
             }
         }
 
-        const books: BookModel[] = await getBooks(asins, region, req);
-
+        let books: BookModel[] = await getBooks(asins, region, req, limit, page);
         if (books.length === 0) {
-            console.log("No books found for", key);
-            res.send(await getBooksFromOtherRegions(title, author));
+            const otherBooks = await getBooksFromOtherRegions(title, author, limit, page)
+            if (otherBooks.length === 0) {
+                res.status(404).send("No books found");
+                return;
+            }
+            res.send(otherBooks);
             return;
         }
 

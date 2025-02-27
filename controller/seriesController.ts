@@ -13,15 +13,7 @@ app.get('/series/books/:asin',
         summary: 'Gets all books in a series',
         parameters: [
             oaRegion,
-            {
-                name: 'asin',
-                in: 'path',
-                description: 'The asin of the series',
-                required: true,
-                schema: {
-                    type: 'string'
-                }
-            }
+            oaAsinPath
         ],
         responses: {
             200: {
@@ -43,23 +35,28 @@ app.get('/series/books/:asin',
     async (req, res) => {
 
     const region: string = req.query.region as string;
+    const forceUpdate = req.query.update;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+    const page = req.query.page ? parseInt(req.query.page as string) : undefined;
 
-    if (!region || !regionMap[region.toLowerCase()]) {
-         res.status(400).send("Region not provided");
+    if (forceUpdate !== undefined && forceUpdate === 'true') {
+         res.send(await updateSeries(req, res, region, limit, page));
         return;
     }
 
-    const forceUpdate = req.query.forceUpdate;
-    if (forceUpdate !== undefined) {
-         res.send(await updateSeries(req, res, region));
-        return;
-    }
+    let books: BookModel[] = await getBooksInSeries(req.params.asin, limit, page);
 
-    let books: BookModel[] = await getBooksInSeries(req.params.asin);
+    const sortedBooks = books.sort((a, b) => {
+        const aSeries = a.series && a.series.length > 0 ? a.series[0] : undefined;
+        const bSeries = b.series && b.series.length > 0 ? b.series[0] : undefined;
 
-    // TODO: Add sorting by position in series
+        const aPosition = aSeries && aSeries.position != null ? aSeries.position : Number.POSITIVE_INFINITY;
+        const bPosition = bSeries && bSeries.position != null ? bSeries.position : Number.POSITIVE_INFINITY;
 
-    res.send(books);
+        return aPosition - bPosition;
+    });
+
+    res.send(sortedBooks);
 });
 
 
@@ -82,6 +79,9 @@ app.get('/series/:asin',
                         }
                     }
                 }
+            },
+            404: {
+                description: 'Series not found'
             }
         }
     }),
@@ -97,6 +97,7 @@ app.get('/series/:asin',
             res.send(series);
             return;
         }
+
         try {
             const seriesInfo = await getSeriesDetails(asin, region);
 
@@ -122,8 +123,6 @@ app.get('/series/:asin',
         } catch (e) {
             res.status(202).send(e.message);
         }
-
-
     }
-    );
+);
 
