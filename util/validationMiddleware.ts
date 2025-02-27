@@ -21,9 +21,13 @@ app.use((req, res, next) => {
         }
     }
     if (req.query.region) {
-        const region = req.query.region as string;
-        if (!regionMap[region.toLowerCase()]) {
-            res.status(400).send("Invalid region");
+        const regions = (req.query.region as string).split(',');
+        if(regions.length === 0 || regions.length > 3) {
+            res.status(400).send("Invalid number of regions");
+            return;
+        }
+        if (regions.some((region: string) => !regionMap[region.toLowerCase()])) {
+            res.status(400).send("One or more regions are invalid");
             return;
         }
     }

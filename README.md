@@ -5,7 +5,7 @@ A fast and flexible Audible metadata provider with extensive querying options an
 ## Instance
 
 The public instance of AudiMeta is available at [audimeta.de](https://audimeta.de).\
-An uptime status page is available at [status.audimeta.de](https://status.audimeta.de).
+An uptime status page is available at [status.audimeta.de](https://status.audimeta.de/status/main).
 
 Rate limits are in place to ensure fair usage of the service.
 RPM (Requests per Minute) limit is 150.\

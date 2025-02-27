@@ -71,7 +71,7 @@ export const oaBook = {
 export const oaRegion = {
     name: 'region',
     in: 'query',
-    description: 'The region to search in',
+    description: 'The region to search in. Can be a comma separated list of max 3 regions. Defaults to US',
     required: true,
     schema: {
         ...regionEnum

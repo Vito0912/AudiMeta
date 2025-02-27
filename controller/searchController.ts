@@ -1,7 +1,6 @@
 import axios from "axios";
 import {BookInput, getBooksFromOtherRegions} from "../util/book";
 import {app, HEADERS, oapi, prisma, regionMap} from "../app";
-import {Book} from "@prisma/client";
 import {getBooks} from "../util/bookDB";
 import {oaBook, oaCache, oaRegion} from "../util/openApiModels";
 import {BookModel} from "../models/type_model";
@@ -121,7 +120,8 @@ app.get('/search',
     const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
     const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
 
-    const region: string = (req.query.region || 'us').toString();
+    let regions: string[] = req.query.region ? req.query.region.toString().split(',') : ['us'];
+    regions = regions.filter((region, index) => regions.indexOf(region) === index).map(region => region.toLowerCase());
 
     if ((title == null || title.length === 0) && (author == null || author.length === 0)) {
 
@@ -136,68 +136,73 @@ app.get('/search',
 
     }
 
-    if (!regionMap[region.toLowerCase()]) {
-        res.status(400).send("Invalid region");
-        return;
-    }
-
-    const key = generateSearchKey(title, author, region)
-
-    let asins: string[] = [];
-
-    try {
-        asins = await getSearchCacheResult(key, req, limit, page);
-    } catch (e) {
-
-    }
-
-
-    try {
-        if (!asins || asins.length === 0) {
-            const reqParams = {
-                num_results: limit === undefined ? '10' :  limit.toString(),
-                products_sort_by: 'Relevance'
-            }
-            if (author) {
-                reqParams['author'] = author;
-            }
-            if (title) {
-                reqParams['title'] = title;
-            }
-            const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
-
-            const response = await axios.get(url, {
-                headers: HEADERS,
-                params: reqParams
-            });
-
-            if (response.status === 200) {
-                const json: any = response.data;
-
-                asins = json.products.map((product: any) => product.asin);
-
-                if(asins.length >= 1) {
-                    await insertSearchCacheResult(key, asins);
-                }
-            }
-        }
-
-        let books: BookModel[] = await getBooks(asins, region, req, limit, page);
-        if (books.length === 0) {
-            const otherBooks = await getBooksFromOtherRegions(title, author, limit, page)
-            if (otherBooks.length === 0) {
-                res.status(404).send("No books found");
-                return;
-            }
-            res.send(otherBooks);
+    for (let index = 0; index < regions.length; index++) {
+        const region = regions[index].toLowerCase();
+        if (!regionMap[region.toLowerCase()]) {
+            res.status(400).send("Invalid region");
             return;
         }
 
-        res.send(books);
-        return;
-    } catch (e) {
-        console.log(e);
-        res.status(500).send('Internal Server error');
-    }
+        const key = generateSearchKey(title, author, region)
 
+        let asins: string[] = [];
+
+        try {
+            asins = await getSearchCacheResult(key, req, limit, page);
+        } catch (e) {
+
+        }
+
+
+        try {
+            if (!asins || asins.length === 0) {
+                const reqParams = {
+                    num_results: limit === undefined ? '10' :  limit.toString(),
+                    products_sort_by: 'Relevance'
+                }
+                if (author) {
+                    reqParams['author'] = author;
+                }
+                if (title) {
+                    reqParams['title'] = title;
+                }
+                const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
+
+                const response = await axios.get(url, {
+                    headers: HEADERS,
+                    params: reqParams
+                });
+
+                if (response.status === 200) {
+                    const json: any = response.data;
+
+                    asins = json.products.map((product: any) => product.asin);
+
+                    if(asins.length >= 1) {
+                        await insertSearchCacheResult(key, asins);
+                    }
+                }
+            }
+
+            let books: BookModel[] = await getBooks(asins, region, req, limit, page);
+            if (index == regions.length && books.length === 0) {
+                const otherBooks = await getBooksFromOtherRegions(title, author, limit, page)
+                if (otherBooks.length === 0) {
+                    res.status(404).send("No books found");
+                    return;
+                }
+                res.send(otherBooks);
+                return;
+            }
+
+            if(books && books.length >= 1) {
+                res.send(books);
+                return;
+            }
+        } catch (e) {
+            console.log(e);
+            res.status(500).send('Internal Server error');
+        }
+    }
+    res.status(404).send("No books found");
 });
