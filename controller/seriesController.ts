@@ -40,7 +40,12 @@ app.get('/series/books/:asin',
     const page = req.query.page ? parseInt(req.query.page as string) : undefined;
 
     if (forceUpdate !== undefined && forceUpdate === 'true') {
-         res.send(await updateSeries(req, res, region, limit, page));
+        const series = await updateSeries(req, res, region, limit, page)
+        if (!series || series.length === 0) {
+            res.status(404).send("Series not found");
+            return;
+        }
+        res.send(series);
         return;
     }
 
@@ -55,6 +60,11 @@ app.get('/series/books/:asin',
 
         return aPosition - bPosition;
     });
+
+    if (books.length === 0) {
+        res.status(404).send("Series not found");
+        return
+    }
 
     res.send(sortedBooks);
 });

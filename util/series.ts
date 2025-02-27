@@ -52,7 +52,7 @@ export async function getSeriesAsins(asin: string): Promise<string[]> {
 
     if (response.status === 200) {
         const json: any = response.data;
-        return json.product.relationships.map((series: any) => series.asin);
+        return json.product.relationships.filter((relation: any) => relation.relationship_to_product == 'child' && relation.relationship_type == 'series').map((series: any) => series.asin);
     }
 }
 

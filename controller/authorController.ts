@@ -94,12 +94,17 @@ app.get('/author/books/:asin',
         const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
         const region: string = (req.query.region || 'US').toString().toLowerCase();
 
-       const query = generateSearchKey('author/books', asin, region, limit.toString());
+       const query = generateSearchKey('author/books', asin, region, String(limit));
 
        const results = await getSearchCacheResult(query, req);
 
        if (results) {
            const books = await getBooks(results, region, req)
+           if (!books || books.length === 0) {
+                res.status(404).send("No books found");
+               return;
+              }
+
             res.send(books);
            return;
        }
@@ -157,6 +162,11 @@ app.get('/author/books/:asin',
 
        if (limit && page) {
               books = books.slice(page * limit, (page + 1) * limit);
+       }
+
+       if (books.length === 0) {
+           res.status(404).send("No books found");
+           return;
        }
 
        res.send(books);
