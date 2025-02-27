@@ -18,7 +18,7 @@ export const oapi = openapi({
     info: {
         title: 'AudiMeta API',
         description: 'API to retrieve information about Book, Series and Search',
-        version: '1.0.1',
+        version: '1.0.2',
     },
     servers: [
         {
@@ -31,6 +31,7 @@ export const oapi = openapi({
 export const app: Express = express();
 app.use(express.json());
 app.use(oapi);
+app.set('trust proxy', 1)
 
 const limiter: RateLimitRequestHandler = rateLimit({
     windowMs: 60 * 1000,

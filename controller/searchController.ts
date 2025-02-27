@@ -5,6 +5,7 @@ import {Book} from "@prisma/client";
 import {getBooks} from "../util/bookDB";
 import {oaBook, oaRegion} from "../util/openApiModels";
 import {BookModel} from "../models/type_model";
+import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "../util/searchCache";
 
 
 /**
@@ -136,25 +137,12 @@ app.get('/search',
         return;
     }
 
-    const key = `${title}${author ? '-' + author : ''}-${region}`.toLowerCase();
+    const key = generateSearchKey(title, author, region)
 
     let asins: string[] = [];
 
     try {
-        const search = await prisma.bookSearch.update({
-            where: {
-                query: key
-            },
-            data: {
-                count: {
-                    increment: 1
-                }
-            }
-        });
-
-        if(search && search.result) {
-            asins = search.result;
-        }
+        asins = await getSearchCacheResult(key);
     } catch (e) {
 
     }
@@ -188,16 +176,7 @@ app.get('/search',
                 asins = json.products.map((product: any) => product.asin);
 
                 if(asins.length >= 1) {
-                    await prisma.bookSearch.upsert({
-                        where: {
-                            query: key
-                        },
-                        create: {
-                            query: key,
-                            result: asins
-                        },
-                        update: {}
-                    });
+                    await insertSearchCacheResult(key, asins);
                     console.log("Search created and asins added", key, asins);
                 }
             }

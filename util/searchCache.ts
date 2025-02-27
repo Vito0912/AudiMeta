@@ -1,4 +1,5 @@
 import {prisma} from "../app";
+import hash = require('object-hash');
 
 export async function getSearchCacheResult(search: string): Promise<string[] | undefined> {
     const result = await prisma.bookSearch.findUnique({
@@ -31,5 +32,5 @@ export async function insertSearchCacheResult(search: string, result: string[]):
 }
 
 export function generateSearchKey(...args: string[]): string {
-    return args.join('_');
+    return hash(args);
 }

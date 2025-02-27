@@ -34,6 +34,20 @@ app.use((req, res, next) => {
             return;
         }
     }
+    if (req.query.page) {
+        const page = parseInt(req.query.page as string);
+        if (isNaN(page) || page <= 0) {
+            res.status(400).send("Invalid page");
+            return;
+        }
+    }
+    if (req.query.update) {
+        const update = req.query.update as string;
+        if (update !== 'true' && update !== 'false') {
+            res.status(400).send("Invalid update. Must be true or false");
+            return;
+        }
+    }
 
     next()
 })
