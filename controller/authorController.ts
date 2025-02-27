@@ -172,3 +172,68 @@ app.get('/author/books/:asin',
        res.send(books);
     })
 
+
+app.get(
+    '/author',
+    oapi.path({
+        tags: ['author'],
+        summary: 'Search for authors',
+        parameters: [
+            oaRegion,
+            oaCache,
+            {
+                name: 'name',
+                in: 'query',
+                description: 'Name of the author',
+                required: false,
+                schema: {
+                    type: 'string'
+                }
+            }
+        ],
+        responses: {
+            200: {
+                description: 'Authors found',
+                content: {
+                    'application/json': {
+                        schema: {
+                            properties: oaAuthor
+                        }
+                    }
+                }
+            }
+        }
+    }),
+    async (req, res) => {
+
+        const region: string = (req.query.region || 'US').toString().toLowerCase();
+        const cache: string = req.query.cache as string;
+
+        // Maybe updated with https://github.com/Kinjalrk2k/prisma-extension-pg-trgm
+        const authorQuery = await prisma.author.findFirst({
+            where: {
+                name: {
+                    contains: req.query.name.toString(),
+                    mode: 'insensitive'
+                }
+            }
+        })
+
+        if(authorQuery == null) {
+            res.status(404).send("No authors found");
+            return;
+        }
+
+        let author = mapAuthors(authorQuery);
+
+        if(author.description === null || cache === 'false') {
+            author = await upsertAuthor(author.asin, region);
+        }
+
+        if(author) {
+            res.send(author);
+        } else {
+            res.status(404).send("Author not found");
+        }
+    }
+)

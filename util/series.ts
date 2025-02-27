@@ -86,15 +86,10 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
             // Minimize the seriesInfoHtml (Strip chunks of whitespace)
             seriesInfoHtml = seriesInfoHtml.replace(/\s{2,}/g, ' ');
 
-            let title = '';
-            const container = html.querySelector('.bc-col-responsive');
-            if (container) {
-                const heading = container.querySelector('.bc-heading');
-                if (heading) {
-                    title = heading.textContent || heading.innerText || '';
-                    title = title.replace(/\n/g, '').trim();
-                }
-            }
+            let titleName = html.querySelector('h1.bc-heading');
+
+            let title = titleName.childNodes[0].textContent || titleName.childNodes[0].text || '';
+            title = title.replace(/\n/g, '').trim();
 
 
             return {

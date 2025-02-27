@@ -84,6 +84,9 @@ export async function getAuthorDetails(asin: string, region: string): Promise<Au
         }
         return undefined;
     } catch (e) {
+        if (e.response && e.response.status === 404) {
+            return undefined;
+        }
         console.error(e);
         throw new Error("Failed to fetch series data");
     }
