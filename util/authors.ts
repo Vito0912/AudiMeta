@@ -22,16 +22,20 @@ export async function getAuthorDetails(asin: string, region: string): Promise<Au
             const html = parse(htmlContent);
 
 
+            let seriesInfoHtml: string = '';
+
             // Div with bc-expander-content
             const seriesInfo = html.querySelector('.bc-expander-content')
-            const p = seriesInfo.querySelector('p');
-            const innerHtml = p.innerHTML;
+            if (seriesInfo) {
+                const p = seriesInfo.querySelector('p');
+                const innerHtml = p.innerHTML;
 
 
-            let seriesInfoHtml = innerHtml.toString();
+                seriesInfoHtml = innerHtml.toString();
 
-            // Minimize the seriesInfoHtml (Strip chunks of whitespace)
-            seriesInfoHtml = seriesInfoHtml.replace(/\s{2,}/g, ' ');
+                // Minimize the seriesInfoHtml (Strip chunks of whitespace)
+                seriesInfoHtml = seriesInfoHtml.replace(/\s{2,}/g, ' ');
+            }
 
             // Select title by h1 and class bc-heading
             let authorName = html.querySelector('h1.bc-heading');
@@ -192,7 +196,7 @@ export async function searchAudibleAuthor(query: string, region: string) {
                     return {
                         asin: item.model.person_metadata.asin,
                         name: item.model.person_metadata.name.value,
-                        image: item.model.person_metadata.profile_image.url
+                        image: item.model.person_metadata.profile_image != undefined ? item.model.person_metadata.profile_image.url : undefined
                     };
                 }
             }

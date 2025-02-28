@@ -74,17 +74,21 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
             const htmlContent = response.data;
             const html = parse(htmlContent);
 
+            let seriesInfoHtml = '';
 
             // Div with bc-expander-content
             const seriesInfo = html.querySelector('.bc-expander-content')
-            const firstDivSeriesInfo = seriesInfo.querySelector('div');
-            const innerHtml = firstDivSeriesInfo.innerHTML;
+
+            if(seriesInfo) {
+                const firstDivSeriesInfo = seriesInfo.querySelector('div');
+                const innerHtml = firstDivSeriesInfo.innerHTML;
 
 
-            let seriesInfoHtml = innerHtml.toString();
+                seriesInfoHtml = innerHtml.toString();
 
-            // Minimize the seriesInfoHtml (Strip chunks of whitespace)
-            seriesInfoHtml = seriesInfoHtml.replace(/\s{2,}/g, ' ');
+                // Minimize the seriesInfoHtml (Strip chunks of whitespace)
+                seriesInfoHtml = seriesInfoHtml.replace(/\s{2,}/g, ' ');
+            }
 
             let titleName = html.querySelector('h1.bc-heading');
 
