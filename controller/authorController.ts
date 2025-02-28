@@ -60,14 +60,12 @@ app.get('/author/books/:asin', async  (req, res) => {
        const query = generateSearchKey('author/books', asin, region, String(limit));
 
        const results = await getSearchCacheResult(query, req);
-
-       if (results) {
+       if (results && results.length > 0) {
            const books = await getBooks(results, region, req)
            if (!books || books.length === 0) {
                 res.status(404).send("No books found");
                return;
               }
-
             res.send(books);
            return;
        }

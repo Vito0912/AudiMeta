@@ -158,7 +158,6 @@ export async function insertBook(data: BookInput) {
                                 create: {
                                     asin: sb.seriesAsin,
                                     title: sb.seriesTitle,
-                                    description: sb.seriesDescription,
                                 },
                             },
                         },
@@ -184,7 +183,6 @@ export async function insertBook(data: BookInput) {
                                         asin: author.asin,
                                         region: data.authorRegion,
                                         name: author.name,
-                                        description: author.description,
                                     },
                                 }
                             }
@@ -240,7 +238,6 @@ export async function insertBook(data: BookInput) {
                                 create: {
                                     asin: sb.seriesAsin,
                                     title: sb.seriesTitle,
-                                    description: sb.seriesDescription,
                                 },
                             },
                         },
@@ -267,7 +264,6 @@ export async function insertBook(data: BookInput) {
                                         asin: author.asin,
                                         region: data.authorRegion,
                                         name: author.name,
-                                        description: author.description,
                                     },
                                 }
                             }
