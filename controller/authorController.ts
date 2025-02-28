@@ -1,6 +1,6 @@
 import {app, HEADERS, oapi, prisma, regionMap} from "../app";
 import {AuthorModel, BookModel, GenreModel, mapAuthors, mapBook} from "../models/type_model";
-import {getAuthors, upsertAuthor} from "../util/authors";
+import {getAuthorDetails, getAuthors, searchAudibleAuthor, upsertAuthor} from "../util/authors";
 import {oaAsinPath, oaAuthor, oaBook, oaCache, oaLimit, oaPage, oaRegion} from "../util/openApiModels";
 import axios from "axios";
 import {BookInput, BookInputFactory, getBooksFromAuthor, getFullBooks, insertBooks} from "../util/book";
@@ -41,7 +41,8 @@ app.get('/author/:asin',
                 if (author.region.toLowerCase() === region) {
 
                     if (author.description === undefined || author.description === null) {
-                        author = await upsertAuthor(asin, region);
+                        const authorModel = await getAuthorDetails(asin, region)
+                        author = await upsertAuthor(authorModel);
                     }
 
                     res.send(author);
@@ -52,7 +53,8 @@ app.get('/author/:asin',
             return;
         }
 
-        const author = await upsertAuthor(asin, region);
+        const authorModel = await getAuthorDetails(asin, region)
+        const author = await upsertAuthor(authorModel);
         if (author) {
             res.send(author);
         } else {
@@ -209,6 +211,23 @@ app.get(
         const region: string = (req.query.region || 'US').toString().toLowerCase();
         const cache: string = req.query.cache as string;
 
+        console.log(req.query.name.toString());
+
+        const audibleResult = await searchAudibleAuthor(req.query.name.toString(), region);
+
+        let authorModel: AuthorModel | undefined = undefined;
+        if (audibleResult) {
+            authorModel = {
+                asin: audibleResult.asin,
+                region: region.toUpperCase(),
+                name: audibleResult.name,
+                description: undefined,
+                image: audibleResult.image,
+                genres: []
+            }
+        }
+
+
         // Maybe updated with https://github.com/Kinjalrk2k/prisma-extension-pg-trgm
         const authorQuery = await prisma.author.findFirst({
             where: {
@@ -219,15 +238,23 @@ app.get(
             }
         })
 
-        if(authorQuery == null) {
+        if(authorQuery == null && authorModel === undefined) {
             res.status(404).send("No authors found");
             return;
         }
 
         let author = mapAuthors(authorQuery);
 
-        if(author.description === null || cache === 'false') {
-            author = await upsertAuthor(author.asin, region);
+        if(author.description === null || cache === 'false' || (authorModel && authorModel.image !== author.image)) {
+            const authorModel2 = await getAuthorDetails(author.asin, region)
+            if (!authorModel) {
+                authorModel = authorModel2;
+                author = await upsertAuthor(authorModel);
+            } else if(authorModel2) {
+                authorModel2.description = authorModel2.description || author.description;
+                authorModel2.genres = authorModel2.genres || author.genres;
+                author = await upsertAuthor(authorModel);
+            }
         }
 
         if(author) {

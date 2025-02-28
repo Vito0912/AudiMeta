@@ -92,8 +92,7 @@ export async function getAuthorDetails(asin: string, region: string): Promise<Au
     }
 }
 
-export async function upsertAuthor(asin: string, region: string): Promise<AuthorModel | undefined> {
-    const author = await getAuthorDetails(asin, region)
+export async function upsertAuthor(author: AuthorModel): Promise<AuthorModel | undefined> {
     if (author) {
         const genreOperations = author.genres?.map(genre =>
             prisma.genre.upsert({
@@ -146,7 +145,7 @@ export async function upsertAuthor(asin: string, region: string): Promise<Author
             }
         });
 
-        return (await getAuthors(asin, region))[0];
+        return author;
     }
     return undefined;
 }
@@ -166,4 +165,47 @@ export async function getAuthors(asin: string, region?: string): Promise<AuthorM
         }
     });
     return authors.map(author => mapAuthors(author));
+}
+
+/**
+ * Searches for an author on Audible directly
+ */
+export async function searchAudibleAuthor(query: string, region: string) {
+    const URL = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/searchsuggestions?=`
+
+    const params = {
+        key_strokes: query,
+        site_variant: 'desktop'
+    }
+
+    try {
+        const response = await axios.get(URL, {
+            params: params,
+            headers: HEADERS,
+        });
+
+        if (response.status === 200) {
+            const json = response.data;
+            const items = json.model.items;
+            for (const item of items) {
+                if ((item.view.template as string).indexOf('AuthorItem') >= 0) {
+                    return {
+                        asin: item.model.person_metadata.asin,
+                        name: item.model.person_metadata.name.value,
+                        image: item.model.person_metadata.profile_image.url
+                    };
+                }
+            }
+        } else {
+            console.error("Failed to fetch author data");
+            return undefined;
+        }
+    } catch (e) {
+        if (e.response && e.response.status === 404) {
+            return undefined;
+        }
+        console.error(e);
+        throw new Error("Failed to fetch author data");
+    }
+    return undefined;
 }
