@@ -1,38 +1,18 @@
 import {getBooksInSeries, getSeriesAsins, getSeriesDetails, updateSeries} from "../util/series";
-import {app, HEADERS, oapi, prisma, regionMap} from "../app";
-import {oaAsinPath, oaBook, oaRegion, oaSeries} from "../util/openApiModels";
+import {app, HEADERS, prisma, regionMap} from "../app";
 import {BookModel, SeriesInfoModel} from "../models/type_model";
 
 /**
  * Returns all books in a series
  */
-// @ts-ignore
-app.get('/series/books/:asin',
-    oapi.path({
-        tags: ['series'],
-        summary: 'Gets all books in a series',
-        parameters: [
-            oaRegion,
-            oaAsinPath
-        ],
-        responses: {
-            200: {
-                description: 'Server reachable',
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: oaBook
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }),
-    async (req, res) => {
+app.get('/series/books/:asin', async (req, res) => {
+
+    const asin: string = req.params.asin;
+
+    if (!asin) {
+        res.status(400).send("No asin provided");
+        return;
+    }
 
     const region: string = req.query.region as string;
     const forceUpdate = req.query.update;
@@ -70,33 +50,14 @@ app.get('/series/books/:asin',
 });
 
 
-app.get('/series/:asin',
-    oapi.path({
-        tags: ['series'],
-        summary: 'Gets information about a series',
-        parameters: [
-            oaRegion,
-            oaAsinPath
-        ],
-        responses: {
-            200: {
-                description: 'Server reachable',
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'object',
-                            properties: oaSeries
-                        }
-                    }
-                }
-            },
-            404: {
-                description: 'Series not found'
-            }
-        }
-    }),
-    async (req, res) => {
+app.get('/series/:asin', async (req, res) => {
         const asin: string = req.params.asin;
+
+        if (!asin) {
+            res.status(400).send("No asin provided");
+            return;
+        }
+
         const region: string = (req.query.region || 'US').toString().toLowerCase();
 
         const series = await prisma.series.findUnique({

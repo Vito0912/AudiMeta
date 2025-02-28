@@ -1,8 +1,7 @@
 import axios from "axios";
 import {BookInput, getBooksFromOtherRegions, selectLocalBooks} from "../util/book";
-import {app, HEADERS, oapi, prisma, regionMap} from "../app";
+import {app, HEADERS, prisma, regionMap} from "../app";
 import {getBooks} from "../util/bookDB";
-import {oaBook, oaCache, oaRegion} from "../util/openApiModels";
 import {BookModel} from "../models/type_model";
 import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "../util/searchCache";
 
@@ -22,101 +21,7 @@ import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "
  */
 
 // @ts-ignore
-app.get('/search',
-    oapi.path({
-        tags: ['search'],
-        summary: 'Search for books',
-        parameters: [
-            {
-                name: 'author',
-                in: 'query',
-                description: 'The author of the book. Needs to be provided if title is not provided',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            },
-            {
-                name: 'title',
-                in: 'query',
-                description: 'The title of the book. Needs to be provided if author is not provided',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            },
-            {
-                name: 'localTitle',
-                in: 'query',
-                description: 'Just like title this matches the title of the book. LocalTitle only searches in the database. This increases speed but needs a nearly exact match',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            },
-            {
-                name: 'localAuthor',
-                in: 'query',
-                description: 'Just like author this matches the author of the book. LocalAuthor only searches in the database. This increases speed but needs a nearly exact match',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            },
-            {
-                name: 'localNarrator',
-                in: 'query',
-                description: 'Just like narrator this matches the narrator of the book. LocalNarrator only searches in the database. This increases speed but needs a nearly exact match',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            },
-            {
-                name: 'localGenre',
-                in: 'query',
-                description: 'Just like genre this matches the genre of the book. LocalGenre only searches in the database. This increases speed but needs a nearly exact match',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            },
-            {
-                name: 'localSeries',
-                in: 'query',
-                description: 'Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            },
-            {
-                name: 'localSeriesPosition',
-                in: 'query',
-                description: 'Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match',
-                required: false,
-                schema: {
-                    type: 'number'
-                }
-            },
-            oaRegion,
-            oaCache
-        ],
-        responses: {
-            200: {
-                description: 'Server reachable',
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'object',
-                            properties: oaBook
-                        }
-                    }
-                }
-            }
-        }
-    }),
-    async (req, res) => {
+app.get('/search', async (req, res) => {
     const author: string | null = req.query.author ? req.query.author.toString() : null;
     const title: string | null = req.query.title ? req.query.title.toString() : null;
 

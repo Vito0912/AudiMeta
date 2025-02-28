@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
-    "@wesleytodd/openapi": "^1.1.0",
     "axios": "^1.7.9",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
@@ -17,11 +16,18 @@
     "morgan": "~1.9.1",
     "node-html-parser": "^7.0.1",
     "object-hash": "^3.0.0",
-    "pug": "3.0.3"
+    "pug": "3.0.3",
+    "swagger-ui-dist": "^5.20.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.17.0",
     "@types/express": "^5.0.0",
     "@types/object-hash": "^3.0.6",
+    "@types/swagger-ui-express": "^4.1.8",
     "prisma": "^6.4.1"
+  },
+  "scarfSettings": {
+    "enabled": false
   }
 }

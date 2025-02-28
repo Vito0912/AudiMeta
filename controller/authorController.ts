@@ -1,37 +1,20 @@
-import {app, HEADERS, oapi, prisma, regionMap} from "../app";
+import {app, HEADERS, prisma, regionMap} from "../app";
 import {AuthorModel, BookModel, GenreModel, mapAuthors, mapBook} from "../models/type_model";
 import {getAuthorDetails, getAuthors, searchAudibleAuthor, upsertAuthor} from "../util/authors";
-import {oaAsinPath, oaAuthor, oaBook, oaCache, oaLimit, oaPage, oaRegion} from "../util/openApiModels";
 import axios from "axios";
 import {BookInput, BookInputFactory, getBooksFromAuthor, getFullBooks, insertBooks} from "../util/book";
 import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "../util/searchCache";
 import {getBooks} from "../util/bookDB";
 
-app.get('/author/:asin',
-    oapi.path({
-        tags: ['author'],
-        summary: 'Get an author',
-        parameters: [
-            oaRegion,
-            oaAsinPath
-        ],
-        responses: {
-            200: {
-                description: 'Book found',
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'object',
-                            properties: oaAuthor
-                        }
-                    }
-                }
-            }
-        }
-    }),
-    async (req, res) => {
+app.get('/author/:asin', async (req, res) => {
 
         const asin: string = req.params.asin;
+
+        if (!asin) {
+            res.status(400).send("No asin provided");
+            return;
+        }
+
         const region: string = (req.query.region || 'US').toString().toLowerCase();
 
         let authors: AuthorModel[] = await getAuthors(asin);
@@ -62,36 +45,14 @@ app.get('/author/:asin',
         }
     });
 
-app.get('/author/books/:asin',
-    oapi.path({
-        tags: ['author'],
-        summary: 'Get books of an author',
-        parameters: [
-            oaRegion,
-            oaAsinPath,
-            oaLimit,
-            oaPage,
-            oaCache
-        ],
-        responses: {
-            200: {
-                description: 'Books found',
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: oaBook
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }),
-   async  (req, res) => {
+app.get('/author/books/:asin', async  (req, res) => {
         const asin: string = req.params.asin;
+
+        if (!asin) {
+            res.status(400).send("No asin provided");
+            return;
+        }
+
         const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
         const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
         const region: string = (req.query.region || 'US').toString().toLowerCase();
@@ -175,41 +136,15 @@ app.get('/author/books/:asin',
     })
 
 
-app.get(
-    '/author',
-    oapi.path({
-        tags: ['author'],
-        summary: 'Search for authors',
-        parameters: [
-            oaRegion,
-            oaCache,
-            {
-                name: 'name',
-                in: 'query',
-                description: 'Name of the author',
-                required: false,
-                schema: {
-                    type: 'string'
-                }
-            }
-        ],
-        responses: {
-            200: {
-                description: 'Authors found',
-                content: {
-                    'application/json': {
-                        schema: {
-                            properties: oaAuthor
-                        }
-                    }
-                }
-            }
-        }
-    }),
-    async (req, res) => {
+app.get('/author', async (req, res) => {
 
         const region: string = (req.query.region || 'US').toString().toLowerCase();
         const cache: string = req.query.cache as string;
+
+        if (!req.query.name) {
+            res.status(400).send("No name provided");
+            return;
+        }
 
         console.log(req.query.name.toString());
 

@@ -2,7 +2,8 @@ import express = require('express');
 import {Express} from "express";
 import rateLimit, {RateLimitRequestHandler} from "express-rate-limit";
 import {PrismaClient} from '@prisma/client';
-import openapi = require('@wesleytodd/openapi');
+import swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./models/openAPI.json');
 
 export const prisma = new PrismaClient();
 
@@ -13,24 +14,9 @@ export const HEADERS = {
     'User-Agent': 'Audible/3.0.0 Android/11',
 }
 
-export const oapi = openapi({
-    openapi: '3.0.0',
-    info: {
-        title: 'AudiMeta API',
-        description: 'API to retrieve information about Book, Series and Search',
-        version: '1.0.2',
-    },
-    servers: [
-        {
-            url: 'https://audimeta.de/',
-            description: 'Public Instance',
-        },
-    ],
-})
 
 export const app: Express = express();
 app.use(express.json());
-app.use(oapi);
 app.set('trust proxy', 1)
 
 const limiter: RateLimitRequestHandler = rateLimit({
@@ -66,26 +52,16 @@ export const regionMap = {
  * /ping:
  *
  */
-app.get('/ping', oapi.path({
-    responses: {
-        200: {
-            description: 'Server reachable',
-            content: {
-                'application/json': {
-                    schema: {
-                        type: 'object',
-                        properties: {
-                            reachable: { type: 'boolean' }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}),(req, res) => {
+app.get('/ping', (req, res) => {
     res.send({reachable: true});
 });
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+// Redirect / to /api-docs SEO friendly
+app.get('/', (req, res) => {
+    res.redirect(301, '/api-docs');
+});
 
 // Load all controllers
 require('./controller/bookController');
@@ -93,8 +69,6 @@ require('./controller/searchController');
 require('./controller/seriesController');
 require('./controller/chapterController');
 require('./controller/authorController');
-
-app.use('/', oapi.swaggerui())
 
 app.listen(PORT, () => {
   console.log("Server Listening on PORT:", PORT);
