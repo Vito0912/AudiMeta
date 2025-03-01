@@ -4,6 +4,7 @@ import rateLimit, {RateLimitRequestHandler} from "express-rate-limit";
 import {PrismaClient} from '@prisma/client';
 import swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./models/openAPI.json');
+import winston = require('winston');
 
 export const prisma = new PrismaClient();
 
@@ -46,12 +47,25 @@ export const regionMap = {
     es: '.es'
 }
 
+export const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    transports: [
+        new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    ],
+});
 
-/**
- * @swagger
- * /ping:
- *
- */
+// For now log also in production
+logger.add(new winston.transports.Console({
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+}));
+
 app.get('/ping', (req, res) => {
     res.send({reachable: true});
 });

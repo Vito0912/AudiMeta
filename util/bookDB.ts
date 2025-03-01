@@ -1,6 +1,6 @@
 import {BookInput, BookInputFactory, getFullBooks, insertBook, insertBooks} from "./book";
 import axios from "axios";
-import {HEADERS, regionMap} from "../app";
+import {HEADERS, logger, regionMap} from "../app";
 import {BookModel} from "../models/type_model";
 
 export async function getBook(asin: string, region: string, req: any, cache: string | undefined): Promise<BookModel | undefined> {
@@ -12,7 +12,7 @@ export async function getBook(asin: string, region: string, req: any, cache: str
             return bookResult;
         }
     } else {
-        console.log("Cache disabled for book", asin);
+        logger.info(`Cache disabled for ${asin}`);
     }
 
     const reqParams = {
@@ -37,7 +37,7 @@ export async function getBook(asin: string, region: string, req: any, cache: str
 
         await insertBook(parsedBook);
 
-        console.log("Added book", parsedBook.asin);
+        logger.info(`Added book ${parsedBook.asin}`);
 
         return await getFullBooks(asin, region) as BookModel;
     }
@@ -90,7 +90,7 @@ export async function getBooks(asins: string[], region: string, req: any, limit?
 
             if(parsedBook !== undefined) {
                 parsedBooksList.push(parsedBook);
-                console.log("Added book", parsedBook.asin);
+                logger.info(`Added book ${parsedBook.asin}`);
             }
         }
         await insertBooks(parsedBooksList);

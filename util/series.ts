@@ -1,5 +1,5 @@
 import {Book} from "@prisma/client";
-import {HEADERS, prisma, regionMap} from "../app";
+import {HEADERS, logger, prisma, regionMap} from "../app";
 import axios from "axios";
 import {BookModel, mapBook, SeriesInfoModel} from "../models/type_model";
 import parse from "node-html-parser";
@@ -7,7 +7,7 @@ import {getBooks} from "./bookDB";
 import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "./searchCache";
 
 export async function getBooksInSeries(seriesAsin: string, limit?: number, page?: number): Promise<BookModel[]> {
-    console.log("Getting books in series", seriesAsin);
+    logger.info("Getting books in series " + seriesAsin);
     const books = await prisma.book.findMany({
         where: {
             series: {

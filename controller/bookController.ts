@@ -1,4 +1,4 @@
-import {app, regionMap} from "../app";
+import {app, logger, regionMap} from "../app";
 import {getBook, getBooks} from "../util/bookDB";
 
 /**
@@ -24,7 +24,7 @@ app.get('/book/:asin', async (req, res) => {
         }
         res.send(book);
     } catch (e) {
-        console.log(e);
+        logger.error(e);
         res.status(500).send('Internal server error');
     }
 });
@@ -68,7 +68,7 @@ app.get('/book', async (req, res) => {
 
         res.send(books);
     } catch (e) {
-        console.log(e);
+        logger.error(e);
         res.status(500).send('Internal server error')
     }
 });

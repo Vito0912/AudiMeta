@@ -18,7 +18,9 @@
     "object-hash": "^3.0.0",
     "pug": "3.0.3",
     "swagger-ui-dist": "^5.20.0",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "tsx": "^4.19.3",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.17.0",

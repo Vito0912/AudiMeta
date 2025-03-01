@@ -144,8 +144,6 @@ app.get('/author', async (req, res) => {
             return;
         }
 
-        console.log(req.query.name.toString());
-
         const audibleResult = await searchAudibleAuthor(req.query.name.toString(), region);
 
         let authorModel: AuthorModel | undefined = undefined;

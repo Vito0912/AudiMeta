@@ -1,6 +1,6 @@
 import axios from "axios";
 import {BookInput, getBooksFromOtherRegions, selectLocalBooks} from "../util/book";
-import {app, HEADERS, prisma, regionMap} from "../app";
+import {app, HEADERS, logger, prisma, regionMap} from "../app";
 import {getBooks} from "../util/bookDB";
 import {BookModel} from "../models/type_model";
 import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "../util/searchCache";
@@ -123,7 +123,7 @@ app.get('/search', async (req, res) => {
                 return;
             }
         } catch (e) {
-            console.log(e);
+            logger.error(e);
             res.status(500).send('Internal Server error');
             return;
         }

@@ -1,9 +1,9 @@
-import {prisma} from "../app";
+import {logger, prisma} from "../app";
 import hash = require('object-hash');
 
 export async function getSearchCacheResult(search: string, req, limit?: number, page?: number): Promise<string[]> {
     if(req.query.cache && req.query.cache === 'false') {
-        console.log("Cache disabled");
+        logger.info("Cache disabled");
         return [];
     }
 

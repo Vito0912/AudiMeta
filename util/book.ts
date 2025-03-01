@@ -1,5 +1,5 @@
 import {Book} from "@prisma/client";
-import {prisma} from "../app";
+import {logger, prisma} from "../app";
 import {BookModel, mapBook} from "../models/type_model";
 
 const bookInclude = {
@@ -126,7 +126,7 @@ export class BookInputFactory {
  */
 export async function insertBook(data: BookInput) {
     if (!data.asin) {
-        console.log("No asin provided");
+        logger.info("No asin provided");
     }
 
     await prisma.book.upsert({
