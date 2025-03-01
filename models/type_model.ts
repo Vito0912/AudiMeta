@@ -46,6 +46,7 @@ type ChapterModel = {
 export type BookModel = {
     asin: string;
     title: string;
+    subtitle: string | null;
 
     copyright: string | null;
     description: string | null;
@@ -75,6 +76,7 @@ export function mapBook(book: any): BookModel {
         asin: book.asin,
         regions: book.regions,
         title: book.title,
+        subtitle: book.subtitle,
 
         copyright: book.copyRight,
         description: book.description,

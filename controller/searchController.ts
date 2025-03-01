@@ -125,6 +125,7 @@ app.get('/search', async (req, res) => {
         } catch (e) {
             console.log(e);
             res.status(500).send('Internal Server error');
+            return;
         }
     }
     res.status(404).send("No books found");
