@@ -19,17 +19,22 @@ app.get('/series/books/:asin', async (req, res) => {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
     const page = req.query.page ? parseInt(req.query.page as string) : undefined;
 
-    if (forceUpdate !== undefined && forceUpdate === 'true') {
+    let books: BookModel[] = await getBooksInSeries(req.params.asin, limit, page);
+
+    if ((forceUpdate !== undefined && forceUpdate === 'true')  || (books !== null && books.length === 0)) {
         const series = await updateSeries(req, res, region, limit, page)
         if (!series || series.length === 0) {
-            res.status(404).send("Series not found");
+            res.status(404).send("No books in series found or series not found");
             return;
         }
         res.send(series);
         return;
     }
 
-    let books: BookModel[] = await getBooksInSeries(req.params.asin, limit, page);
+    if(!books || books.length === 0) {
+        res.status(404).send("No books in series found or series not found");
+        return;
+    }
 
     const sortedBooks = books.sort((a, b) => {
         const aSeries = a.series && a.series.length > 0 ? a.series[0] : undefined;
@@ -42,7 +47,7 @@ app.get('/series/books/:asin', async (req, res) => {
     });
 
     if (books.length === 0) {
-        res.status(404).send("Series not found");
+        res.status(404).send("No books in series found or series not found");
         return
     }
 

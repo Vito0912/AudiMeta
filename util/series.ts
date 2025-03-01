@@ -4,6 +4,7 @@ import axios from "axios";
 import {BookModel, mapBook, SeriesInfoModel} from "../models/type_model";
 import parse from "node-html-parser";
 import {getBooks} from "./bookDB";
+import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "./searchCache";
 
 export async function getBooksInSeries(seriesAsin: string, limit?: number, page?: number): Promise<BookModel[]> {
     console.log("Getting books in series", seriesAsin);
@@ -52,6 +53,9 @@ export async function getSeriesAsins(asin: string): Promise<string[]> {
 
     if (response.status === 200) {
         const json: any = response.data;
+        if (!json.product.relationships) {
+            return [];
+        }
         return json.product.relationships.filter((relation: any) => relation.relationship_to_product == 'child' && relation.relationship_type == 'series').map((series: any) => series.asin);
     }
 }
@@ -112,10 +116,18 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
 }
 
 export async function updateSeries(req: any, res: any, region: string, limit?: number, page?: number) {
-    let seriesAsins = await getSeriesAsins(req.params.asin);
 
-    if (limit && page) {
-        seriesAsins = seriesAsins.slice(page * limit, (page + 1) * limit);
+    const key = generateSearchKey(req.params.asin, region);
+    let seriesAsins = await getSearchCacheResult(key, req, limit, page);
+
+    if (!seriesAsins || seriesAsins.length === 0) {
+        seriesAsins = await getSeriesAsins(req.params.asin);
+
+        if (seriesAsins && seriesAsins.length >= 1) await insertSearchCacheResult(key, seriesAsins);
+
+        if (limit && page) {
+            seriesAsins = seriesAsins.slice(page * limit, (page + 1) * limit);
+        }
     }
 
     // Split in chunks of 50
