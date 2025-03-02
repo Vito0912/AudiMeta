@@ -43,8 +43,8 @@ export async function getBooksInSeries(seriesAsin: string, limit?: number, page?
     return books.map(book => mapBook(book));
 }
 
-export async function getSeriesAsins(asin: string): Promise<string[]> {
-    const URL = `https://api.audible.de/1.0/catalog/products/${asin}`
+export async function getSeriesAsins(asin: string, region: string): Promise<string[]> {
+    const URL = `https://api.audible${regionMap[region]}/1.0/catalog/products/${asin}`
 
     const response = await axios.get(URL, {
         headers: HEADERS,
@@ -121,7 +121,7 @@ export async function updateSeries(req: any, res: any, region: string, limit?: n
     let seriesAsins = await getSearchCacheResult(key, req, limit, page);
 
     if (!seriesAsins || seriesAsins.length === 0) {
-        seriesAsins = await getSeriesAsins(req.params.asin);
+        seriesAsins = await getSeriesAsins(req.params.asin, region);
 
         if (seriesAsins && seriesAsins.length >= 1) await insertSearchCacheResult(key, seriesAsins);
 
