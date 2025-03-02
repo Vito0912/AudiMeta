@@ -2,8 +2,8 @@
     "openapi": "3.0.0",
     "info": {
         "title": "AudiMeta API",
-        "version": "1.0.2",
-        "description": "API to retrieve information about Book, Series and Search"
+        "version": "1.0.3",
+        "description": "## AudiMeta API: Get Audiobook Metadata\n\nAudiMeta API is a **robust, easy-to-use, and free REST API** designed to effortlessly fetch audiobook metadata through well-structured endpoints. It provides access to comprehensive book details, series information, and author data primarily sourced from **Audible**, with plans to integrate additional sources soon.\n\n### API Capabilities:\n- **Books:** Retrieve details for specific books or collect metadata for multiple books simultaneously.\n- **Authors:** Access information on authors, explore their works, and seamlessly discover books they've written.\n- **Series:** Find series information effortlessly, along with easy access to all books within a specific series.\n- **Chapters:** Quickly retrieve structured chapter information for individual books, enhancing user experience.\n- **Search:** Perform powerful yet intuitive searches for books and authors.\n\n### Key Use-Cases:\n- Building audiobook platforms and mobile apps.\n- Developing audiobook analysis or recommendation systems.\n- Integrating structured audiobook information into existing services or websites."
     },
     "servers": [
         {
