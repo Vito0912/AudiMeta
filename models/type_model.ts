@@ -96,13 +96,13 @@ export function mapBook(book: any): BookModel {
             asin: series.series.asin,
             name: series.series.title,
             position: series.position,
-            description: series.series.description
+            // description: series.series.description
         })) : null,
         authors: book.authors ? book.authors.map(bookToAuthor => ({
             asin: bookToAuthor.author.asin,
             region: bookToAuthor.author.region,
             name: bookToAuthor.author.name,
-            description: bookToAuthor.author.description
+            // description: bookToAuthor.author.description
         })) : null,
         narrators: book.narrators ? book.narrators.map(narrator => ({
             name: narrator.name

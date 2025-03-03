@@ -1,4 +1,4 @@
-import {getBooksInSeries, getSeriesAsins, getSeriesDetails, updateSeries} from "../util/series";
+import {getBooksInSeries, getSeriesAsins, getSeriesDetails, sortBooksBySeries, updateSeries} from "../util/series";
 import {app, HEADERS, prisma, regionMap} from "../app";
 import {BookModel, SeriesInfoModel} from "../models/type_model";
 
@@ -27,7 +27,7 @@ app.get('/series/books/:asin', async (req, res) => {
             res.status(404).send("No books in series found or series not found");
             return;
         }
-        res.send(series);
+        res.send(sortBooksBySeries(series, req.params.asin));
         return;
     }
 
@@ -36,22 +36,12 @@ app.get('/series/books/:asin', async (req, res) => {
         return;
     }
 
-    const sortedBooks = books.sort((a, b) => {
-        const aSeries = a.series && a.series.length > 0 ? a.series[0] : undefined;
-        const bSeries = b.series && b.series.length > 0 ? b.series[0] : undefined;
-
-        const aPosition = aSeries && aSeries.position != null ? aSeries.position : Number.POSITIVE_INFINITY;
-        const bPosition = bSeries && bSeries.position != null ? bSeries.position : Number.POSITIVE_INFINITY;
-
-        return aPosition - bPosition;
-    });
-
     if (books.length === 0) {
         res.status(404).send("No books in series found or series not found");
         return
     }
 
-    res.send(sortedBooks);
+    res.send(sortBooksBySeries(books, req.params.asin));
 });
 
 
