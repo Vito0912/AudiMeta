@@ -24,16 +24,19 @@ This was inspired by [Audnexus](https://github.com/audnexus/audnexus). It shares
 ## Documentation
 
 View the complete API documentation via the OpenAPI specification:
+
 - [OpenAPI Documentation](https://audimeta.de)
 
 ## Features
 
 ### Highlights
+
 - Bulk search for asins (up to 50)
 - Search across regions for cached books
 - Find all books of an author or series
 
 ### Search Capabilities
+
 - Search books by title
 - Retrieve books by author
 - Look up books by ASIN (single or bulk)
@@ -44,13 +47,16 @@ View the complete API documentation via the OpenAPI specification:
 - Look up books by ISBN (Audible ISBN might not be the same as the audiobook ISBN of the book)
 
 ### Book Details
+
 - Get detailed book information by ASIN, list of ASINs, or ISBN
 
 ### Series Information
+
 - Retrieve series information by name
 - Retrieve series information by ASIN
 
 ### Author Information
+
 - Get author details by name
 - Get author details by ASIN
 
@@ -58,23 +64,25 @@ View the complete API documentation via the OpenAPI specification:
 
 AudiMeta supports the following Audible regions:
 
-| Region Code | Region Name     |
-|-------------|-----------------|
-| `de`        | Germany         |
-| `us`        | United States   |
-| `uk`        | United Kingdom  |
-| `fr`        | France          |
-| `it`        | Italy           |
-| `es`        | Spain           |
-| `jp`        | Japan           |
-| `ca`        | Canada          |
-| `au`        | Australia       |
-| `in`        | India           |
+| Region Code | Region Name    |
+| ----------- | -------------- |
+| `de`        | Germany        |
+| `us`        | United States  |
+| `uk`        | United Kingdom |
+| `fr`        | France         |
+| `it`        | Italy          |
+| `es`        | Spain          |
+| `jp`        | Japan          |
+| `ca`        | Canada         |
+| `au`        | Australia      |
+| `in`        | India          |
 
 ### Region Behavior
+
 When searching for books, results will be returned regardless of regional availability by default. Use the `strictRegion` query parameter to limit results to only books available in the specified region.
 
 ### Parameters
+
 Please check the [OpenAPI Documentation](https://audimeta.de) for detailed information on the available query parameters.
 Some endpoints only return cached data and do not query Audible again unless explicitly requested.
 

@@ -1,10 +1,9 @@
-import axios from "axios";
-import {BookInput, getBooksFromOtherRegions, selectLocalBooks} from "../util/book";
-import {app, HEADERS, logger, prisma, regionMap} from "../app";
-import {getBooks} from "../util/bookDB";
-import {BookModel} from "../models/type_model";
-import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "../util/searchCache";
-
+import axios from 'axios';
+import { BookInput, getBooksFromOtherRegions, selectLocalBooks } from '../util/book';
+import { app, HEADERS, logger, prisma, regionMap } from '../app';
+import { getBooks } from '../util/bookDB';
+import { BookModel } from '../models/type_model';
+import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from '../util/searchCache';
 
 /**
  * Returns all books that match the search query parameters
@@ -22,111 +21,113 @@ import {generateSearchKey, getSearchCacheResult, insertSearchCacheResult} from "
 
 // @ts-ignore
 app.get('/search', async (req, res) => {
-    const author: string | null = req.query.author ? req.query.author.toString() : null;
-    const title: string | null = req.query.title ? req.query.title.toString() : null;
+  const author: string | null = req.query.author ? req.query.author.toString() : null;
+  const title: string | null = req.query.title ? req.query.title.toString() : null;
 
-    const localTitle: string | null = req.query.localTitle ? req.query.localTitle.toString() : null;
-    const localAuthor: string | null = req.query.localAuthor ? req.query.localAuthor.toString() : null;
-    const localNarrator: string | null = req.query.localNarrator ? req.query.localNarrator.toString() : null;
-    const localGenre: string | null = req.query.localGenre ? req.query.localGenre.toString() : null;
-    const localSeries: string | null = req.query.localSeries ? req.query.localSeries.toString() : null;
-    const localSeriesPosition: string | null = req.query.localSeriesPosition ? req.query.localSeriesPosition.toString() : null;
+  const localTitle: string | null = req.query.localTitle ? req.query.localTitle.toString() : null;
+  const localAuthor: string | null = req.query.localAuthor ? req.query.localAuthor.toString() : null;
+  const localNarrator: string | null = req.query.localNarrator ? req.query.localNarrator.toString() : null;
+  const localGenre: string | null = req.query.localGenre ? req.query.localGenre.toString() : null;
+  const localSeries: string | null = req.query.localSeries ? req.query.localSeries.toString() : null;
+  const localSeriesPosition: string | null = req.query.localSeriesPosition ? req.query.localSeriesPosition.toString() : null;
 
-    const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
-    const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
+  const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
+  const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
 
-    let regions: string[] = req.query.region ? req.query.region.toString().split(',') : ['us'];
-    regions = regions.filter((region, index) => regions.indexOf(region) === index).map(region => region.toLowerCase());
+  let regions: string[] = req.query.region ? req.query.region.toString().split(',') : ['us'];
+  regions = regions.filter((region, index) => regions.indexOf(region) === index).map(region => region.toLowerCase());
 
-    if ((title == null || title.length === 0) && (author == null || author.length === 0)) {
+  if ((title == null || title.length === 0) && (author == null || author.length === 0)) {
+    const inputs = {
+      localTitle,
+      localAuthor,
+      localNarrator,
+      localGenre,
+      localSeries,
+      localSeriesPosition,
+    };
 
-        const inputs = {localTitle, localAuthor, localNarrator, localGenre, localSeries, localSeriesPosition}
+    if (Object.values(inputs).filter(value => value).length === 0) {
+      res.status(400).send('Author or title or any local search must be provided');
+      return;
+    }
 
-        if(Object.values(inputs).filter(value => value).length === 0) {
-            res.status(400).send("Author or title or any local search must be provided");
-            return;
+    const books = await selectLocalBooks(inputs, limit, page);
+
+    if (books && books.length >= 1) {
+      res.send(books);
+      return;
+    }
+
+    res.status(404).send('No books found');
+    return;
+  }
+
+  for (let index = 0; index < regions.length; index++) {
+    const region = regions[index].toLowerCase();
+    if (!regionMap[region.toLowerCase()]) {
+      res.status(400).send('Invalid region');
+      return;
+    }
+
+    const key = generateSearchKey(title, author, region);
+
+    let asins: string[] = [];
+
+    try {
+      asins = await getSearchCacheResult(key, req, limit, page);
+    } catch (e) {}
+
+    try {
+      if (!asins || asins.length === 0) {
+        const reqParams = {
+          num_results: limit === undefined ? '10' : limit.toString(),
+          products_sort_by: 'Relevance',
+        };
+        if (author) {
+          reqParams['author'] = author;
         }
-
-        const books = await selectLocalBooks(inputs, limit, page);
-
-        if (books && books.length >= 1) {
-            res.send(books);
-            return;
+        if (title) {
+          reqParams['title'] = title;
         }
+        const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
 
-        res.status(404).send("No books found");
+        const response = await axios.get(url, {
+          headers: HEADERS,
+          params: reqParams,
+        });
+
+        if (response.status === 200) {
+          const json: any = response.data;
+
+          asins = json.products.map((product: any) => product.asin);
+
+          if (asins.length >= 1) {
+            await insertSearchCacheResult(key, asins);
+          }
+        }
+      }
+
+      let books: BookModel[] = await getBooks(asins, region, req, limit, page);
+      if (index == regions.length && books.length === 0) {
+        const otherBooks = await getBooksFromOtherRegions(title, author, limit, page);
+        if (otherBooks.length === 0) {
+          res.status(404).send('No books found');
+          return;
+        }
+        res.send(otherBooks);
         return;
+      }
 
+      if (books && books.length >= 1) {
+        res.send(books);
+        return;
+      }
+    } catch (e) {
+      logger.error(e);
+      res.status(500).send('Internal Server error');
+      return;
     }
-
-    for (let index = 0; index < regions.length; index++) {
-        const region = regions[index].toLowerCase();
-        if (!regionMap[region.toLowerCase()]) {
-            res.status(400).send("Invalid region");
-            return;
-        }
-
-        const key = generateSearchKey(title, author, region)
-
-        let asins: string[] = [];
-
-        try {
-            asins = await getSearchCacheResult(key, req, limit, page);
-        } catch (e) {
-
-        }
-
-
-        try {
-            if (!asins || asins.length === 0) {
-                const reqParams = {
-                    num_results: limit === undefined ? '10' :  limit.toString(),
-                    products_sort_by: 'Relevance'
-                }
-                if (author) {
-                    reqParams['author'] = author;
-                }
-                if (title) {
-                    reqParams['title'] = title;
-                }
-                const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
-
-                const response = await axios.get(url, {
-                    headers: HEADERS,
-                    params: reqParams
-                });
-
-                if (response.status === 200) {
-                    const json: any = response.data;
-
-                    asins = json.products.map((product: any) => product.asin);
-
-                    if(asins.length >= 1) {
-                        await insertSearchCacheResult(key, asins);
-                    }
-                }
-            }
-
-            let books: BookModel[] = await getBooks(asins, region, req, limit, page);
-            if (index == regions.length && books.length === 0) {
-                const otherBooks = await getBooksFromOtherRegions(title, author, limit, page)
-                if (otherBooks.length === 0) {
-                    res.status(404).send("No books found");
-                    return;
-                }
-                res.send(otherBooks);
-                return;
-            }
-
-            if(books && books.length >= 1) {
-                res.send(books);
-                return;
-            }
-        } catch (e) {
-            logger.error(e);
-            res.status(500).send('Internal Server error');
-            return;
-        }
-    }
-    res.status(404).send("No books found");
+  }
+  res.status(404).send('No books found');
 });

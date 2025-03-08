@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "prettier": "prettier --write ."
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
@@ -27,6 +28,9 @@
     "@types/express": "^5.0.0",
     "@types/object-hash": "^3.0.6",
     "@types/swagger-ui-express": "^4.1.8",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "3.5.3",
     "prisma": "^6.4.1"
   },
   "scarfSettings": {

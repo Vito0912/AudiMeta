@@ -1,1866 +1,1539 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-        "title": "AudiMeta API",
-        "version": "1.0.3",
-        "description": "## AudiMeta API: Get Audiobook Metadata\n\nAudiMeta API is a **robust, easy-to-use, and free REST API** designed to effortlessly fetch audiobook metadata through well-structured endpoints. It provides access to comprehensive book details, series information, and author data primarily sourced from **Audible**, with plans to integrate additional sources soon.\n\n### API Capabilities:\n- **Books:** Retrieve details for specific books or collect metadata for multiple books simultaneously.\n- **Authors:** Access information on authors, explore their works, and seamlessly discover books they've written.\n- **Series:** Find series information effortlessly, along with easy access to all books within a specific series.\n- **Chapters:** Quickly retrieve structured chapter information for individual books, enhancing user experience.\n- **Search:** Perform powerful yet intuitive searches for books and authors.\n\n### Key Use-Cases:\n- Building audiobook platforms and mobile apps.\n- Developing audiobook analysis or recommendation systems.\n- Integrating structured audiobook information into existing services or websites."
-    },
-    "servers": [
-        {
-            "url": "https://audimeta.de/",
-            "description": "Public Instance"
-        }
-    ],
-    "paths": {
-        "/ping": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Server reachable",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "reachable": {
-                                            "type": "boolean"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/book/{asin}": {
-            "get": {
-                "tags": [
-                    "book"
-                ],
-                "summary": "Get a book",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "asin",
-                        "in": "path",
-                        "description": "The asin of the series",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "cache",
-                        "in": "query",
-                        "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Book found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "asin": {
-                                            "type": "string",
-                                            "description": "The books asin"
-                                        },
-                                        "title": {
-                                            "type": "string",
-                                            "description": "The title of the book"
-                                        },
-                                        "regions": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "US",
-                                                    "UK",
-                                                    "AU",
-                                                    "DE",
-                                                    "FR",
-                                                    "CA",
-                                                    "IT",
-                                                    "JP",
-                                                    "IN",
-                                                    "BR",
-                                                    "MX",
-                                                    "ES"
-                                                ]
-                                            },
-                                            "description": "The regions the book is available in"
-                                        },
-                                        "copyrigth": {
-                                            "type": "string",
-                                            "description": "The copyrigth of the book"
-                                        },
-                                        "description": {
-                                            "type": "string",
-                                            "description": "The description of the book"
-                                        },
-                                        "summary": {
-                                            "type": "string",
-                                            "description": "The summary of the book"
-                                        },
-                                        "explicit": {
-                                            "type": "boolean",
-                                            "description": "The explicit content of the book"
-                                        },
-                                        "isbn": {
-                                            "type": "string",
-                                            "description": "The isbn of the book"
-                                        },
-                                        "language": {
-                                            "type": "string",
-                                            "description": "The language of the book"
-                                        },
-                                        "publisher": {
-                                            "type": "string",
-                                            "description": "The publisher of the book"
-                                        },
-                                        "rating": {
-                                            "type": "number",
-                                            "description": "The rating of the book"
-                                        },
-                                        "series": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "asin": {
-                                                        "type": "string",
-                                                        "description": "The series asin"
-                                                    },
-                                                    "name": {
-                                                        "type": "string",
-                                                        "description": "The name of the series"
-                                                    },
-                                                    "description": {
-                                                        "type": "string",
-                                                        "description": "The description of the series"
-                                                    },
-                                                    "position": {
-                                                        "type": "number",
-                                                        "description": "The position of the series"
-                                                    }
-                                                },
-                                                "required": ["asin", "name"]
-                                            },
-                                            "description": "The series of the book"
-                                        },
-                                        "authors": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "asin": {
-                                                        "type": "string",
-                                                        "description": "The author asin. Can be the authors name!"
-                                                    },
-                                                    "region": {
-                                                        "type": "string",
-                                                        "enum": [
-                                                            "US",
-                                                            "UK",
-                                                            "AU",
-                                                            "DE",
-                                                            "FR",
-                                                            "CA",
-                                                            "IT",
-                                                            "JP",
-                                                            "IN",
-                                                            "BR",
-                                                            "MX",
-                                                            "ES"
-                                                        ],
-                                                        "description": "The language of the authors description"
-                                                    },
-                                                    "name": {
-                                                        "type": "string",
-                                                        "description": "The name of the author"
-                                                    },
-                                                    "description": {
-                                                        "type": "string",
-                                                        "description": "The description of the author"
-                                                    },
-                                                    "image": {
-                                                        "type": "string",
-                                                        "description": "The image of the author. 512x512 resolution"
-                                                    },
-                                                    "genres": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "asin": {
-                                                                    "type": "string",
-                                                                    "description": "The genre asin"
-                                                                },
-                                                                "name": {
-                                                                    "type": "string",
-                                                                    "description": "The name of the genre"
-                                                                },
-                                                                "type": {
-                                                                    "type": "string",
-                                                                    "enum": [
-                                                                        "Genres",
-                                                                        "Tags"
-                                                                    ],
-                                                                    "description": "The type of the genre"
-                                                                }
-                                                            },
-                                                            "required": ["asin", "name", "type"]
-                                                        },
-                                                        "description": "The genres of the author"
-                                                    }
-                                                },
-                                                "required": ["asin", "region", "name"]
-                                            },
-                                            "description": "The authors of the book"
-                                        },
-                                        "narrators": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "name": {
-                                                        "type": "string",
-                                                        "description": "The name of the narrator"
-                                                    }
-                                                },
-                                                "required": ["name"]
-                                            },
-                                            "description": "The narrators of the book"
-                                        },
-                                        "genres": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "asin": {
-                                                        "type": "string",
-                                                        "description": "The genre asin"
-                                                    },
-                                                    "name": {
-                                                        "type": "string",
-                                                        "description": "The name of the genre"
-                                                    },
-                                                    "type": {
-                                                        "type": "string",
-                                                        "enum": [
-                                                            "Genres",
-                                                            "Tags"
-                                                        ],
-                                                        "description": "The type of the genre"
-                                                    }
-                                                },
-                                                "required": ["asin", "name", "type"]
-                                            },
-                                            "description": "The genres of the book"
-                                        },
-                                        "releaseDate": {
-                                            "type": "string",
-                                            "description": "The release date of the book"
-                                        }
-                                    },
-                                    "required": ["asin", "title"]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/book": {
-            "get": {
-                "tags": [
-                    "book"
-                ],
-                "summary": "Get multiple books",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "asins",
-                        "in": "query",
-                        "description": "The asins of the book in a comma separated list",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Books",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "asin": {
-                                                "type": "string",
-                                                "description": "The books asin"
-                                            },
-                                            "title": {
-                                                "type": "string",
-                                                "description": "The title of the book"
-                                            },
-                                            "regions": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "US",
-                                                        "UK",
-                                                        "AU",
-                                                        "DE",
-                                                        "FR",
-                                                        "CA",
-                                                        "IT",
-                                                        "JP",
-                                                        "IN",
-                                                        "BR",
-                                                        "MX",
-                                                        "ES"
-                                                    ]
-                                                },
-                                                "description": "The regions the book is available in"
-                                            },
-                                            "copyrigth": {
-                                                "type": "string",
-                                                "description": "The copyrigth of the book"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "description": "The description of the book"
-                                            },
-                                            "summary": {
-                                                "type": "string",
-                                                "description": "The summary of the book"
-                                            },
-                                            "explicit": {
-                                                "type": "boolean",
-                                                "description": "The explicit content of the book"
-                                            },
-                                            "isbn": {
-                                                "type": "string",
-                                                "description": "The isbn of the book"
-                                            },
-                                            "language": {
-                                                "type": "string",
-                                                "description": "The language of the book"
-                                            },
-                                            "publisher": {
-                                                "type": "string",
-                                                "description": "The publisher of the book"
-                                            },
-                                            "rating": {
-                                                "type": "number",
-                                                "description": "The rating of the book"
-                                            },
-                                            "series": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The series asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the series"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the series"
-                                                        },
-                                                        "position": {
-                                                            "type": "number",
-                                                            "description": "The position of the series"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name"]
-                                                },
-                                                "description": "The series of the book"
-                                            },
-                                            "authors": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The author asin. Can be the authors name!"
-                                                        },
-                                                        "region": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "US",
-                                                                "UK",
-                                                                "AU",
-                                                                "DE",
-                                                                "FR",
-                                                                "CA",
-                                                                "IT",
-                                                                "JP",
-                                                                "IN",
-                                                                "BR",
-                                                                "MX",
-                                                                "ES"
-                                                            ],
-                                                            "description": "The language of the authors description"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the author"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the author"
-                                                        },
-                                                        "image": {
-                                                            "type": "string",
-                                                            "description": "The image of the author. 512x512 resolution"
-                                                        },
-                                                        "genres": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "asin": {
-                                                                        "type": "string",
-                                                                        "description": "The genre asin"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "description": "The name of the genre"
-                                                                    },
-                                                                    "type": {
-                                                                        "type": "string",
-                                                                        "enum": [
-                                                                            "Genres",
-                                                                            "Tags"
-                                                                        ],
-                                                                        "description": "The type of the genre"
-                                                                    }
-                                                                },
-                                                                "required": ["asin", "name", "type"]
-                                                            },
-                                                            "description": "The genres of the author"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "region", "name"]
-                                                },
-                                                "description": "The authors of the book"
-                                            },
-                                            "narrators": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the narrator"
-                                                        }
-                                                    },
-                                                    "required": ["name"]
-                                                },
-                                                "description": "The narrators of the book"
-                                            },
-                                            "genres": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The genre asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the genre"
-                                                        },
-                                                        "type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "Genres",
-                                                                "Tags"
-                                                            ],
-                                                            "description": "The type of the genre"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name", "type"]
-                                                },
-                                                "description": "The genres of the book"
-                                            },
-                                            "releaseDate": {
-                                                "type": "string",
-                                                "description": "The release date of the book"
-                                            }
-                                        },
-                                        "required": ["asin", "title"]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/search": {
-            "get": {
-                "tags": [
-                    "search"
-                ],
-                "summary": "Search for books",
-                "parameters": [
-                    {
-                        "name": "author",
-                        "in": "query",
-                        "description": "The author of the book. Needs to be provided if title is not provided",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "title",
-                        "in": "query",
-                        "description": "The title of the book. Needs to be provided if author is not provided",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "localTitle",
-                        "in": "query",
-                        "description": "Just like title this matches the title of the book. LocalTitle only searches in the database. This increases speed but needs a nearly exact match",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "localAuthor",
-                        "in": "query",
-                        "description": "Just like author this matches the author of the book. LocalAuthor only searches in the database. This increases speed but needs a nearly exact match",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "localNarrator",
-                        "in": "query",
-                        "description": "Just like narrator this matches the narrator of the book. LocalNarrator only searches in the database. This increases speed but needs a nearly exact match",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "localGenre",
-                        "in": "query",
-                        "description": "Just like genre this matches the genre of the book. LocalGenre only searches in the database. This increases speed but needs a nearly exact match",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "localSeries",
-                        "in": "query",
-                        "description": "Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "localSeriesPosition",
-                        "in": "query",
-                        "description": "Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
-                        "required": false,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "cache",
-                        "in": "query",
-                        "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Search results",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "asin": {
-                                                "type": "string",
-                                                "description": "The books asin"
-                                            },
-                                            "title": {
-                                                "type": "string",
-                                                "description": "The title of the book"
-                                            },
-                                            "regions": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "US",
-                                                        "UK",
-                                                        "AU",
-                                                        "DE",
-                                                        "FR",
-                                                        "CA",
-                                                        "IT",
-                                                        "JP",
-                                                        "IN",
-                                                        "BR",
-                                                        "MX",
-                                                        "ES"
-                                                    ]
-                                                },
-                                                "description": "The regions the book is available in"
-                                            },
-                                            "copyrigth": {
-                                                "type": "string",
-                                                "description": "The copyrigth of the book"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "description": "The description of the book"
-                                            },
-                                            "summary": {
-                                                "type": "string",
-                                                "description": "The summary of the book"
-                                            },
-                                            "explicit": {
-                                                "type": "boolean",
-                                                "description": "The explicit content of the book"
-                                            },
-                                            "isbn": {
-                                                "type": "string",
-                                                "description": "The isbn of the book"
-                                            },
-                                            "language": {
-                                                "type": "string",
-                                                "description": "The language of the book"
-                                            },
-                                            "publisher": {
-                                                "type": "string",
-                                                "description": "The publisher of the book"
-                                            },
-                                            "rating": {
-                                                "type": "number",
-                                                "description": "The rating of the book"
-                                            },
-                                            "series": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The series asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the series"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the series"
-                                                        },
-                                                        "position": {
-                                                            "type": "number",
-                                                            "description": "The position of the series"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name"]
-                                                },
-                                                "description": "The series of the book"
-                                            },
-                                            "authors": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The author asin. Can be the authors name!"
-                                                        },
-                                                        "region": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "US",
-                                                                "UK",
-                                                                "AU",
-                                                                "DE",
-                                                                "FR",
-                                                                "CA",
-                                                                "IT",
-                                                                "JP",
-                                                                "IN",
-                                                                "BR",
-                                                                "MX",
-                                                                "ES"
-                                                            ],
-                                                            "description": "The language of the authors description"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the author"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the author"
-                                                        },
-                                                        "image": {
-                                                            "type": "string",
-                                                            "description": "The image of the author. 512x512 resolution"
-                                                        },
-                                                        "genres": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "asin": {
-                                                                        "type": "string",
-                                                                        "description": "The genre asin"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "description": "The name of the genre"
-                                                                    },
-                                                                    "type": {
-                                                                        "type": "string",
-                                                                        "enum": [
-                                                                            "Genres",
-                                                                            "Tags"
-                                                                        ],
-                                                                        "description": "The type of the genre"
-                                                                    }
-                                                                },
-                                                                "required": ["asin", "name", "type"]
-                                                            },
-                                                            "description": "The genres of the author"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "region", "name"]
-                                                },
-                                                "description": "The authors of the book"
-                                            },
-                                            "narrators": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the narrator"
-                                                        }
-                                                    },
-                                                    "required": ["name"]
-                                                },
-                                                "description": "The narrators of the book"
-                                            },
-                                            "genres": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The genre asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the genre"
-                                                        },
-                                                        "type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "Genres",
-                                                                "Tags"
-                                                            ],
-                                                            "description": "The type of the genre"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name", "type"]
-                                                },
-                                                "description": "The genres of the book"
-                                            },
-                                            "releaseDate": {
-                                                "type": "string",
-                                                "description": "The release date of the book"
-                                            }
-                                        },
-                                        "required": ["asin", "title"]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/series/books/{asin}": {
-            "get": {
-                "tags": [
-                    "series"
-                ],
-                "summary": "Gets all books in a series",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "asin",
-                        "in": "path",
-                        "description": "The asin of the series",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Books in series",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "asin": {
-                                                "type": "string",
-                                                "description": "The books asin"
-                                            },
-                                            "title": {
-                                                "type": "string",
-                                                "description": "The title of the book"
-                                            },
-                                            "regions": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "US",
-                                                        "UK",
-                                                        "AU",
-                                                        "DE",
-                                                        "FR",
-                                                        "CA",
-                                                        "IT",
-                                                        "JP",
-                                                        "IN",
-                                                        "BR",
-                                                        "MX",
-                                                        "ES"
-                                                    ]
-                                                },
-                                                "description": "The regions the book is available in"
-                                            },
-                                            "copyrigth": {
-                                                "type": "string",
-                                                "description": "The copyrigth of the book"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "description": "The description of the book"
-                                            },
-                                            "summary": {
-                                                "type": "string",
-                                                "description": "The summary of the book"
-                                            },
-                                            "explicit": {
-                                                "type": "boolean",
-                                                "description": "The explicit content of the book"
-                                            },
-                                            "isbn": {
-                                                "type": "string",
-                                                "description": "The isbn of the book"
-                                            },
-                                            "language": {
-                                                "type": "string",
-                                                "description": "The language of the book"
-                                            },
-                                            "publisher": {
-                                                "type": "string",
-                                                "description": "The publisher of the book"
-                                            },
-                                            "rating": {
-                                                "type": "number",
-                                                "description": "The rating of the book"
-                                            },
-                                            "series": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The series asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the series"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the series"
-                                                        },
-                                                        "position": {
-                                                            "type": "number",
-                                                            "description": "The position of the series"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name"]
-                                                },
-                                                "description": "The series of the book"
-                                            },
-                                            "authors": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The author asin. Can be the authors name!"
-                                                        },
-                                                        "region": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "US",
-                                                                "UK",
-                                                                "AU",
-                                                                "DE",
-                                                                "FR",
-                                                                "CA",
-                                                                "IT",
-                                                                "JP",
-                                                                "IN",
-                                                                "BR",
-                                                                "MX",
-                                                                "ES"
-                                                            ],
-                                                            "description": "The language of the authors description"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the author"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the author"
-                                                        },
-                                                        "image": {
-                                                            "type": "string",
-                                                            "description": "The image of the author. 512x512 resolution"
-                                                        },
-                                                        "genres": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "asin": {
-                                                                        "type": "string",
-                                                                        "description": "The genre asin"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "description": "The name of the genre"
-                                                                    },
-                                                                    "type": {
-                                                                        "type": "string",
-                                                                        "enum": [
-                                                                            "Genres",
-                                                                            "Tags"
-                                                                        ],
-                                                                        "description": "The type of the genre"
-                                                                    }
-                                                                },
-                                                                "required": ["asin", "name", "type"]
-                                                            },
-                                                            "description": "The genres of the author"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "region", "name"]
-                                                },
-                                                "description": "The authors of the book"
-                                            },
-                                            "narrators": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the narrator"
-                                                        }
-                                                    },
-                                                    "required": ["name"]
-                                                },
-                                                "description": "The narrators of the book"
-                                            },
-                                            "genres": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The genre asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the genre"
-                                                        },
-                                                        "type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "Genres",
-                                                                "Tags"
-                                                            ],
-                                                            "description": "The type of the genre"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name", "type"]
-                                                },
-                                                "description": "The genres of the book"
-                                            },
-                                            "releaseDate": {
-                                                "type": "string",
-                                                "description": "The release date of the book"
-                                            }
-                                        },
-                                        "required": ["asin", "title"]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/series/{asin}": {
-            "get": {
-                "tags": [
-                    "series"
-                ],
-                "summary": "Gets information about a series",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "asin",
-                        "in": "path",
-                        "description": "The asin of the series",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Series information",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "asin": {
-                                            "type": "string",
-                                            "description": "The series asin"
-                                        },
-                                        "name": {
-                                            "type": "string",
-                                            "description": "The name of the series"
-                                        },
-                                        "description": {
-                                            "type": "string",
-                                            "description": "The description of the series"
-                                        },
-                                        "position": {
-                                            "type": "number",
-                                            "description": "The position of the series"
-                                        }
-                                    },
-                                    "required": ["asin", "name"]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Series not found"
-                    }
-                }
-            }
-        },
-        "/chapters/{asin}": {
-            "get": {
-                "tags": [
-                    "chapter"
-                ],
-                "summary": "Get the chapters of a book",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "asin",
-                        "in": "path",
-                        "description": "The asin of the book",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Chapters found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "asin": {
-                                            "type": "string",
-                                            "description": "The books asin"
-                                        },
-                                        "chapters": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "title": {
-                                                        "type": "string",
-                                                        "description": "The title of the chapter"
-                                                    },
-                                                    "lengthMs": {
-                                                        "type": "number",
-                                                        "description": "The length of the chapter in milliseconds"
-                                                    },
-                                                    "startOffsetMs": {
-                                                        "type": "number",
-                                                        "description": "The start offset of the chapter in milliseconds"
-                                                    },
-                                                    "startOffsetSec": {
-                                                        "type": "number",
-                                                        "description": "The start offset of the chapter in seconds"
-                                                    }
-                                                },
-                                                "required": ["title", "lengthMs", "startOffsetMs", "startOffsetSec"]
-                                            }
-                                        },
-                                        "isAccurate": {
-                                            "type": "boolean",
-                                            "description": "Whether the chapter information is accurate"
-                                        },
-                                        "runtimeLengthMs": {
-                                            "type": "number",
-                                            "description": "The runtime length of the book in milliseconds"
-                                        },
-                                        "runtimeLengthSec": {
-                                            "type": "number",
-                                            "description": "The runtime length of the book in seconds"
-                                        }
-                                    },
-                                    "required": ["asin", "chapters", "isAccurate", "runtimeLengthMs", "runtimeLengthSec"]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/author/{asin}": {
-            "get": {
-                "tags": [
-                    "author"
-                ],
-                "summary": "Get an author",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "asin",
-                        "in": "path",
-                        "description": "The asin of the author",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Author found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "asin": {
-                                            "type": "string",
-                                            "description": "The author asin. Can be the authors name!"
-                                        },
-                                        "region": {
-                                            "type": "string",
-                                            "enum": [
-                                                "US",
-                                                "UK",
-                                                "AU",
-                                                "DE",
-                                                "FR",
-                                                "CA",
-                                                "IT",
-                                                "JP",
-                                                "IN",
-                                                "BR",
-                                                "MX",
-                                                "ES"
-                                            ],
-                                            "description": "The language of the authors description"
-                                        },
-                                        "name": {
-                                            "type": "string",
-                                            "description": "The name of the author"
-                                        },
-                                        "description": {
-                                            "type": "string",
-                                            "description": "The description of the author"
-                                        },
-                                        "image": {
-                                            "type": "string",
-                                            "description": "The image of the author. 512x512 resolution"
-                                        },
-                                        "genres": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "asin": {
-                                                        "type": "string",
-                                                        "description": "The genre asin"
-                                                    },
-                                                    "name": {
-                                                        "type": "string",
-                                                        "description": "The name of the genre"
-                                                    },
-                                                    "type": {
-                                                        "type": "string",
-                                                        "enum": [
-                                                            "Genres",
-                                                            "Tags"
-                                                        ],
-                                                        "description": "The type of the genre"
-                                                    }
-                                                },
-                                                "required": ["asin", "name", "type"]
-                                            },
-                                            "description": "The genres of the author"
-                                        }
-                                    },
-                                    "required": ["asin", "region", "name"]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/author/books/{asin}": {
-            "get": {
-                "tags": [
-                    "author"
-                ],
-                "summary": "Get books of an author",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "asin",
-                        "in": "path",
-                        "description": "The asin of the author",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "The limit of books to return",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "minimum": 1,
-                            "maximum": 50
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "The page of the books to return",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "minimum": 0
-                        }
-                    },
-                    {
-                        "name": "cache",
-                        "in": "query",
-                        "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Books found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "asin": {
-                                                "type": "string",
-                                                "description": "The books asin"
-                                            },
-                                            "title": {
-                                                "type": "string",
-                                                "description": "The title of the book"
-                                            },
-                                            "regions": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "US",
-                                                        "UK",
-                                                        "AU",
-                                                        "DE",
-                                                        "FR",
-                                                        "CA",
-                                                        "IT",
-                                                        "JP",
-                                                        "IN",
-                                                        "BR",
-                                                        "MX",
-                                                        "ES"
-                                                    ]
-                                                },
-                                                "description": "The regions the book is available in"
-                                            },
-                                            "copyrigth": {
-                                                "type": "string",
-                                                "description": "The copyrigth of the book"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "description": "The description of the book"
-                                            },
-                                            "summary": {
-                                                "type": "string",
-                                                "description": "The summary of the book"
-                                            },
-                                            "explicit": {
-                                                "type": "boolean",
-                                                "description": "The explicit content of the book"
-                                            },
-                                            "isbn": {
-                                                "type": "string",
-                                                "description": "The isbn of the book"
-                                            },
-                                            "language": {
-                                                "type": "string",
-                                                "description": "The language of the book"
-                                            },
-                                            "publisher": {
-                                                "type": "string",
-                                                "description": "The publisher of the book"
-                                            },
-                                            "rating": {
-                                                "type": "number",
-                                                "description": "The rating of the book"
-                                            },
-                                            "series": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The series asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the series"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the series"
-                                                        },
-                                                        "position": {
-                                                            "type": "number",
-                                                            "description": "The position of the series"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name"]
-                                                },
-                                                "description": "The series of the book"
-                                            },
-                                            "authors": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The author asin. Can be the authors name!"
-                                                        },
-                                                        "region": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "US",
-                                                                "UK",
-                                                                "AU",
-                                                                "DE",
-                                                                "FR",
-                                                                "CA",
-                                                                "IT",
-                                                                "JP",
-                                                                "IN",
-                                                                "BR",
-                                                                "MX",
-                                                                "ES"
-                                                            ],
-                                                            "description": "The language of the authors description"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the author"
-                                                        },
-                                                        "description": {
-                                                            "type": "string",
-                                                            "description": "The description of the author"
-                                                        },
-                                                        "image": {
-                                                            "type": "string",
-                                                            "description": "The image of the author. 512x512 resolution"
-                                                        },
-                                                        "genres": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "asin": {
-                                                                        "type": "string",
-                                                                        "description": "The genre asin"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "description": "The name of the genre"
-                                                                    },
-                                                                    "type": {
-                                                                        "type": "string",
-                                                                        "enum": [
-                                                                            "Genres",
-                                                                            "Tags"
-                                                                        ],
-                                                                        "description": "The type of the genre"
-                                                                    }
-                                                                },
-                                                                "required": ["asin", "name", "type"]
-                                                            },
-                                                            "description": "The genres of the author"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "region", "name"]
-                                                },
-                                                "description": "The authors of the book"
-                                            },
-                                            "narrators": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the narrator"
-                                                        }
-                                                    },
-                                                    "required": ["name"]
-                                                },
-                                                "description": "The narrators of the book"
-                                            },
-                                            "genres": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The genre asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the genre"
-                                                        },
-                                                        "type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "Genres",
-                                                                "Tags"
-                                                            ],
-                                                            "description": "The type of the genre"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name", "type"]
-                                                },
-                                                "description": "The genres of the book"
-                                            },
-                                            "releaseDate": {
-                                                "type": "string",
-                                                "description": "The release date of the book"
-                                            }
-                                        },
-                                        "required": ["asin", "title"]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/author": {
-            "get": {
-                "tags": [
-                    "author"
-                ],
-                "summary": "Search for authors",
-                "parameters": [
-                    {
-                        "name": "region",
-                        "in": "query",
-                        "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "US",
-                                "UK",
-                                "AU",
-                                "DE",
-                                "FR",
-                                "CA",
-                                "IT",
-                                "JP",
-                                "IN",
-                                "BR",
-                                "MX",
-                                "ES"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "cache",
-                        "in": "query",
-                        "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    },
-                    {
-                        "name": "name",
-                        "in": "query",
-                        "description": "Name of the author",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Authors found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "asin": {
-                                                "type": "string",
-                                                "description": "The author asin. Can be the authors name!"
-                                            },
-                                            "region": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "US",
-                                                    "UK",
-                                                    "AU",
-                                                    "DE",
-                                                    "FR",
-                                                    "CA",
-                                                    "IT",
-                                                    "JP",
-                                                    "IN",
-                                                    "BR",
-                                                    "MX",
-                                                    "ES"
-                                                ],
-                                                "description": "The language of the authors description"
-                                            },
-                                            "name": {
-                                                "type": "string",
-                                                "description": "The name of the author"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "description": "The description of the author"
-                                            },
-                                            "image": {
-                                                "type": "string",
-                                                "description": "The image of the author. 512x512 resolution"
-                                            },
-                                            "genres": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "asin": {
-                                                            "type": "string",
-                                                            "description": "The genre asin"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "description": "The name of the genre"
-                                                        },
-                                                        "type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "Genres",
-                                                                "Tags"
-                                                            ],
-                                                            "description": "The type of the genre"
-                                                        }
-                                                    },
-                                                    "required": ["asin", "name", "type"]
-                                                },
-                                                "description": "The genres of the author"
-                                            }
-                                        },
-                                        "required": ["asin", "region", "name"]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AudiMeta API",
+    "version": "1.0.3",
+    "description": "## AudiMeta API: Get Audiobook Metadata\n\nAudiMeta API is a **robust, easy-to-use, and free REST API** designed to effortlessly fetch audiobook metadata through well-structured endpoints. It provides access to comprehensive book details, series information, and author data primarily sourced from **Audible**, with plans to integrate additional sources soon.\n\n### API Capabilities:\n- **Books:** Retrieve details for specific books or collect metadata for multiple books simultaneously.\n- **Authors:** Access information on authors, explore their works, and seamlessly discover books they've written.\n- **Series:** Find series information effortlessly, along with easy access to all books within a specific series.\n- **Chapters:** Quickly retrieve structured chapter information for individual books, enhancing user experience.\n- **Search:** Perform powerful yet intuitive searches for books and authors.\n\n### Key Use-Cases:\n- Building audiobook platforms and mobile apps.\n- Developing audiobook analysis or recommendation systems.\n- Integrating structured audiobook information into existing services or websites."
+  },
+  "servers": [
+    {
+      "url": "https://audimeta.de/",
+      "description": "Public Instance"
     }
+  ],
+  "paths": {
+    "/ping": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Server reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reachable": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/book/{asin}": {
+      "get": {
+        "tags": ["book"],
+        "summary": "Get a book",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "The asin of the series",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Book found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asin": {
+                      "type": "string",
+                      "description": "The books asin"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "The title of the book"
+                    },
+                    "regions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                      },
+                      "description": "The regions the book is available in"
+                    },
+                    "copyrigth": {
+                      "type": "string",
+                      "description": "The copyrigth of the book"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The description of the book"
+                    },
+                    "summary": {
+                      "type": "string",
+                      "description": "The summary of the book"
+                    },
+                    "explicit": {
+                      "type": "boolean",
+                      "description": "The explicit content of the book"
+                    },
+                    "isbn": {
+                      "type": "string",
+                      "description": "The isbn of the book"
+                    },
+                    "language": {
+                      "type": "string",
+                      "description": "The language of the book"
+                    },
+                    "publisher": {
+                      "type": "string",
+                      "description": "The publisher of the book"
+                    },
+                    "rating": {
+                      "type": "number",
+                      "description": "The rating of the book"
+                    },
+                    "series": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "asin": {
+                            "type": "string",
+                            "description": "The series asin"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the series"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "The description of the series"
+                          },
+                          "position": {
+                            "type": "number",
+                            "description": "The position of the series"
+                          }
+                        },
+                        "required": ["asin", "name"]
+                      },
+                      "description": "The series of the book"
+                    },
+                    "authors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "asin": {
+                            "type": "string",
+                            "description": "The author asin. Can be the authors name!"
+                          },
+                          "region": {
+                            "type": "string",
+                            "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                            "description": "The language of the authors description"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the author"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "The description of the author"
+                          },
+                          "image": {
+                            "type": "string",
+                            "description": "The image of the author. 512x512 resolution"
+                          },
+                          "genres": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "asin": {
+                                  "type": "string",
+                                  "description": "The genre asin"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the genre"
+                                },
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["Genres", "Tags"],
+                                  "description": "The type of the genre"
+                                }
+                              },
+                              "required": ["asin", "name", "type"]
+                            },
+                            "description": "The genres of the author"
+                          }
+                        },
+                        "required": ["asin", "region", "name"]
+                      },
+                      "description": "The authors of the book"
+                    },
+                    "narrators": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the narrator"
+                          }
+                        },
+                        "required": ["name"]
+                      },
+                      "description": "The narrators of the book"
+                    },
+                    "genres": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "asin": {
+                            "type": "string",
+                            "description": "The genre asin"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the genre"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": ["Genres", "Tags"],
+                            "description": "The type of the genre"
+                          }
+                        },
+                        "required": ["asin", "name", "type"]
+                      },
+                      "description": "The genres of the book"
+                    },
+                    "releaseDate": {
+                      "type": "string",
+                      "description": "The release date of the book"
+                    }
+                  },
+                  "required": ["asin", "title"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/book": {
+      "get": {
+        "tags": ["book"],
+        "summary": "Get multiple books",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "asins",
+            "in": "query",
+            "description": "The asins of the book in a comma separated list",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Books",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "asin": {
+                        "type": "string",
+                        "description": "The books asin"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title of the book"
+                      },
+                      "regions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                        },
+                        "description": "The regions the book is available in"
+                      },
+                      "copyrigth": {
+                        "type": "string",
+                        "description": "The copyrigth of the book"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The description of the book"
+                      },
+                      "summary": {
+                        "type": "string",
+                        "description": "The summary of the book"
+                      },
+                      "explicit": {
+                        "type": "boolean",
+                        "description": "The explicit content of the book"
+                      },
+                      "isbn": {
+                        "type": "string",
+                        "description": "The isbn of the book"
+                      },
+                      "language": {
+                        "type": "string",
+                        "description": "The language of the book"
+                      },
+                      "publisher": {
+                        "type": "string",
+                        "description": "The publisher of the book"
+                      },
+                      "rating": {
+                        "type": "number",
+                        "description": "The rating of the book"
+                      },
+                      "series": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The series asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the series"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the series"
+                            },
+                            "position": {
+                              "type": "number",
+                              "description": "The position of the series"
+                            }
+                          },
+                          "required": ["asin", "name"]
+                        },
+                        "description": "The series of the book"
+                      },
+                      "authors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The author asin. Can be the authors name!"
+                            },
+                            "region": {
+                              "type": "string",
+                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "description": "The language of the authors description"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the author"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the author"
+                            },
+                            "image": {
+                              "type": "string",
+                              "description": "The image of the author. 512x512 resolution"
+                            },
+                            "genres": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "asin": {
+                                    "type": "string",
+                                    "description": "The genre asin"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the genre"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": ["Genres", "Tags"],
+                                    "description": "The type of the genre"
+                                  }
+                                },
+                                "required": ["asin", "name", "type"]
+                              },
+                              "description": "The genres of the author"
+                            }
+                          },
+                          "required": ["asin", "region", "name"]
+                        },
+                        "description": "The authors of the book"
+                      },
+                      "narrators": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the narrator"
+                            }
+                          },
+                          "required": ["name"]
+                        },
+                        "description": "The narrators of the book"
+                      },
+                      "genres": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The genre asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the genre"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["Genres", "Tags"],
+                              "description": "The type of the genre"
+                            }
+                          },
+                          "required": ["asin", "name", "type"]
+                        },
+                        "description": "The genres of the book"
+                      },
+                      "releaseDate": {
+                        "type": "string",
+                        "description": "The release date of the book"
+                      }
+                    },
+                    "required": ["asin", "title"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": ["search"],
+        "summary": "Search for books",
+        "parameters": [
+          {
+            "name": "author",
+            "in": "query",
+            "description": "The author of the book. Needs to be provided if title is not provided",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "description": "The title of the book. Needs to be provided if author is not provided",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localTitle",
+            "in": "query",
+            "description": "Just like title this matches the title of the book. LocalTitle only searches in the database. This increases speed but needs a nearly exact match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localAuthor",
+            "in": "query",
+            "description": "Just like author this matches the author of the book. LocalAuthor only searches in the database. This increases speed but needs a nearly exact match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localNarrator",
+            "in": "query",
+            "description": "Just like narrator this matches the narrator of the book. LocalNarrator only searches in the database. This increases speed but needs a nearly exact match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localGenre",
+            "in": "query",
+            "description": "Just like genre this matches the genre of the book. LocalGenre only searches in the database. This increases speed but needs a nearly exact match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localSeries",
+            "in": "query",
+            "description": "Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "localSeriesPosition",
+            "in": "query",
+            "description": "Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "asin": {
+                        "type": "string",
+                        "description": "The books asin"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title of the book"
+                      },
+                      "regions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                        },
+                        "description": "The regions the book is available in"
+                      },
+                      "copyrigth": {
+                        "type": "string",
+                        "description": "The copyrigth of the book"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The description of the book"
+                      },
+                      "summary": {
+                        "type": "string",
+                        "description": "The summary of the book"
+                      },
+                      "explicit": {
+                        "type": "boolean",
+                        "description": "The explicit content of the book"
+                      },
+                      "isbn": {
+                        "type": "string",
+                        "description": "The isbn of the book"
+                      },
+                      "language": {
+                        "type": "string",
+                        "description": "The language of the book"
+                      },
+                      "publisher": {
+                        "type": "string",
+                        "description": "The publisher of the book"
+                      },
+                      "rating": {
+                        "type": "number",
+                        "description": "The rating of the book"
+                      },
+                      "series": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The series asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the series"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the series"
+                            },
+                            "position": {
+                              "type": "number",
+                              "description": "The position of the series"
+                            }
+                          },
+                          "required": ["asin", "name"]
+                        },
+                        "description": "The series of the book"
+                      },
+                      "authors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The author asin. Can be the authors name!"
+                            },
+                            "region": {
+                              "type": "string",
+                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "description": "The language of the authors description"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the author"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the author"
+                            },
+                            "image": {
+                              "type": "string",
+                              "description": "The image of the author. 512x512 resolution"
+                            },
+                            "genres": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "asin": {
+                                    "type": "string",
+                                    "description": "The genre asin"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the genre"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": ["Genres", "Tags"],
+                                    "description": "The type of the genre"
+                                  }
+                                },
+                                "required": ["asin", "name", "type"]
+                              },
+                              "description": "The genres of the author"
+                            }
+                          },
+                          "required": ["asin", "region", "name"]
+                        },
+                        "description": "The authors of the book"
+                      },
+                      "narrators": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the narrator"
+                            }
+                          },
+                          "required": ["name"]
+                        },
+                        "description": "The narrators of the book"
+                      },
+                      "genres": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The genre asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the genre"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["Genres", "Tags"],
+                              "description": "The type of the genre"
+                            }
+                          },
+                          "required": ["asin", "name", "type"]
+                        },
+                        "description": "The genres of the book"
+                      },
+                      "releaseDate": {
+                        "type": "string",
+                        "description": "The release date of the book"
+                      }
+                    },
+                    "required": ["asin", "title"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/series/books/{asin}": {
+      "get": {
+        "tags": ["series"],
+        "summary": "Gets all books in a series",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "The asin of the series",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Books in series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "asin": {
+                        "type": "string",
+                        "description": "The books asin"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title of the book"
+                      },
+                      "regions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                        },
+                        "description": "The regions the book is available in"
+                      },
+                      "copyrigth": {
+                        "type": "string",
+                        "description": "The copyrigth of the book"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The description of the book"
+                      },
+                      "summary": {
+                        "type": "string",
+                        "description": "The summary of the book"
+                      },
+                      "explicit": {
+                        "type": "boolean",
+                        "description": "The explicit content of the book"
+                      },
+                      "isbn": {
+                        "type": "string",
+                        "description": "The isbn of the book"
+                      },
+                      "language": {
+                        "type": "string",
+                        "description": "The language of the book"
+                      },
+                      "publisher": {
+                        "type": "string",
+                        "description": "The publisher of the book"
+                      },
+                      "rating": {
+                        "type": "number",
+                        "description": "The rating of the book"
+                      },
+                      "series": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The series asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the series"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the series"
+                            },
+                            "position": {
+                              "type": "number",
+                              "description": "The position of the series"
+                            }
+                          },
+                          "required": ["asin", "name"]
+                        },
+                        "description": "The series of the book"
+                      },
+                      "authors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The author asin. Can be the authors name!"
+                            },
+                            "region": {
+                              "type": "string",
+                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "description": "The language of the authors description"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the author"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the author"
+                            },
+                            "image": {
+                              "type": "string",
+                              "description": "The image of the author. 512x512 resolution"
+                            },
+                            "genres": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "asin": {
+                                    "type": "string",
+                                    "description": "The genre asin"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the genre"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": ["Genres", "Tags"],
+                                    "description": "The type of the genre"
+                                  }
+                                },
+                                "required": ["asin", "name", "type"]
+                              },
+                              "description": "The genres of the author"
+                            }
+                          },
+                          "required": ["asin", "region", "name"]
+                        },
+                        "description": "The authors of the book"
+                      },
+                      "narrators": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the narrator"
+                            }
+                          },
+                          "required": ["name"]
+                        },
+                        "description": "The narrators of the book"
+                      },
+                      "genres": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The genre asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the genre"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["Genres", "Tags"],
+                              "description": "The type of the genre"
+                            }
+                          },
+                          "required": ["asin", "name", "type"]
+                        },
+                        "description": "The genres of the book"
+                      },
+                      "releaseDate": {
+                        "type": "string",
+                        "description": "The release date of the book"
+                      }
+                    },
+                    "required": ["asin", "title"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/series/{asin}": {
+      "get": {
+        "tags": ["series"],
+        "summary": "Gets information about a series",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "The asin of the series",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Series information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asin": {
+                      "type": "string",
+                      "description": "The series asin"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the series"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The description of the series"
+                    },
+                    "position": {
+                      "type": "number",
+                      "description": "The position of the series"
+                    }
+                  },
+                  "required": ["asin", "name"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Series not found"
+          }
+        }
+      }
+    },
+    "/chapters/{asin}": {
+      "get": {
+        "tags": ["chapter"],
+        "summary": "Get the chapters of a book",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "The asin of the book",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chapters found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asin": {
+                      "type": "string",
+                      "description": "The books asin"
+                    },
+                    "chapters": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "The title of the chapter"
+                          },
+                          "lengthMs": {
+                            "type": "number",
+                            "description": "The length of the chapter in milliseconds"
+                          },
+                          "startOffsetMs": {
+                            "type": "number",
+                            "description": "The start offset of the chapter in milliseconds"
+                          },
+                          "startOffsetSec": {
+                            "type": "number",
+                            "description": "The start offset of the chapter in seconds"
+                          }
+                        },
+                        "required": ["title", "lengthMs", "startOffsetMs", "startOffsetSec"]
+                      }
+                    },
+                    "isAccurate": {
+                      "type": "boolean",
+                      "description": "Whether the chapter information is accurate"
+                    },
+                    "runtimeLengthMs": {
+                      "type": "number",
+                      "description": "The runtime length of the book in milliseconds"
+                    },
+                    "runtimeLengthSec": {
+                      "type": "number",
+                      "description": "The runtime length of the book in seconds"
+                    }
+                  },
+                  "required": ["asin", "chapters", "isAccurate", "runtimeLengthMs", "runtimeLengthSec"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/author/{asin}": {
+      "get": {
+        "tags": ["author"],
+        "summary": "Get an author",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "The asin of the author",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Author found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asin": {
+                      "type": "string",
+                      "description": "The author asin. Can be the authors name!"
+                    },
+                    "region": {
+                      "type": "string",
+                      "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                      "description": "The language of the authors description"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the author"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The description of the author"
+                    },
+                    "image": {
+                      "type": "string",
+                      "description": "The image of the author. 512x512 resolution"
+                    },
+                    "genres": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "asin": {
+                            "type": "string",
+                            "description": "The genre asin"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the genre"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": ["Genres", "Tags"],
+                            "description": "The type of the genre"
+                          }
+                        },
+                        "required": ["asin", "name", "type"]
+                      },
+                      "description": "The genres of the author"
+                    }
+                  },
+                  "required": ["asin", "region", "name"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/author/books/{asin}": {
+      "get": {
+        "tags": ["author"],
+        "summary": "Get books of an author",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "The asin of the author",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The limit of books to return",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page of the books to return",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Books found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "asin": {
+                        "type": "string",
+                        "description": "The books asin"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title of the book"
+                      },
+                      "regions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                        },
+                        "description": "The regions the book is available in"
+                      },
+                      "copyrigth": {
+                        "type": "string",
+                        "description": "The copyrigth of the book"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The description of the book"
+                      },
+                      "summary": {
+                        "type": "string",
+                        "description": "The summary of the book"
+                      },
+                      "explicit": {
+                        "type": "boolean",
+                        "description": "The explicit content of the book"
+                      },
+                      "isbn": {
+                        "type": "string",
+                        "description": "The isbn of the book"
+                      },
+                      "language": {
+                        "type": "string",
+                        "description": "The language of the book"
+                      },
+                      "publisher": {
+                        "type": "string",
+                        "description": "The publisher of the book"
+                      },
+                      "rating": {
+                        "type": "number",
+                        "description": "The rating of the book"
+                      },
+                      "series": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The series asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the series"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the series"
+                            },
+                            "position": {
+                              "type": "number",
+                              "description": "The position of the series"
+                            }
+                          },
+                          "required": ["asin", "name"]
+                        },
+                        "description": "The series of the book"
+                      },
+                      "authors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The author asin. Can be the authors name!"
+                            },
+                            "region": {
+                              "type": "string",
+                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "description": "The language of the authors description"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the author"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The description of the author"
+                            },
+                            "image": {
+                              "type": "string",
+                              "description": "The image of the author. 512x512 resolution"
+                            },
+                            "genres": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "asin": {
+                                    "type": "string",
+                                    "description": "The genre asin"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the genre"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": ["Genres", "Tags"],
+                                    "description": "The type of the genre"
+                                  }
+                                },
+                                "required": ["asin", "name", "type"]
+                              },
+                              "description": "The genres of the author"
+                            }
+                          },
+                          "required": ["asin", "region", "name"]
+                        },
+                        "description": "The authors of the book"
+                      },
+                      "narrators": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the narrator"
+                            }
+                          },
+                          "required": ["name"]
+                        },
+                        "description": "The narrators of the book"
+                      },
+                      "genres": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The genre asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the genre"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["Genres", "Tags"],
+                              "description": "The type of the genre"
+                            }
+                          },
+                          "required": ["asin", "name", "type"]
+                        },
+                        "description": "The genres of the book"
+                      },
+                      "releaseDate": {
+                        "type": "string",
+                        "description": "The release date of the book"
+                      }
+                    },
+                    "required": ["asin", "title"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/author": {
+      "get": {
+        "tags": ["author"],
+        "summary": "Search for authors",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "The region to search in. Can be a comma separated list of max 3 regions. Defaults to US",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Name of the author",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authors found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "asin": {
+                        "type": "string",
+                        "description": "The author asin. Can be the authors name!"
+                      },
+                      "region": {
+                        "type": "string",
+                        "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                        "description": "The language of the authors description"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the author"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The description of the author"
+                      },
+                      "image": {
+                        "type": "string",
+                        "description": "The image of the author. 512x512 resolution"
+                      },
+                      "genres": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "asin": {
+                              "type": "string",
+                              "description": "The genre asin"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the genre"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["Genres", "Tags"],
+                              "description": "The type of the genre"
+                            }
+                          },
+                          "required": ["asin", "name", "type"]
+                        },
+                        "description": "The genres of the author"
+                      }
+                    },
+                    "required": ["asin", "region", "name"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }

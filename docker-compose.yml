@@ -5,6 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "4005:4005"
+      - '4005:4005'
     environment:
       - DATABASE_URL="postgresql://domain.tld:5432/postgres"
