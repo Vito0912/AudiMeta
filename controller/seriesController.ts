@@ -14,7 +14,7 @@ app.get('/series/books/:asin', async (req, res) => {
     return;
   }
 
-  const region: string = req.query.region as string;
+  const region: string = req.query.region as string || 'US';
   const forceUpdate = req.query.update;
   const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
   const page = req.query.page ? parseInt(req.query.page as string) : undefined;
@@ -64,6 +64,7 @@ app.get('/series/:asin', async (req, res) => {
   }
 
   try {
+
     const seriesInfo = await getSeriesDetails(asin, region);
 
     if (seriesInfo === undefined) {

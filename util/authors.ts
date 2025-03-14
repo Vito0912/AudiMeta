@@ -11,8 +11,8 @@ export async function getAuthorDetails(asin: string, region: string): Promise<Au
       headers: HEADERS,
     });
 
-    if (response.status === 200) {
-      if (response.request.path.includes('ipRedirectOriginalURL=404') || response.request.path.includes('advsearchKeywords=')) {
+    if (response.status === 200 || response.status === 301) {
+      if (response.request.path.includes('ipRedirectOriginalURL=404') || response.request.path.includes('advsearchKeywords')) {
         return undefined;
       }
 

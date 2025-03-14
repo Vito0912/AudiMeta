@@ -1,7 +1,6 @@
 import { app, regionMap } from '../app';
 
 app.use((req, res, next) => {
-
   if (req.query.asin) {
     if (!checkAsin(req.query.asin as string)) {
       res.status(400).send('Invalid ASIN');
@@ -10,10 +9,7 @@ app.use((req, res, next) => {
   }
   if (req.query.asins) {
     const asins = req.query.asins as string;
-    if (
-      req.query.asins.length === 0 ||
-      asins.split(',').some((asin: string) => !checkAsin(asin))
-    ) {
+    if (req.query.asins.length === 0 || asins.split(',').some((asin: string) => !checkAsin(asin))) {
       res.status(400).send('One or more ASINs are invalid');
       return;
     }
@@ -28,7 +24,7 @@ app.use((req, res, next) => {
       res.status(400).send('One or more regions are invalid');
       return;
     }
-    req.query.region = (req.query.region as string).toLowerCase()
+    req.query.region = (req.query.region as string).toLowerCase();
   }
   if (req.query.limit) {
     const limit = parseInt(req.query.limit as string);

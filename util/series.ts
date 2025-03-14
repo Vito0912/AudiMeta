@@ -65,54 +65,72 @@ export async function getSeriesAsins(asin: string, region: string): Promise<stri
 
 export async function getSeriesDetails(asin: string, region: string): Promise<SeriesInfoModel | undefined> {
   const URL = `https://audible${regionMap[region]}/series/${asin}?ipRedirectOverride=true&overrideBaseCountry=true`;
+  const MAX_RETRIES = 5;
 
-  try {
-    const response = await axios.get(URL, {
-      headers: HEADERS,
-    });
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    if (response.status === 200) {
-      if (response.request.path.includes('ipRedirectOriginalURL=404')) {
-        return undefined;
+  let retries = 0;
+
+  while (true) {
+    try {
+      const response = await axios.get(URL, {
+        headers: HEADERS,
+      });
+
+      if (response.status === 200) {
+        if (response.request.path.includes('ipRedirectOriginalURL=404')) {
+          return undefined;
+        }
+
+        const htmlContent = response.data;
+        const html = parse(htmlContent);
+
+        let seriesInfoHtml = '';
+
+        // Div with bc-expander-content
+        const seriesInfo = html.querySelector('.bc-expander-content');
+
+        if (seriesInfo) {
+          const firstDivSeriesInfo = seriesInfo.querySelector('div');
+          const innerHtml = firstDivSeriesInfo.innerHTML;
+
+          seriesInfoHtml = innerHtml.toString();
+
+          // Minimize the seriesInfoHtml (Strip chunks of whitespace)
+          seriesInfoHtml = seriesInfoHtml.replace(/\s{2,}/g, ' ');
+        }
+
+        let titleName = html.querySelector('h1.bc-heading');
+
+        let title = titleName.childNodes[0].textContent || titleName.childNodes[0].text || '';
+        title = title.replace(/\n/g, '').trim();
+
+        return {
+          asin: asin,
+          title: title,
+          description: seriesInfoHtml.length > 0 ? seriesInfoHtml.trim() : undefined,
+        };
+      }
+    } catch (e) {
+      // Check if axios error with 503 status (Audible blocking sometimes)
+      if (e.response && e.response.status === 503) {
+        retries++;
+
+        if (retries >= MAX_RETRIES) {
+          throw new Error(`Failed to fetch series data after ${MAX_RETRIES} retries`);
+        }
+
+        const waitTime = Math.random() * 700 + 300;
+        await delay(waitTime);
+        continue;
       }
 
-      const htmlContent = response.data;
-      const html = parse(htmlContent);
-
-      let seriesInfoHtml = '';
-
-      // Div with bc-expander-content
-      const seriesInfo = html.querySelector('.bc-expander-content');
-
-      if (seriesInfo) {
-        const firstDivSeriesInfo = seriesInfo.querySelector('div');
-        const innerHtml = firstDivSeriesInfo.innerHTML;
-
-        seriesInfoHtml = innerHtml.toString();
-
-        // Minimize the seriesInfoHtml (Strip chunks of whitespace)
-        seriesInfoHtml = seriesInfoHtml.replace(/\s{2,}/g, ' ');
-      }
-
-      let titleName = html.querySelector('h1.bc-heading');
-
-      let title = titleName.childNodes[0].textContent || titleName.childNodes[0].text || '';
-      title = title.replace(/\n/g, '').trim();
-
-      return {
-        asin: asin,
-        title: title,
-        description: seriesInfoHtml.length > 0 ? seriesInfoHtml.trim() : undefined,
-      };
-    } else if (response.status >= 500) {
+      console.error(e);
       throw new Error('Failed to fetch series data');
     }
-    return undefined;
-  } catch (e) {
-    console.error(e);
-    throw new Error('Failed to fetch series data');
   }
 }
+
 
 export async function updateSeries(req: any, res: any, region: string, limit?: number, page?: number) {
   const key = generateSearchKey(req.params.asin, region);
@@ -154,19 +172,19 @@ export function sortBooksBySeries(books: BookModel[], seriesAsin: string): BookM
   const bookPositions = new Map<string, string>();
   for (const book of books) {
     const seriesInfo = book.series?.find(s => s.asin === seriesAsin);
-    const position = seriesInfo?.position ?? "0";
+    const position = seriesInfo?.position ?? '0';
     bookPositions.set(book.asin, position);
   }
 
   books.sort((a, b) => {
-    const positionA = bookPositions.get(a.asin) || "0";
-    const positionB = bookPositions.get(b.asin) || "0";
+    const positionA = bookPositions.get(a.asin) || '0';
+    const positionB = bookPositions.get(b.asin) || '0';
 
     // Position "0" is appended to the end
-    if (positionA === "0" && positionB !== "0") return 1;
-    if (positionA !== "0" && positionB === "0") return -1;
+    if (positionA === '0' && positionB !== '0') return 1;
+    if (positionA !== '0' && positionB === '0') return -1;
 
-    return positionA.localeCompare(positionB, undefined, {numeric: true});
+    return positionA.localeCompare(positionB, undefined, { numeric: true });
   });
 
   return books;
