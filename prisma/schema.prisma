@@ -53,7 +53,7 @@ model SeriesBook {
   book       Book    @relation(fields: [bookAsin], references: [asin])
   bookAsin   String
 
-  position   Int
+  position   String
 
   @@id([seriesAsin, bookAsin])
 }
