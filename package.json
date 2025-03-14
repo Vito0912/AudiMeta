@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
-    "axios": "^1.7.9",
+    "axios": "^1.8.3",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "5.0.1",
@@ -24,7 +24,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.17.0",
+    "@openapitools/openapi-generator-cli": "^2.17.1",
     "@types/express": "^5.0.0",
     "@types/object-hash": "^3.0.6",
     "@types/swagger-ui-express": "^4.1.8",
