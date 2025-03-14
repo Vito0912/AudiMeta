@@ -5,6 +5,7 @@ import { BookModel, mapBook, SeriesInfoModel } from '../models/type_model';
 import parse from 'node-html-parser';
 import { getBooks } from './bookDB';
 import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from './searchCache';
+import { checkAsin } from './validationMiddleware';
 
 export async function getBooksInSeries(seriesAsin: string, limit?: number, page?: number): Promise<BookModel[]> {
   logger.info('Getting books in series ' + seriesAsin);

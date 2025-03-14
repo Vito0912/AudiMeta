@@ -5,11 +5,12 @@ import axios from 'axios';
 import { BookInput, BookInputFactory, getBooksFromAuthor, getFullBooks, insertBooks } from '../util/book';
 import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from '../util/searchCache';
 import { getBooks } from '../util/bookDB';
+import { checkAsin } from '../util/validationMiddleware';
 
 app.get('/author/:asin', async (req, res) => {
   const asin: string = req.params.asin;
 
-  if (!asin) {
+  if (!asin || !checkAsin(asin)) {
     res.status(400).send('No asin provided');
     return;
   }

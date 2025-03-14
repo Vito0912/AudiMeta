@@ -1,6 +1,7 @@
 import { app, HEADERS, prisma, regionMap } from '../app';
 import axios from 'axios';
 import { mapChapter } from '../models/type_model';
+import { checkAsin } from '../util/validationMiddleware';
 
 /**
  * Returns the chapters of a book
@@ -9,7 +10,7 @@ app.get('/chapters/:asin', async (req, res) => {
   const asin: string = req.params.asin;
   const region: string = (req.query.region || 'US').toString().toLowerCase();
 
-  if (!asin) {
+  if (!asin || !checkAsin(asin)) {
     res.status(400).send('No asin provided');
     return;
   }

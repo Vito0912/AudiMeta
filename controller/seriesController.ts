@@ -1,6 +1,7 @@
 import { getBooksInSeries, getSeriesAsins, getSeriesDetails, sortBooksBySeries, updateSeries } from '../util/series';
 import { app, HEADERS, prisma, regionMap } from '../app';
 import { BookModel, SeriesInfoModel } from '../models/type_model';
+import { checkAsin } from '../util/validationMiddleware';
 
 /**
  * Returns all books in a series
@@ -8,7 +9,7 @@ import { BookModel, SeriesInfoModel } from '../models/type_model';
 app.get('/series/books/:asin', async (req, res) => {
   const asin: string = req.params.asin;
 
-  if (!asin) {
+  if (!asin || !checkAsin(asin)) {
     res.status(400).send('No asin provided');
     return;
   }
@@ -46,7 +47,7 @@ app.get('/series/books/:asin', async (req, res) => {
 app.get('/series/:asin', async (req, res) => {
   const asin: string = req.params.asin;
 
-  if (!asin) {
+  if (!asin || !checkAsin(asin)) {
     res.status(400).send('No asin provided');
     return;
   }

@@ -1,23 +1,18 @@
 import { app, regionMap } from '../app';
 
 app.use((req, res, next) => {
-  // ASIN regex to validate ASIN
-  const asinRegex = /^[A-Z0-9a-z]{10}$/;
 
-  if (req.params.asin) {
-    // Check if asin is 10 characters long
-    if (req.params.asin.length !== 10 || !req.params.asin.match(asinRegex)) {
+  if (req.query.asin) {
+    if (!checkAsin(req.query.asin as string)) {
       res.status(400).send('Invalid ASIN');
       return;
     }
   }
   if (req.query.asins) {
     const asins = req.query.asins as string;
-    // Check if asin is 10 characters long
     if (
       req.query.asins.length === 0 ||
-      asins.split(',').some((asin: string) => asin.length !== 10) ||
-      asins.split(',').some((asin: string) => !asin.match(asinRegex))
+      asins.split(',').some((asin: string) => !checkAsin(asin))
     ) {
       res.status(400).send('One or more ASINs are invalid');
       return;
@@ -33,6 +28,7 @@ app.use((req, res, next) => {
       res.status(400).send('One or more regions are invalid');
       return;
     }
+    req.query.region = (req.query.region as string).toLowerCase()
   }
   if (req.query.limit) {
     const limit = parseInt(req.query.limit as string);
@@ -58,3 +54,8 @@ app.use((req, res, next) => {
 
   next();
 });
+
+export function checkAsin(asin: string): boolean {
+  const asinRegex = /^[A-Z0-9a-z]{10}$/;
+  return asin.length === 10 && asin.match(asinRegex) !== null;
+}
