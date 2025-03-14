@@ -10,7 +10,7 @@ export type AuthorModel = {
 type SeriesModel = {
   asin: string;
   name: string;
-  position: number | null;
+  position: string | null;
   description: string | null;
 };
 

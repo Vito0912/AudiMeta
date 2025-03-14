@@ -19,6 +19,6 @@ EXPOSE 4005
 # Make the entrypoint executable
 RUN chmod +x entrypoint.sh
 
-# ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
 
 CMD [ "npx", "tsx", "app.ts" ]

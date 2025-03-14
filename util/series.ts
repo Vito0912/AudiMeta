@@ -44,7 +44,7 @@ export async function getBooksInSeries(seriesAsin: string, limit?: number, page?
 }
 
 export async function getSeriesAsins(asin: string, region: string): Promise<string[]> {
-  const URL = `https://api.audible${regionMap[region]}/1.0/catalog/products/${asin}`;
+  const URL = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products/${asin}`;
 
   const response = await axios.get(URL, {
     headers: HEADERS,
@@ -150,22 +150,22 @@ export async function updateSeries(req: any, res: any, region: string, limit?: n
 }
 
 export function sortBooksBySeries(books: BookModel[], seriesAsin: string): BookModel[] {
-  const bookPositions = new Map<string, number>();
+  const bookPositions = new Map<string, string>();
   for (const book of books) {
     const seriesInfo = book.series?.find(s => s.asin === seriesAsin);
-    const position = seriesInfo?.position ?? 0;
+    const position = seriesInfo?.position ?? "0";
     bookPositions.set(book.asin, position);
   }
 
   books.sort((a, b) => {
-    const positionA = bookPositions.get(a.asin) || 0;
-    const positionB = bookPositions.get(b.asin) || 0;
+    const positionA = bookPositions.get(a.asin) || "0";
+    const positionB = bookPositions.get(b.asin) || "0";
 
-    // Position 0 is appended to the end
-    if (positionA === 0 && positionB !== 0) return 1;
-    if (positionA !== 0 && positionB === 0) return -1;
+    // Position "0" is appended to the end
+    if (positionA === "0" && positionB !== "0") return 1;
+    if (positionA !== "0" && positionB === "0") return -1;
 
-    return positionA - positionB;
+    return positionA.localeCompare(positionB, undefined, {numeric: true});
   });
 
   return books;

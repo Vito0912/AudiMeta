@@ -74,7 +74,7 @@ export async function getBooks(asins: string[], region: string, req: any, limit?
     asins: notFoundAsins.join(','),
   };
 
-  const url = `https://api.audible${regionMap[region]}/1.0/catalog/products`;
+  const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
 
   const response = await axios.get(url, {
     headers: HEADERS,

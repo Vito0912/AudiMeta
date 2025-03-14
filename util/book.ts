@@ -39,7 +39,7 @@ export type BookInput = {
     seriesAsin: string;
     seriesTitle: string;
     seriesDescription?: string;
-    position: number;
+    position: string;
   }[];
   authors?: {
     asin: string;
@@ -69,7 +69,7 @@ export class BookInputFactory {
             .filter((rel: any) => rel.relationship_type === 'series')
             .map((rel: any) => ({
               seriesAsin: rel.asin,
-              position: Number(rel.sequence) || 0,
+              position: rel.sequence,
               seriesTitle: rel.title,
             }))
         : [];
@@ -343,7 +343,7 @@ export async function insertBooks(data: BookInput[]) {
 
   // 3. Process Series & SeriesBook relations.
   const seriesMap = new Map<string, { asin: string; title: string; description?: string }>();
-  const seriesBookRecords: Array<{ seriesAsin: string; bookAsin: string; position: number }> = [];
+  const seriesBookRecords: Array<{ seriesAsin: string; bookAsin: string; position: string }> = [];
   newBooks.forEach(b => {
     if (b.seriesBooks && b.seriesBooks.length) {
       b.seriesBooks.forEach(sb => {
