@@ -1,7 +1,7 @@
 import { Book } from '@prisma/client';
 import { HEADERS, logger, prisma, regionMap } from '../app';
 import axios from 'axios';
-import { BookModel, mapBook, SeriesInfoModel } from '../models/type_model';
+import { BookModel, mapBook, mapSeries, SeriesInfoModel } from '../models/type_model';
 import parse from 'node-html-parser';
 import { getBooks } from './bookDB';
 import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from './searchCache';
@@ -214,4 +214,16 @@ export async function updateDetailedSeries(asin: string, region: string) {
   }
 
   return seriesInfo;
+}
+
+export async function getCachedOrSeries(asin: string, region: string) {
+  const series = await prisma.series.findUnique({
+    where: { asin },
+  });
+
+  if (series && series.description && series.title) {
+    return mapSeries(series);
+  }
+
+  return await updateDetailedSeries(asin, region);
 }

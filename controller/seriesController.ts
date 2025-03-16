@@ -1,5 +1,5 @@
 import {
-  getBooksInSeries,
+  getBooksInSeries, getCachedOrSeries,
   sortBooksBySeries,
   updateDetailedSeries,
   updateSeries,
@@ -96,34 +96,22 @@ app.get('/series', async (req, res) => {
     return;
   }
 
-  const key = generateSearchKey('series', name, region)
-
-  const asins = await getSearchCacheResult(key, req);
-
-  if(asins && asins.length > 0) {
-    const asin = asins[0];
-    const series = await prisma.series.findUnique({
-      where: { asin: asin },
-    });
-
-    if (series && series.description && series.title) {
-      res.send(mapSeries(series));
-      return;
-    }
-
-    const seriesInfo = await updateDetailedSeries(asin, region);
-
-    if (seriesInfo === undefined) {
-      res.status(404).send('Series not found');
-      return;
-    }
-
-    res.send(seriesInfo);
-  }
+  const key = generateSearchKey('series', name, region);
 
   try {
+    const cachedAsins = await getSearchCacheResult(key, req);
+
+    if (cachedAsins && cachedAsins.length > 0) {
+      const seriesInfo = await getCachedOrSeries(cachedAsins[0], region);
+
+      if (seriesInfo) {
+        res.send(seriesInfo);
+        return;
+      }
+    }
+
     const reqParams = {
-      num_results: '3',
+      num_results: '5',
       products_sort_by: 'Relevance',
       title: name,
     };
@@ -134,46 +122,33 @@ app.get('/series', async (req, res) => {
       params: reqParams,
     });
 
-    if (response.status === 200 && response.data != null && response.data.products != null) {
+    if (response.status === 200 && response.data?.products) {
       const asins = response.data.products.map((product: any) => product.asin);
 
       let books: BookModel[] = await getBooks(asins, region, req);
       if (books.length === 0) {
-        const newBooks = await getBooksFromOtherRegions(name, undefined);
-        books.push(...newBooks);
+        books.push(...await getBooksFromOtherRegions(name, undefined));
       }
+      const seriesAsin = books.find(book => book.series && book.series.length > 0)?.series[0]?.asin;
 
-      const seriesAsin = books.find(book => book.series && book.series.length > 0)?.series[0]?.asin || null;
-
-      if (seriesAsin == null) {
+      if (!seriesAsin) {
         res.status(404).send('No series found');
         return;
       }
 
       await insertSearchCacheResult(key, [seriesAsin]);
 
+      const seriesInfo = await getCachedOrSeries(seriesAsin, region);
 
-      const series = await prisma.series.findUnique({
-        where: { asin: seriesAsin },
-      });
-
-      if (series && series.description && series.title) {
-        res.send(mapSeries(series));
+      if (seriesInfo) {
+        res.send(seriesInfo);
         return;
       }
-
-      const seriesInfo = await updateDetailedSeries(seriesAsin, region);
-
-      if (seriesInfo === undefined) {
-        res.status(404).send('Series not found');
-        return;
-      }
-
-      res.send(seriesInfo);
     }
 
+    res.status(404).send('No series found');
   } catch (e) {
     logger.error(e);
+    res.status(500).send('No series found while encountering an error');
   }
-  res.status(404).send('No series found');
 });
