@@ -50,5 +50,6 @@ export async function insertSearchCacheResult(search: string, result: string[]):
 }
 
 export function generateSearchKey(...args: string[]): string {
-  return hash(args);
+  const type = args.shift();
+  return `${type}.${hash(args)}`;
 }

@@ -154,3 +154,11 @@ export function mapAuthors(author: any): AuthorModel {
       : null,
   };
 }
+
+export function mapSeries(series: any): SeriesInfoModel {
+  return {
+    asin: series.asin,
+    title: series.title,
+    description: series.description,
+  };
+}

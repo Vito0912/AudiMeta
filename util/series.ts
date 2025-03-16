@@ -136,7 +136,7 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
 
 
 export async function updateSeries(req: any, res: any, region: string, limit?: number, page?: number) {
-  const key = generateSearchKey(req.params.asin, region);
+  const key = generateSearchKey('series/update', req.params.asin, region);
   let seriesAsins = await getSearchCacheResult(key, req, limit, page);
 
   if (!seriesAsins || seriesAsins.length === 0) {
@@ -191,4 +191,27 @@ export function sortBooksBySeries(books: BookModel[], seriesAsin: string): BookM
   });
 
   return books;
+}
+
+export async function updateDetailedSeries(asin: string, region: string) {
+  const seriesInfo = await getSeriesDetails(asin, region);
+
+  if (seriesInfo) {
+    await prisma.series.upsert({
+      where: {
+        asin: asin,
+      },
+      update: {
+        ...(seriesInfo.description && { description: seriesInfo.description }),
+        ...(seriesInfo.title && { title: seriesInfo.title }),
+      },
+      create: {
+        asin: asin,
+        title: seriesInfo.title,
+        description: seriesInfo.description,
+      },
+    })
+  }
+
+  return seriesInfo;
 }
