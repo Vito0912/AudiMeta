@@ -2,13 +2,14 @@ import { AuthorModel, GenreModel, mapAuthors } from '../models/type_model';
 import { HEADERS, prisma, regionMap } from '../app';
 import axios from 'axios';
 import parse from 'node-html-parser';
+import { generateScrapingHeaders } from './audible_scraping';
 
 export async function getAuthorDetails(asin: string, region: string): Promise<AuthorModel | undefined> {
   const URL = `https://audible${regionMap[region]}/author/${asin}?ipRedirectOverride=true&overrideBaseCountry=true`;
 
   try {
     const response = await axios.get(URL, {
-      headers: HEADERS,
+      headers: generateScrapingHeaders(region),
     });
 
     if (response.status === 200 || response.status === 301) {

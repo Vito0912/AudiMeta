@@ -6,6 +6,7 @@ import parse from 'node-html-parser';
 import { getBooks } from './bookDB';
 import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from './searchCache';
 import { checkAsin } from './validationMiddleware';
+import { generateRandomCookie, generateScrapingHeaders } from './audible_scraping';
 
 export async function getBooksInSeries(seriesAsin: string, limit?: number, page?: number): Promise<BookModel[]> {
   logger.info('Getting books in series ' + seriesAsin);
@@ -73,8 +74,9 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
 
   while (true) {
     try {
+
       const response = await axios.get(URL, {
-        headers: HEADERS,
+        headers: generateScrapingHeaders(region)
       });
 
       if (response.status === 200) {
@@ -117,6 +119,7 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
         retries++;
 
         if (retries >= MAX_RETRIES) {
+          logger.warn(`Failed to fetch series data after ${MAX_RETRIES} retries for ${asin}`);
           throw new Error(`Failed to fetch series data after ${MAX_RETRIES} retries`);
         }
 
@@ -125,7 +128,7 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
         continue;
       }
 
-      console.error(e);
+      logger.error(e);
       throw new Error('Failed to fetch series data');
     }
   }
