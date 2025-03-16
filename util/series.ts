@@ -165,7 +165,7 @@ export async function updateSeries(req: any, res: any, region: string, limit?: n
   let books: BookModel[] = [];
 
   for (const chunk of asins) {
-    books = books.concat(await getBooks(chunk, region, req));
+    books = books.concat(await getBooks(chunk, region));
   }
 
   return books.filter(book => book != null);

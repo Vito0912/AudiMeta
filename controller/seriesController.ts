@@ -125,7 +125,7 @@ app.get('/series', async (req, res) => {
     if (response.status === 200 && response.data?.products) {
       const asins = response.data.products.map((product: any) => product.asin);
 
-      let books: BookModel[] = await getBooks(asins, region, req);
+      let books: BookModel[] = await getBooks(asins, region);
       if (books.length === 0) {
         books.push(...await getBooksFromOtherRegions(name, undefined));
       }

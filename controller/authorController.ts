@@ -1,6 +1,12 @@
 import { app, HEADERS, prisma, regionMap } from '../app';
 import { AuthorModel, BookModel, GenreModel, mapAuthors, mapBook } from '../models/type_model';
-import { getAuthorDetails, getAuthors, searchAudibleAuthor, upsertAuthor } from '../util/authors';
+import {
+  getAuthorDetails,
+  getAuthors,
+  searchAudibleAuthor,
+  searchAudibleAuthorViaBook,
+  upsertAuthor,
+} from '../util/authors';
 import axios from 'axios';
 import { BookInput, BookInputFactory, getBooksFromAuthor, getFullBooks, insertBooks } from '../util/book';
 import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from '../util/searchCache';
@@ -60,7 +66,7 @@ app.get('/author/books/:asin', async (req, res) => {
 
   const results = await getSearchCacheResult(query, req);
   if (results && results.length > 0) {
-    const books = await getBooks(results, region, req);
+    const books = await getBooks(results, region);
     if (!books || books.length === 0) {
       res.status(404).send('No books found');
       return;
@@ -136,59 +142,93 @@ app.get('/author/books/:asin', async (req, res) => {
 
 app.get('/author', async (req, res) => {
   const region: string = (req.query.region || 'US').toString().toLowerCase();
-  const cache: string = req.query.cache as string;
+  const name: string = req.query.name as string;
 
   if (!req.query.name) {
     res.status(400).send('No name provided');
     return;
   }
 
-  const audibleResult = await searchAudibleAuthor(req.query.name.toString(), region);
+  const key = generateSearchKey('author', req.query.name.toString(), region);
+  const results = await getSearchCacheResult(key, req);
 
-  let authorModel: AuthorModel | undefined = undefined;
-  if (audibleResult) {
-    authorModel = {
-      asin: audibleResult.asin,
-      region: region.toUpperCase(),
-      name: audibleResult.name,
-      description: undefined,
-      image: audibleResult.image,
-      genres: [],
-    };
-  }
-
-  // Maybe updated with https://github.com/Kinjalrk2k/prisma-extension-pg-trgm
-  const authorQuery = await prisma.author.findFirst({
-    where: {
-      name: {
-        contains: req.query.name.toString(),
-        mode: 'insensitive',
-      },
-    },
-  });
-
-  if (authorQuery == null && authorModel === undefined) {
-    res.status(404).send('No authors found');
-    return;
-  }
-
-  let author = mapAuthors(authorQuery);
-
-  if (author.description === null || cache === 'false' || (authorModel && authorModel.image !== author.image)) {
-    const authorModel2 = await getAuthorDetails(author.asin, region);
-    if (!authorModel) {
-      authorModel = authorModel2;
-      author = await upsertAuthor(authorModel);
-    } else if (authorModel2) {
-      authorModel2.description = authorModel2.description || author.description;
-      authorModel2.genres = authorModel2.genres || author.genres;
-      author = await upsertAuthor(authorModel);
+  // Check if author is in cache
+  if (results && results.length > 0) {
+    const authors = await getAuthors(results[0], region);
+    if(authors && authors.length > 0) {
+      res.send(authors);
+      return;
     }
   }
 
-  if (author) {
-    res.send(author);
-  } else {
-    res.status(404).send('Author not found');
+  // Works the best
+  let bookAuthor = await searchAudibleAuthorViaBook(name, region)
+  if (bookAuthor) {
+    await insertSearchCacheResult(key, [bookAuthor.asin]);
+    if (!bookAuthor.description || !bookAuthor.image) {
+      const detailedAuthor = await getAuthorDetails(bookAuthor.asin, region);
+      if (detailedAuthor) {
+        await upsertAuthor(detailedAuthor);
+        bookAuthor = detailedAuthor;
+      }
+    }
+    res.send(bookAuthor);
+    return;
   }
+
+  // Froms search (does not work very well)
+  const audibleAuthor = await searchAudibleAuthor(name, region);
+  if(audibleAuthor) {
+    const authorQuery = await prisma.author.findFirst({
+      where: {
+        asin: audibleAuthor.asin
+      }
+    })
+    const editedAuthor: AuthorModel = {
+      ...authorQuery,
+      region: region.toUpperCase(),
+      image: audibleAuthor.image,
+      asin: audibleAuthor.asin,
+      genres: []
+    }
+
+    if (!editedAuthor.description || !editedAuthor.image) {
+      const detailedAuthor = await getAuthorDetails(editedAuthor.asin, region);
+      if (detailedAuthor) {
+        editedAuthor.description = detailedAuthor.description;
+        editedAuthor.image = detailedAuthor.image
+      }
+    }
+
+    await upsertAuthor(editedAuthor);
+
+    await insertSearchCacheResult(key, [editedAuthor.asin]);
+    res.send(editedAuthor);
+    return
+  }
+
+  // Check the db
+  const author = await prisma.author.findFirst({
+    where: {
+      name: {
+        contains: name
+      }
+    }
+  });
+
+  if (!author) {
+    res.status(404).send('No author found');
+    return;
+  }
+
+  if (!author.description || !author.image) {
+    const detailedAuthor = await getAuthorDetails(author.asin, region);
+    if (detailedAuthor) {
+      await upsertAuthor(detailedAuthor);
+    }
+  }
+
+  await insertSearchCacheResult(key, [author.asin]);
+  res.send(mapAuthors(author));
+
 });

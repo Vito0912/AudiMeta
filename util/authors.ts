@@ -1,8 +1,11 @@
-import { AuthorModel, GenreModel, mapAuthors } from '../models/type_model';
+import { AuthorModel, BookModel, GenreModel, mapAuthors } from '../models/type_model';
 import { HEADERS, prisma, regionMap } from '../app';
 import axios from 'axios';
 import parse from 'node-html-parser';
 import { generateScrapingHeaders } from './audible_scraping';
+import { generateSearchKey } from './searchCache';
+import { getBooks } from './bookDB';
+import { getBooksFromOtherRegions } from './book';
 
 export async function getAuthorDetails(asin: string, region: string): Promise<AuthorModel | undefined> {
   const URL = `https://audible${regionMap[region]}/author/${asin}?ipRedirectOverride=true&overrideBaseCountry=true`;
@@ -25,7 +28,7 @@ export async function getAuthorDetails(asin: string, region: string): Promise<Au
       // Div with bc-expander-content
       const seriesInfo = html.querySelector('.bc-expander-content');
       if (seriesInfo) {
-        const p = seriesInfo.querySelector('p');
+        const p = seriesInfo.querySelector('p') || seriesInfo.querySelector('span') || seriesInfo.querySelector('div');
         const innerHtml = p.innerHTML;
 
         seriesInfoHtml = innerHtml.toString();
@@ -126,13 +129,12 @@ export async function upsertAuthor(author: AuthorModel): Promise<AuthorModel | u
         name: author.name,
         description: author.description,
         image: author.image,
-        genres: {
+        genres: author.genres && author.genres.length > 0 ? {
           deleteMany: {},
-          create:
-            author.genres?.map(genre => ({
-              genreAsin: genre.asin,
-            })) || [],
-        },
+          create: author.genres.map(genre => ({
+            genreAsin: genre.asin,
+          })),
+        } : undefined,
       },
       create: {
         asin: author.asin,
@@ -211,5 +213,69 @@ export async function searchAudibleAuthor(query: string, region: string) {
     console.error(e);
     throw new Error('Failed to fetch author data');
   }
+  return undefined;
+}
+
+
+
+/**
+ *
+ */
+export async function searchAudibleAuthorViaBook(query: string, region: string): Promise<AuthorModel> {
+  const reqParams = {
+    num_results: '5',
+    products_sort_by: 'Relevance',
+    author: query,
+  };
+  const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
+
+  const response = await axios.get(url, {
+    headers: HEADERS,
+    params: reqParams,
+  });
+
+  if (response.status === 200 && response.data?.products) {
+    const asins = response.data.products.map((product: any) => product.asin);
+    let books: BookModel[] = await getBooks(asins, region);
+    if (books.length === 0) {
+      books.push(...(await getBooksFromOtherRegions(undefined, query)));
+    }
+
+    const authorAsinCounts: Record<string, number> = books.reduce((counts, book) => {
+      if (book.authors && book.authors.length > 0) {
+        book.authors.forEach(author => {
+          if (author.asin) {
+            counts[author.asin] = (counts[author.asin] || 0) + 1;
+          }
+        });
+      }
+      return counts;
+    }, {} as Record<string, number>);
+
+    const authorAsin = Object.entries(authorAsinCounts)
+      .sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0]?.[0] || null;
+
+    if (authorAsin) {
+      let authors: AuthorModel[] = await getAuthors(authorAsin);
+
+      if (authors && authors.length > 0) {
+        for (let author of authors) {
+          if (author.region.toLowerCase() === region) {
+            if (author.description === undefined || author.description === null) {
+              const authorModel = await getAuthorDetails(authorAsin, region);
+              author = await upsertAuthor(authorModel);
+            }
+
+            return author;
+          }
+        }
+        return authors[0];
+      }
+
+      const authorModel = await getAuthorDetails(authorAsin, region);
+      return await upsertAuthor(authorModel);
+    }
+  }
+
   return undefined;
 }

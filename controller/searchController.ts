@@ -108,7 +108,7 @@ app.get('/search', async (req, res) => {
         }
       }
 
-      let books: BookModel[] = await getBooks(asins, region, req, limit, page);
+      let books: BookModel[] = await getBooks(asins, region, limit, page);
       if (index == regions.length && books.length === 0) {
         const otherBooks = await getBooksFromOtherRegions(title, author, limit, page);
         if (otherBooks.length === 0) {

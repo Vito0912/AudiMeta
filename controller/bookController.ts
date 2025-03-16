@@ -59,7 +59,7 @@ app.get('/book', async (req, res) => {
   }
 
   try {
-    const books = await getBooks(asins, region, req);
+    const books = await getBooks(asins, region);
 
     if (!books || books.length === 0) {
       res.status(404).send('No books found');

@@ -45,7 +45,7 @@ export async function getBook(asin: string, region: string, req: any, cache: str
   throw new Error('Failed to fetch book data');
 }
 
-export async function getBooks(asins: string[], region: string, req: any, limit?: number, page?: number): Promise<BookModel[]> {
+export async function getBooks(asins: string[], region: string, limit?: number, page?: number): Promise<BookModel[]> {
   if (limit && page) {
     asins = asins.slice(page * limit, (page + 1) * limit);
   }
