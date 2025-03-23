@@ -583,6 +583,7 @@ export async function selectLocalBooks(
     localGenre: string;
     localSeries: string;
     localSeriesPosition: string;
+    localIsbn: string;
   },
   limit: number | undefined,
   page: number | undefined
@@ -668,6 +669,19 @@ export async function selectLocalBooks(
     }
 
     conditions.push(seriesCondition);
+  }
+
+  if (inputs.localIsbn) {
+    conditions.push({
+      isbn: {
+        contains: inputs.localIsbn,
+        mode: 'insensitive',
+      }
+    });
+  }
+
+  if (conditions.length === 0) {
+    return undefined;
   }
 
   const whereClause = conditions.length > 0 ? { OR: conditions } : {};

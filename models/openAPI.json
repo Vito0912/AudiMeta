@@ -510,7 +510,7 @@
           {
             "name": "localNarrator",
             "in": "query",
-            "description": "Just like narrator this matches the narrator of the book. LocalNarrator only searches in the database. This increases speed but needs a nearly exact match",
+            "description": "LocalNarrator only searches in the database. This increases speed but needs a nearly exact match",
             "required": false,
             "schema": {
               "type": "string"
@@ -519,7 +519,7 @@
           {
             "name": "localGenre",
             "in": "query",
-            "description": "Just like genre this matches the genre of the book. LocalGenre only searches in the database. This increases speed but needs a nearly exact match",
+            "description": "LocalGenre only searches in the database. This increases speed but needs a nearly exact match",
             "required": false,
             "schema": {
               "type": "string"
@@ -528,7 +528,7 @@
           {
             "name": "localSeries",
             "in": "query",
-            "description": "Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
+            "description": "LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
             "required": false,
             "schema": {
               "type": "string"
@@ -537,10 +537,19 @@
           {
             "name": "localSeriesPosition",
             "in": "query",
-            "description": "Just like series this matches the series of the book. LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
+            "description": "LocalSeries only searches in the database. This increases speed but needs a nearly exact match",
             "required": false,
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "localIsbn",
+            "in": "query",
+            "description": "LocalIsbn only searches in the database. This increases speed but needs a nearly exact match",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           },
           {

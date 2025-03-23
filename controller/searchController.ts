@@ -30,6 +30,7 @@ app.get('/search', async (req, res) => {
   const localGenre: string | null = req.query.localGenre ? req.query.localGenre.toString() : null;
   const localSeries: string | null = req.query.localSeries ? req.query.localSeries.toString() : null;
   const localSeriesPosition: string | null = req.query.localSeriesPosition ? req.query.localSeriesPosition.toString() : null;
+  const localIsbn: string | null = req.query.localIsbn ? req.query.localIsbn.toString() : null;
 
   const limit: number | undefined = req.query.limit ? parseInt(req.query.limit.toString()) : undefined;
   const page: number | undefined = req.query.page ? parseInt(req.query.page.toString()) : undefined;
@@ -45,10 +46,11 @@ app.get('/search', async (req, res) => {
       localGenre,
       localSeries,
       localSeriesPosition,
+      localIsbn
     };
 
     if (Object.values(inputs).filter(value => value).length === 0) {
-      res.status(400).send('Author or title or any local search must be provided');
+      res.status(400).send('Author or title or isbn or any local search must be provided');
       return;
     }
 
