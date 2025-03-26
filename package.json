@@ -1,9 +1,12 @@
 {
   "name": "audimeta",
-  "version": "0.0.0",
-  "private": true,
+  "version": "1.0.0",
+  "private": false,
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "npx tsx app.ts",
+    "push": "npx prisma db push --skip-generate",
+    "generate": "npx prisma generate",
+    "deploy": "npx prisma db push && npx tsx app.ts",
     "prettier": "prettier --write ."
   },
   "dependencies": {
