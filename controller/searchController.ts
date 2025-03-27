@@ -21,8 +21,8 @@ import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from
 
 // @ts-ignore
 app.get('/search', async (req, res) => {
-  const author: string | null = req.query.author ? req.query.author.toString() : null;
-  const title: string | null = req.query.title ? req.query.title.toString() : null;
+  let author: string | null = req.query.author ? req.query.author.toString() : null;
+  let title: string | null = req.query.title ? req.query.title.toString() : null;
 
   const localTitle: string | null = req.query.localTitle ? req.query.localTitle.toString() : null;
   const localAuthor: string | null = req.query.localAuthor ? req.query.localAuthor.toString() : null;
@@ -63,6 +63,13 @@ app.get('/search', async (req, res) => {
 
     res.status(404).send('No books found');
     return;
+  }
+
+  if (title) {
+    title = title.replace(/\[.*?]/g, '').replace(/[\[\]]/g, '');
+  }
+  if (author) {
+    author = author.replace(/\[.*?]/g, '').replace(/[\[\]]/g, '');
   }
 
   for (let index = 0; index < regions.length; index++) {
