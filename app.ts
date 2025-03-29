@@ -46,6 +46,7 @@ export const regionMap = {
   it: '.it',
   in: '.in',
   es: '.es',
+  br: '.com.br',
 };
 
 export const logger = winston.createLogger({
