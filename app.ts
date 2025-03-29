@@ -1,3 +1,4 @@
+if (process.env.SENTRY_DSN) require('./instrument.js');
 import express = require('express');
 import { Express } from 'express';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
@@ -15,6 +16,7 @@ export const HEADERS = {
   'User-Agent': 'Audible/3.0.0 Android/11',
 };
 
+import Sentry = require('@sentry/node');
 export const app: Express = express();
 app.use(express.json());
 app.set('trust proxy', 1);
@@ -44,6 +46,7 @@ export const regionMap = {
   it: '.it',
   in: '.in',
   es: '.es',
+  br: '.com.br',
 };
 
 export const logger = winston.createLogger({
@@ -76,6 +79,8 @@ require('./controller/searchController');
 require('./controller/seriesController');
 require('./controller/chapterController');
 require('./controller/authorController');
+
+if (process.env.SENTRY_DSN) Sentry.setupExpressErrorHandler(app);
 
 app.listen(PORT, () => {
   console.log('Server Listening on PORT:', PORT);

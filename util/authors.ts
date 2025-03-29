@@ -129,12 +129,15 @@ export async function upsertAuthor(author: AuthorModel): Promise<AuthorModel | u
         name: author.name,
         description: author.description,
         image: author.image,
-        genres: author.genres && author.genres.length > 0 ? {
-          deleteMany: {},
-          create: author.genres.map(genre => ({
-            genreAsin: genre.asin,
-          })),
-        } : undefined,
+        genres:
+          author.genres && author.genres.length > 0
+            ? {
+                deleteMany: {},
+                create: author.genres.map(genre => ({
+                  genreAsin: genre.asin,
+                })),
+              }
+            : undefined,
       },
       create: {
         asin: author.asin,
@@ -216,8 +219,6 @@ export async function searchAudibleAuthor(query: string, region: string) {
   return undefined;
 }
 
-
-
 /**
  *
  */
@@ -241,19 +242,21 @@ export async function searchAudibleAuthorViaBook(query: string, region: string):
       books.push(...(await getBooksFromOtherRegions(undefined, query)));
     }
 
-    const authorAsinCounts: Record<string, number> = books.reduce((counts, book) => {
-      if (book.authors && book.authors.length > 0) {
-        book.authors.forEach(author => {
-          if (author.asin) {
-            counts[author.asin] = (counts[author.asin] || 0) + 1;
-          }
-        });
-      }
-      return counts;
-    }, {} as Record<string, number>);
+    const authorAsinCounts: Record<string, number> = books.reduce(
+      (counts, book) => {
+        if (book.authors && book.authors.length > 0) {
+          book.authors.forEach(author => {
+            if (author.asin) {
+              counts[author.asin] = (counts[author.asin] || 0) + 1;
+            }
+          });
+        }
+        return counts;
+      },
+      {} as Record<string, number>
+    );
 
-    const authorAsin = Object.entries(authorAsinCounts)
-      .sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0]?.[0] || null;
+    const authorAsin = Object.entries(authorAsinCounts).sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0]?.[0] || null;
 
     if (authorAsin) {
       let authors: AuthorModel[] = await getAuthors(authorAsin);

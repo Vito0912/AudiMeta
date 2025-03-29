@@ -74,9 +74,8 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
 
   while (true) {
     try {
-
       const response = await axios.get(URL, {
-        headers: generateScrapingHeaders(region)
+        headers: generateScrapingHeaders(region),
       });
 
       if (response.status === 200) {
@@ -133,7 +132,6 @@ export async function getSeriesDetails(asin: string, region: string): Promise<Se
     }
   }
 }
-
 
 export async function updateSeries(req: any, res: any, region: string, limit?: number, page?: number) {
   const key = generateSearchKey('series/update', req.params.asin, region);
@@ -210,7 +208,7 @@ export async function updateDetailedSeries(asin: string, region: string) {
         title: seriesInfo.title,
         description: seriesInfo.description,
       },
-    })
+    });
   }
 
   return seriesInfo;

@@ -45,7 +45,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -86,7 +86,7 @@
                       "type": "array",
                       "items": {
                         "type": "string",
-                        "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                        "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
                       },
                       "description": "The regions the book is available in"
                     },
@@ -159,7 +159,7 @@
                           },
                           "region": {
                             "type": "string",
-                            "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                            "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"],
                             "description": "The language of the authors description"
                           },
                           "name": {
@@ -264,7 +264,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -299,7 +299,7 @@
                         "type": "array",
                         "items": {
                           "type": "string",
-                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                          "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
                         },
                         "description": "The regions the book is available in"
                       },
@@ -372,7 +372,7 @@
                             },
                             "region": {
                               "type": "string",
-                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"],
                               "description": "The language of the authors description"
                             },
                             "name": {
@@ -559,7 +559,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -593,7 +593,7 @@
                         "type": "array",
                         "items": {
                           "type": "string",
-                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                          "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
                         },
                         "description": "The regions the book is available in"
                       },
@@ -666,7 +666,7 @@
                             },
                             "region": {
                               "type": "string",
-                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"],
                               "description": "The language of the authors description"
                             },
                             "name": {
@@ -772,7 +772,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -815,7 +815,7 @@
                         "type": "array",
                         "items": {
                           "type": "string",
-                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                          "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
                         },
                         "description": "The regions the book is available in"
                       },
@@ -888,7 +888,7 @@
                             },
                             "region": {
                               "type": "string",
-                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"],
                               "description": "The language of the authors description"
                             },
                             "name": {
@@ -994,7 +994,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -1045,9 +1045,7 @@
     },
     "/series": {
       "get": {
-        "tags": [
-          "series"
-        ],
+        "tags": ["series"],
         "summary": "Search a series by name",
         "parameters": [
           {
@@ -1066,20 +1064,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "US",
-                "UK",
-                "AU",
-                "DE",
-                "FR",
-                "CA",
-                "IT",
-                "JP",
-                "IN",
-                "BR",
-                "MX",
-                "ES"
-              ]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           }
         ],
@@ -1087,28 +1072,28 @@
           "200": {
             "description": "Series found",
             "content": {
-              "application/json" : {
-                "schema" : {
-                  "type" : "object",
-                  "properties" : {
-                    "asin" : {
-                      "type" : "string",
-                      "description" : "The series asin"
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asin": {
+                      "type": "string",
+                      "description": "The series asin"
                     },
-                    "name" : {
-                      "type" : "string",
-                      "description" : "The name of the series"
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the series"
                     },
-                    "description" : {
-                      "type" : "string",
-                      "description" : "The description of the series"
+                    "description": {
+                      "type": "string",
+                      "description": "The description of the series"
                     },
-                    "position" : {
-                      "type" : "number",
-                      "description" : "The position of the series"
+                    "position": {
+                      "type": "number",
+                      "description": "The position of the series"
                     }
                   },
-                  "required" : [ "asin", "name" ]
+                  "required": ["asin", "name"]
                 }
               }
             }
@@ -1128,7 +1113,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -1211,7 +1196,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -1238,7 +1223,7 @@
                     },
                     "region": {
                       "type": "string",
-                      "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                      "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"],
                       "description": "The language of the authors description"
                     },
                     "name": {
@@ -1297,7 +1282,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -1361,7 +1346,7 @@
                         "type": "array",
                         "items": {
                           "type": "string",
-                          "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+                          "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
                         },
                         "description": "The regions the book is available in"
                       },
@@ -1434,7 +1419,7 @@
                             },
                             "region": {
                               "type": "string",
-                              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"],
                               "description": "The language of the authors description"
                             },
                             "name": {
@@ -1540,7 +1525,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
+              "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
             }
           },
           {
@@ -1577,7 +1562,7 @@
                       },
                       "region": {
                         "type": "string",
-                        "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"],
+                        "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"],
                         "description": "The language of the authors description"
                       },
                       "name": {

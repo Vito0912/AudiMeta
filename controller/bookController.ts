@@ -16,17 +16,12 @@ app.get('/book/:asin', async (req, res) => {
   const region: string = (req.query.region || 'US').toString().toLowerCase();
   const cache: string = req.query.cache as string;
 
-  try {
-    const book = await getBook(asin, region, req, cache);
-    if (!book) {
-      res.status(404).send('Book not found');
-      return;
-    }
-    res.send(book);
-  } catch (e) {
-    logger.error(e);
-    res.status(500).send('Internal server error');
+  const book = await getBook(asin, region, req, cache);
+  if (!book) {
+    res.status(404).send('Book not found');
+    return;
   }
+  res.send(book);
 });
 
 /**
@@ -58,17 +53,12 @@ app.get('/book', async (req, res) => {
     return;
   }
 
-  try {
-    const books = await getBooks(asins, region);
+  const books = await getBooks(asins, region);
 
-    if (!books || books.length === 0) {
-      res.status(404).send('No books found');
-      return;
-    }
-
-    res.send(books);
-  } catch (e) {
-    logger.error(e);
-    res.status(500).send('Internal server error');
+  if (!books || books.length === 0) {
+    res.status(404).send('No books found');
+    return;
   }
+
+  res.send(books);
 });

@@ -46,7 +46,7 @@ app.get('/search', async (req, res) => {
       localGenre,
       localSeries,
       localSeriesPosition,
-      localIsbn
+      localIsbn,
     };
 
     if (Object.values(inputs).filter(value => value).length === 0) {
@@ -87,54 +87,48 @@ app.get('/search', async (req, res) => {
       asins = await getSearchCacheResult(key, req, limit, page);
     } catch (e) {}
 
-    try {
-      if (!asins || asins.length === 0) {
-        const reqParams = {
-          num_results: limit === undefined ? '10' : limit.toString(),
-          products_sort_by: 'Relevance',
-        };
-        if (author) {
-          reqParams['author'] = author;
-        }
-        if (title) {
-          reqParams['title'] = title;
-        }
-        const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
+    if (!asins || asins.length === 0) {
+      const reqParams = {
+        num_results: limit === undefined ? '10' : limit.toString(),
+        products_sort_by: 'Relevance',
+      };
+      if (author) {
+        reqParams['author'] = author;
+      }
+      if (title) {
+        reqParams['title'] = title;
+      }
+      const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
 
-        const response = await axios.get(url, {
-          headers: HEADERS,
-          params: reqParams,
-        });
+      const response = await axios.get(url, {
+        headers: HEADERS,
+        params: reqParams,
+      });
 
-        if (response.status === 200) {
-          const json: any = response.data;
+      if (response.status === 200) {
+        const json: any = response.data;
 
-          asins = json.products.map((product: any) => product.asin);
+        asins = json.products.map((product: any) => product.asin);
 
-          if (asins.length >= 1) {
-            await insertSearchCacheResult(key, asins);
-          }
+        if (asins.length >= 1) {
+          await insertSearchCacheResult(key, asins);
         }
       }
+    }
 
-      let books: BookModel[] = await getBooks(asins, region, limit, page);
-      if (index == regions.length && books.length === 0) {
-        const otherBooks = await getBooksFromOtherRegions(title, author, limit, page);
-        if (otherBooks.length === 0) {
-          res.status(404).send('No books found');
-          return;
-        }
-        res.send(otherBooks);
+    let books: BookModel[] = await getBooks(asins, region, limit, page);
+    if (index == regions.length && books.length === 0) {
+      const otherBooks = await getBooksFromOtherRegions(title, author, limit, page);
+      if (otherBooks.length === 0) {
+        res.status(404).send('No books found');
         return;
       }
+      res.send(otherBooks);
+      return;
+    }
 
-      if (books && books.length >= 1) {
-        res.send(books);
-        return;
-      }
-    } catch (e) {
-      logger.error(e);
-      res.status(500).send('Internal Server error');
+    if (books && books.length >= 1) {
+      res.send(books);
       return;
     }
   }

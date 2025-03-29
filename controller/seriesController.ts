@@ -1,9 +1,4 @@
-import {
-  getBooksInSeries, getCachedOrSeries,
-  sortBooksBySeries,
-  updateDetailedSeries,
-  updateSeries,
-} from '../util/series';
+import { getBooksInSeries, getCachedOrSeries, sortBooksBySeries, updateDetailedSeries, updateSeries } from '../util/series';
 import { app, HEADERS, logger, prisma, regionMap } from '../app';
 import { BookModel, mapSeries } from '../models/type_model';
 import { checkAsin } from '../util/validationMiddleware';
@@ -23,7 +18,7 @@ app.get('/series/books/:asin', async (req, res) => {
     return;
   }
 
-  const region: string = req.query.region as string || 'US';
+  const region: string = (req.query.region as string) || 'US';
   const forceUpdate = req.query.update;
   const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
   const page = req.query.page ? parseInt(req.query.page as string) : undefined;
@@ -73,7 +68,6 @@ app.get('/series/:asin', async (req, res) => {
   }
 
   try {
-
     const seriesInfo = await updateDetailedSeries(asin, region);
 
     if (seriesInfo === undefined) {
@@ -127,7 +121,7 @@ app.get('/series', async (req, res) => {
 
       let books: BookModel[] = await getBooks(asins, region);
       if (books.length === 0) {
-        books.push(...await getBooksFromOtherRegions(name, undefined));
+        books.push(...(await getBooksFromOtherRegions(name, undefined)));
       }
       const seriesAsin = books.find(book => book.series && book.series.length > 0)?.series[0]?.asin;
 
@@ -150,5 +144,6 @@ app.get('/series', async (req, res) => {
   } catch (e) {
     logger.error(e);
     res.status(500).send('No series found while encountering an error');
+    next(e);
   }
 });
