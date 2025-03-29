@@ -4,7 +4,7 @@
   "private": false,
   "scripts": {
     "start": "npx tsx app.ts",
-    "push": "npx prisma db push --skip-generate",
+    "push": "npx prisma db push --skip-generate --force-reset",
     "generate": "npx prisma generate",
     "deploy": "npx prisma db push && npx tsx app.ts",
     "prettier": "prettier --write ."

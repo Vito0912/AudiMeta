@@ -37,8 +37,8 @@ model Book {
 
   series SeriesBook[]
   authors BookAuthor[]
-  narrators Narrator[] @relation("NarratorBooks")
-  genres Genre[] @relation("GenreBooks")
+  narrators BookNarrator[]
+  genres    BookGenre[]
 
   releaseDate DateTime?
   createdAt DateTime @default(now())
@@ -63,7 +63,7 @@ model Genre {
   name      String
   type      String
 
-  books     Book[] @relation("GenreBooks")
+  books     BookGenre[]
   authors   AuthorGenre[]
 
   createdAt DateTime @default(now())
@@ -76,7 +76,10 @@ model Narrator {
   id        Int     @id @default(autoincrement())
   name      String  @unique
 
-  books     Book[] @relation("NarratorBooks")
+  books     BookNarrator[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AuthorGenre {
@@ -145,4 +148,24 @@ model Chapter {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model BookNarrator {
+  book       Book     @relation(fields: [bookAsin], references: [asin], onDelete: Cascade)
+  bookAsin   String
+  narrator   Narrator @relation(fields: [narratorId], references: [id], onDelete: Cascade)
+  narratorId Int
+
+  @@id([bookAsin, narratorId])
+  @@index([narratorId])
+}
+
+model BookGenre {
+  book      Book   @relation(fields: [bookAsin], references: [asin], onDelete: Cascade) // Add onDelete if desired
+  bookAsin  String
+  genre     Genre  @relation(fields: [genreAsin], references: [asin], onDelete: Cascade) // Add onDelete if desired
+  genreAsin String
+
+  @@id([bookAsin, genreAsin])
+  @@index([genreAsin])
 }
