@@ -1,12 +1,6 @@
 import { app, HEADERS, prisma, regionMap } from '../app';
 import { AuthorModel, BookModel, GenreModel, mapAuthors, mapBook } from '../models/type_model';
-import {
-  getAuthorDetails,
-  getAuthors,
-  searchAudibleAuthor,
-  searchAudibleAuthorViaBook,
-  upsertAuthor,
-} from '../util/authors';
+import { getAuthorDetails, getAuthors, searchAudibleAuthor, searchAudibleAuthorViaBook, upsertAuthor } from '../util/authors';
 import axios from 'axios';
 import { BookInput, BookInputFactory, getBooksFromAuthor, getFullBooks, insertBooks } from '../util/book';
 import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from '../util/searchCache';
@@ -155,14 +149,14 @@ app.get('/author', async (req, res) => {
   // Check if author is in cache
   if (results && results.length > 0) {
     const authors = await getAuthors(results[0], region);
-    if(authors && authors.length > 0) {
+    if (authors && authors.length > 0) {
       res.send(authors);
       return;
     }
   }
 
   // Works the best
-  let bookAuthor = await searchAudibleAuthorViaBook(name, region)
+  let bookAuthor = await searchAudibleAuthorViaBook(name, region);
   if (bookAuthor) {
     await insertSearchCacheResult(key, [bookAuthor.asin]);
     if (!bookAuthor.description || !bookAuthor.image) {
@@ -178,25 +172,25 @@ app.get('/author', async (req, res) => {
 
   // Froms search (does not work very well)
   const audibleAuthor = await searchAudibleAuthor(name, region);
-  if(audibleAuthor) {
+  if (audibleAuthor) {
     const authorQuery = await prisma.author.findFirst({
       where: {
-        asin: audibleAuthor.asin
-      }
-    })
+        asin: audibleAuthor.asin,
+      },
+    });
     const editedAuthor: AuthorModel = {
       ...authorQuery,
       region: region.toUpperCase(),
       image: audibleAuthor.image,
       asin: audibleAuthor.asin,
-      genres: []
-    }
+      genres: [],
+    };
 
     if (!editedAuthor.description || !editedAuthor.image) {
       const detailedAuthor = await getAuthorDetails(editedAuthor.asin, region);
       if (detailedAuthor) {
         editedAuthor.description = detailedAuthor.description;
-        editedAuthor.image = detailedAuthor.image
+        editedAuthor.image = detailedAuthor.image;
       }
     }
 
@@ -204,16 +198,16 @@ app.get('/author', async (req, res) => {
 
     await insertSearchCacheResult(key, [editedAuthor.asin]);
     res.send(editedAuthor);
-    return
+    return;
   }
 
   // Check the db
   const author = await prisma.author.findFirst({
     where: {
       name: {
-        contains: name
-      }
-    }
+        contains: name,
+      },
+    },
   });
 
   if (!author) {
@@ -230,5 +224,4 @@ app.get('/author', async (req, res) => {
 
   await insertSearchCacheResult(key, [author.asin]);
   res.send(mapAuthors(author));
-
 });

@@ -676,7 +676,7 @@ export async function selectLocalBooks(
       isbn: {
         contains: inputs.localIsbn,
         mode: 'insensitive',
-      }
+      },
     });
   }
 

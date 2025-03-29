@@ -1045,9 +1045,7 @@
     },
     "/series": {
       "get": {
-        "tags": [
-          "series"
-        ],
+        "tags": ["series"],
         "summary": "Search a series by name",
         "parameters": [
           {
@@ -1066,20 +1064,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "US",
-                "UK",
-                "AU",
-                "DE",
-                "FR",
-                "CA",
-                "IT",
-                "JP",
-                "IN",
-                "BR",
-                "MX",
-                "ES"
-              ]
+              "enum": ["US", "UK", "AU", "DE", "FR", "CA", "IT", "JP", "IN", "BR", "MX", "ES"]
             }
           }
         ],
@@ -1087,28 +1072,28 @@
           "200": {
             "description": "Series found",
             "content": {
-              "application/json" : {
-                "schema" : {
-                  "type" : "object",
-                  "properties" : {
-                    "asin" : {
-                      "type" : "string",
-                      "description" : "The series asin"
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asin": {
+                      "type": "string",
+                      "description": "The series asin"
                     },
-                    "name" : {
-                      "type" : "string",
-                      "description" : "The name of the series"
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the series"
                     },
-                    "description" : {
-                      "type" : "string",
-                      "description" : "The description of the series"
+                    "description": {
+                      "type": "string",
+                      "description": "The description of the series"
                     },
-                    "position" : {
-                      "type" : "number",
-                      "description" : "The position of the series"
+                    "position": {
+                      "type": "number",
+                      "description": "The position of the series"
                     }
                   },
-                  "required" : [ "asin", "name" ]
+                  "required": ["asin", "name"]
                 }
               }
             }

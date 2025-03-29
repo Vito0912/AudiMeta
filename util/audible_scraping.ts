@@ -1,9 +1,9 @@
 import { regionMap } from '../app';
 
 /**
-* Generates a random cookie string with session information
-* @returns {string} Random cookie string
-*/
+ * Generates a random cookie string with session information
+ * @returns {string} Random cookie string
+ */
 export function generateRandomCookie(): string {
   // session ID (format: XXX-XXXXXXX-XXXXXXX)
   const generateSessionId = () => {
@@ -28,7 +28,7 @@ export function generateRandomCookie(): string {
     `session-id-time=${generateSessionTime()}`,
     `i18n-prefs=${randomCurrency}`,
     `ubid-acbde=${generateSessionId()}`,
-    'ipRedirectOverride=true'
+    'ipRedirectOverride=true',
   ];
 
   return cookieParts.join('; ');
@@ -43,12 +43,11 @@ export function generateScrapingHeaders(region: string) {
   const randomChromeVersion = Math.floor(129 + Math.random() * 6);
   const randomViewportWidth = Math.floor((920 + Math.random() * 1001) / 2) * 2;
 
-
   return {
     'User-Agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${randomChromeVersion}.0.0.0 Safari/537.36`,
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
     'accept-encoding': 'gzip, deflate, br, zstd',
-    'host': `audible${regionMap[region.toLowerCase()]}`,
+    host: `audible${regionMap[region.toLowerCase()]}`,
     'sec-ch-ua': `"Chromium";v="${randomChromeVersion}", "Not:A-Brand";v="24", "Google Chrome";v="${randomChromeVersion}"`,
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
@@ -57,7 +56,7 @@ export function generateScrapingHeaders(region: string) {
     'sec-fetch-site': 'none',
     'sec-fetch-user': '?1',
     'upgrade-insecure-requests': '1',
-    'Cookie': generateRandomCookie(),
+    Cookie: generateRandomCookie(),
     'viewport-width': randomViewportWidth.toString(),
   };
 }
