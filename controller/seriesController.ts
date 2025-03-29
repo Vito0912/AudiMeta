@@ -144,6 +144,6 @@ app.get('/series', async (req, res) => {
   } catch (e) {
     logger.error(e);
     res.status(500).send('No series found while encountering an error');
-    throw e;
+    next(e);
   }
 });
