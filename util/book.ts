@@ -127,75 +127,77 @@ export async function insertBook(data: BookInput) {
     return;
   }
 
-  const uniqueGenres = data.genres?.length
-    ? Array.from(new Map(data.genres.map(g => [g.asin, g])).values())
-    : [];
-  const uniqueNarrators = data.narrators?.length
-    ? Array.from(new Map(data.narrators.map(n => [n.name, n])).values())
-    : [];
+  const uniqueGenres = data.genres?.length ? Array.from(new Map(data.genres.map(g => [g.asin, g])).values()) : [];
+  const uniqueNarrators = data.narrators?.length ? Array.from(new Map(data.narrators.map(n => [n.name, n])).values()) : [];
   const uniqueAuthors = data.authors?.length
     ? Array.from(new Map(data.authors.map(a => [`${a.asin || a.name}_${data.authorRegion}`, a])).values())
     : [];
-  const uniqueSeriesBooks = data.seriesBooks?.length
-    ? Array.from(new Map(data.seriesBooks.map(sb => [sb.seriesAsin, sb])).values())
-    : [];
-
+  const uniqueSeriesBooks = data.seriesBooks?.length ? Array.from(new Map(data.seriesBooks.map(sb => [sb.seriesAsin, sb])).values()) : [];
 
   const commonBookData = {
-    title: data.title, subtitle: data.subtitle, copyRight: data.copyRight,
-    description: data.description, summary: data.summary, bookFormat: data.bookFormat,
-    lengthMin: data.lengthMin, image: data.image, explicit: data.explicit,
-    isbn: data.isbn, language: data.language, publisherName: data.publisherName,
-    rating: data.rating, regions: data.regions || [], releaseDate: data.releaseDate,
+    title: data.title,
+    subtitle: data.subtitle,
+    copyRight: data.copyRight,
+    description: data.description,
+    summary: data.summary,
+    bookFormat: data.bookFormat,
+    lengthMin: data.lengthMin,
+    image: data.image,
+    explicit: data.explicit,
+    isbn: data.isbn,
+    language: data.language,
+    publisherName: data.publisherName,
+    rating: data.rating,
+    regions: data.regions || [],
+    releaseDate: data.releaseDate,
   };
-
 
   const seriesCreatePayload = uniqueSeriesBooks.length
     ? uniqueSeriesBooks.map(sb => ({
-      position: sb.position,
-      series: {
-        connectOrCreate: {
-          where: { asin: sb.seriesAsin },
-          create: { asin: sb.seriesAsin, title: sb.seriesTitle, description: sb.seriesDescription },
+        position: sb.position,
+        series: {
+          connectOrCreate: {
+            where: { asin: sb.seriesAsin },
+            create: { asin: sb.seriesAsin, title: sb.seriesTitle, description: sb.seriesDescription },
+          },
         },
-      },
-    }))
+      }))
     : undefined;
 
   const authorsCreatePayload = uniqueAuthors.length
     ? uniqueAuthors.map(author => {
-      const authorAsin = author.asin || author.name;
-      return {
-        author: {
-          connectOrCreate: {
-            where: { asin_region: { asin: authorAsin, region: data.authorRegion } },
-            create: { asin: authorAsin, region: data.authorRegion, name: author.name, description: author.description },
+        const authorAsin = author.asin || author.name;
+        return {
+          author: {
+            connectOrCreate: {
+              where: { asin_region: { asin: authorAsin, region: data.authorRegion } },
+              create: { asin: authorAsin, region: data.authorRegion, name: author.name, description: author.description },
+            },
           },
-        },
-      };
-    })
+        };
+      })
     : undefined;
 
   const narratorsCreatePayload = uniqueNarrators.length
     ? uniqueNarrators.map(narrator => ({
-      narrator: {
-        connectOrCreate: {
-          where: { name: narrator.name },
-          create: { name: narrator.name },
+        narrator: {
+          connectOrCreate: {
+            where: { name: narrator.name },
+            create: { name: narrator.name },
+          },
         },
-      },
-    }))
+      }))
     : undefined;
 
   const genresCreatePayload = uniqueGenres.length
     ? uniqueGenres.map(genre => ({
-      genre: {
-        connectOrCreate: {
-          where: { asin: genre.asin },
-          create: { asin: genre.asin, name: genre.name, type: genre.type },
+        genre: {
+          connectOrCreate: {
+            where: { asin: genre.asin },
+            create: { asin: genre.asin, name: genre.name, type: genre.type },
+          },
         },
-      },
-    }))
+      }))
     : undefined;
 
   await prisma.book.upsert({
@@ -229,7 +231,7 @@ export async function insertBooks(data: BookInput[]) {
 
   const defaultAuthorRegion = data[0]?.authorRegion;
   if (!defaultAuthorRegion) {
-    console.warn("No authorRegion found in the first book input. Skipping author creation/linking.");
+    console.warn('No authorRegion found in the first book input. Skipping author creation/linking.');
   }
 
   const inputAsins = data.map(b => b.asin).filter((asin): asin is string => !!asin);
@@ -356,112 +358,114 @@ export async function insertBooks(data: BookInput[]) {
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
-      if (bookRecords.length > 0) {
-        logger.info(`Creating ${bookRecords.length} book records...`);
-        await tx.book.createMany({
-          data: bookRecords,
-          skipDuplicates: true,
-        });
-      }
-
-      const seriesRecords = Array.from(seriesMap.values());
-      if (seriesRecords.length > 0) {
-        logger.info(`Creating ${seriesRecords.length} series records...`);
-        await tx.series.createMany({
-          data: seriesRecords,
-          skipDuplicates: true,
-        });
-      }
-      if (seriesBookRecords.length > 0) {
-        logger.info(`Creating ${seriesBookRecords.length} series-book relations...`);
-        await tx.seriesBook.createMany({
-          data: seriesBookRecords,
-          skipDuplicates: true,
-        });
-      }
-
-      const authorRecords = Array.from(authorMap.values());
-      if (authorRecords.length > 0) {
-        logger.info(`Creating ${authorRecords.length} author records...`);
-        await tx.author.createMany({
-          data: authorRecords,
-          skipDuplicates: true,
-        });
-      }
-      if (bookAuthorRecords.length > 0) {
-        logger.info(`Creating ${bookAuthorRecords.length} book-author relations...`);
-        await tx.bookAuthor.createMany({
-          data: bookAuthorRecords,
-          skipDuplicates: true,
-        });
-      }
-
-      const narratorRecords = Array.from(narratorMap.values());
-      let narratorNameToIdMap = new Map<string, number>();
-      if (narratorRecords.length > 0) {
-        logger.info(`Creating ${narratorRecords.length} narrator records...`);
-        await tx.narrator.createMany({
-          data: narratorRecords,
-          skipDuplicates: true,
-        });
-
-        logger.info(`Fetching IDs for ${narratorMap.size} narrators...`);
-        const narratorNames = Array.from(narratorMap.keys());
-        const narratorsWithIds = await tx.narrator.findMany({
-          where: { name: { in: narratorNames } },
-          select: { id: true, name: true },
-        });
-        narratorNameToIdMap = new Map(narratorsWithIds.map(n => [n.name, n.id]));
-      }
-
-      const bookNarratorRecords: { bookAsin: string; narratorId: number }[] = [];
-      if (bookNarratorConnections.length > 0) {
-        bookNarratorConnections.forEach(conn => {
-          const narratorId = narratorNameToIdMap.get(conn.narratorName);
-          if (narratorId) {
-            bookNarratorRecords.push({
-              bookAsin: conn.bookAsin,
-              narratorId: narratorId,
-            });
-          } else {
-            logger.warn(`Could not find ID for narrator: ${conn.narratorName}. Skipping connection for book ${conn.bookAsin}.`);
-          }
-        });
-
-        if (bookNarratorRecords.length > 0) {
-          logger.info(`Creating ${bookNarratorRecords.length} book-narrator relations...`);
-          await tx.bookNarrator.createMany({
-            data: bookNarratorRecords,
+    await prisma.$transaction(
+      async tx => {
+        if (bookRecords.length > 0) {
+          logger.info(`Creating ${bookRecords.length} book records...`);
+          await tx.book.createMany({
+            data: bookRecords,
             skipDuplicates: true,
           });
         }
-      }
 
-      const genreRecords = Array.from(genreMap.values());
-      if (genreRecords.length > 0) {
-        logger.info(`Creating ${genreRecords.length} genre records...`);
-        await tx.genre.createMany({
-          data: genreRecords,
-          skipDuplicates: true,
-        });
+        const seriesRecords = Array.from(seriesMap.values());
+        if (seriesRecords.length > 0) {
+          logger.info(`Creating ${seriesRecords.length} series records...`);
+          await tx.series.createMany({
+            data: seriesRecords,
+            skipDuplicates: true,
+          });
+        }
+        if (seriesBookRecords.length > 0) {
+          logger.info(`Creating ${seriesBookRecords.length} series-book relations...`);
+          await tx.seriesBook.createMany({
+            data: seriesBookRecords,
+            skipDuplicates: true,
+          });
+        }
+
+        const authorRecords = Array.from(authorMap.values());
+        if (authorRecords.length > 0) {
+          logger.info(`Creating ${authorRecords.length} author records...`);
+          await tx.author.createMany({
+            data: authorRecords,
+            skipDuplicates: true,
+          });
+        }
+        if (bookAuthorRecords.length > 0) {
+          logger.info(`Creating ${bookAuthorRecords.length} book-author relations...`);
+          await tx.bookAuthor.createMany({
+            data: bookAuthorRecords,
+            skipDuplicates: true,
+          });
+        }
+
+        const narratorRecords = Array.from(narratorMap.values());
+        let narratorNameToIdMap = new Map<string, number>();
+        if (narratorRecords.length > 0) {
+          logger.info(`Creating ${narratorRecords.length} narrator records...`);
+          await tx.narrator.createMany({
+            data: narratorRecords,
+            skipDuplicates: true,
+          });
+
+          logger.info(`Fetching IDs for ${narratorMap.size} narrators...`);
+          const narratorNames = Array.from(narratorMap.keys());
+          const narratorsWithIds = await tx.narrator.findMany({
+            where: { name: { in: narratorNames } },
+            select: { id: true, name: true },
+          });
+          narratorNameToIdMap = new Map(narratorsWithIds.map(n => [n.name, n.id]));
+        }
+
+        const bookNarratorRecords: { bookAsin: string; narratorId: number }[] = [];
+        if (bookNarratorConnections.length > 0) {
+          bookNarratorConnections.forEach(conn => {
+            const narratorId = narratorNameToIdMap.get(conn.narratorName);
+            if (narratorId) {
+              bookNarratorRecords.push({
+                bookAsin: conn.bookAsin,
+                narratorId: narratorId,
+              });
+            } else {
+              logger.warn(`Could not find ID for narrator: ${conn.narratorName}. Skipping connection for book ${conn.bookAsin}.`);
+            }
+          });
+
+          if (bookNarratorRecords.length > 0) {
+            logger.info(`Creating ${bookNarratorRecords.length} book-narrator relations...`);
+            await tx.bookNarrator.createMany({
+              data: bookNarratorRecords,
+              skipDuplicates: true,
+            });
+          }
+        }
+
+        const genreRecords = Array.from(genreMap.values());
+        if (genreRecords.length > 0) {
+          logger.info(`Creating ${genreRecords.length} genre records...`);
+          await tx.genre.createMany({
+            data: genreRecords,
+            skipDuplicates: true,
+          });
+        }
+        if (bookGenreRecords.length > 0) {
+          logger.info(`Creating ${bookGenreRecords.length} book-genre relations...`);
+          await tx.bookGenre.createMany({
+            data: bookGenreRecords,
+            skipDuplicates: true,
+          });
+        }
+      },
+      {
+        maxWait: 15000,
+        timeout: 30000,
       }
-      if (bookGenreRecords.length > 0) {
-        logger.info(`Creating ${bookGenreRecords.length} book-genre relations...`);
-        await tx.bookGenre.createMany({
-          data: bookGenreRecords,
-          skipDuplicates: true,
-        });
-      }
-    }, {
-      maxWait: 15000,
-      timeout: 30000,
-    });
+    );
 
     return { insertedBooks: newBooksInput.length };
-
   } catch (error) {
-    logger.error("Error during bulk book insertion transaction:", error);
+    logger.error('Error during bulk book insertion transaction:', error);
     throw new Error(`Failed to insert books: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
