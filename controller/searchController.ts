@@ -73,6 +73,12 @@ app.get('/search', async (req, res) => {
   if (author) {
     author = author.replace(/\[.*?]/g, '').replace(/[\[\]]/g, '');
   }
+  if (narrator) {
+    narrator = narrator.replace(/\[.*?]/g, '').replace(/[\[\]]/g, '');
+  }
+  if (keywords) {
+    keywords = keywords.replace(/\[.*?]/g, '').replace(/[\[\]]/g, '');
+  }
 
   for (let index = 0; index < regions.length; index++) {
     const region = regions[index].toLowerCase();
