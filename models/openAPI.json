@@ -590,6 +590,15 @@
             }
           },
           {
+            "name": "page",
+            "in": "query",
+            "description": "The page of books to return. Defaults to 0",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "cache",
             "in": "query",
             "description": "boolean. Defaults to true if not set. If false then a query will be made to Audible instead of the cache. For endpoints that return multiple books this will only ignore the search cache. For endpoints that return a single book this will ignore the book cache and re-fetch the book from source",

@@ -92,7 +92,7 @@ app.get('/search', async (req, res) => {
     let asins: string[] = [];
 
     try {
-      asins = await getSearchCacheResult(key, req, limit, page);
+      asins = await getSearchCacheResult(key, req);
     } catch (e) {}
 
     if (!asins || asins.length === 0) {
@@ -112,6 +112,9 @@ app.get('/search', async (req, res) => {
       if (keywords) {
         reqParams['keywords'] = keywords
       }
+      if (page) {
+        reqParams['page'] = page.toString();
+      }
       const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
 
       const response = await axios.get(url, {
@@ -130,7 +133,7 @@ app.get('/search', async (req, res) => {
       }
     }
 
-    let books: BookModel[] = await getBooks(asins, region, limit, page);
+    let books: BookModel[] = await getBooks(asins, region);
     if (index == regions.length && books.length === 0) {
       const otherBooks = await getBooksFromOtherRegions(title, author, limit, page);
       if (otherBooks.length === 0) {
