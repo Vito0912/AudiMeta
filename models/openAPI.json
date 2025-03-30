@@ -474,7 +474,7 @@
           {
             "name": "author",
             "in": "query",
-            "description": "The author of the book. Needs to be provided if title is not provided",
+            "description": "The author of the book.",
             "required": false,
             "schema": {
               "type": "string"
@@ -483,7 +483,25 @@
           {
             "name": "title",
             "in": "query",
-            "description": "The title of the book. Needs to be provided if author is not provided",
+            "description": "The title of the book.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "narrator",
+            "in": "query",
+            "description": "The narrator of the book.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keywords",
+            "in": "query",
+            "description": "Keywords to search for in the book.",
             "required": false,
             "schema": {
               "type": "string"
@@ -560,6 +578,15 @@
             "schema": {
               "type": "string",
               "enum": ["us", "ca", "uk", "au", "fr", "de", "jp", "it", "in", "es", "br"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The limit of books to return. Defaults to 10",
+            "required": false,
+            "schema": {
+              "type": "number"
             }
           },
           {

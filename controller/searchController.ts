@@ -23,6 +23,8 @@ import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from
 app.get('/search', async (req, res) => {
   let author: string | null = req.query.author ? req.query.author.toString() : null;
   let title: string | null = req.query.title ? req.query.title.toString() : null;
+  let narrator: string | null = req.query.narrator ? req.query.narrator.toString() : null;
+  let keywords: string | null = req.query.keywords ? req.query.keywords.toString() : null;
 
   const localTitle: string | null = req.query.localTitle ? req.query.localTitle.toString() : null;
   const localAuthor: string | null = req.query.localAuthor ? req.query.localAuthor.toString() : null;
@@ -38,7 +40,7 @@ app.get('/search', async (req, res) => {
   let regions: string[] = req.query.region ? req.query.region.toString().split(',') : ['us'];
   regions = regions.filter((region, index) => regions.indexOf(region) === index).map(region => region.toLowerCase());
 
-  if ((title == null || title.length === 0) && (author == null || author.length === 0)) {
+  if ((title == null || title.length === 0) && (author == null || author.length === 0) && (narrator == null || narrator.length === 0) && (keywords == null || keywords.length === 0)) {
     const inputs = {
       localTitle,
       localAuthor,
@@ -50,7 +52,7 @@ app.get('/search', async (req, res) => {
     };
 
     if (Object.values(inputs).filter(value => value).length === 0) {
-      res.status(400).send('Author or title or isbn or any local search must be provided');
+      res.status(400).send('Author or title or keywords or narrator or isbn or any local search must be provided');
       return;
     }
 
@@ -97,6 +99,12 @@ app.get('/search', async (req, res) => {
       }
       if (title) {
         reqParams['title'] = title;
+      }
+      if (narrator) {
+        reqParams['narrator'] = narrator;
+      }
+      if (keywords) {
+        reqParams['keywords'] = keywords
       }
       const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;
 
