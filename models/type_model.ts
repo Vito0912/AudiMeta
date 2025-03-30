@@ -21,6 +21,7 @@ export type SeriesInfoModel = {
 };
 
 type NarratorModel = {
+  id: number | null;
   name: string;
 };
 
@@ -110,14 +111,15 @@ export function mapBook(book: any): BookModel {
       : null,
     narrators: book.narrators
       ? book.narrators.map(narrator => ({
-          name: narrator.name,
+          name: narrator.narrator.name,
+          id: narrator.narrator.id,
         }))
       : null,
     genres: book.genres
       ? book.genres.map(genre => ({
-          asin: genre.asin,
-          name: genre.name,
-          type: genre.type,
+          asin: genre.genre.asin,
+          name: genre.genre.name,
+          type: genre.genre.type,
         }))
       : null,
   };

@@ -13,8 +13,16 @@ const bookInclude = {
       author: true,
     },
   },
-  narrators: true,
-  genres: true,
+  narrators: {
+    include: {
+      narrator: true,
+    }
+  },
+  genres: {
+    include: {
+      genre: true,
+    }
+  },
 };
 
 export type BookInput = {
