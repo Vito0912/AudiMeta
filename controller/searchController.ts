@@ -40,7 +40,12 @@ app.get('/search', async (req, res) => {
   let regions: string[] = req.query.region ? req.query.region.toString().split(',') : ['us'];
   regions = regions.filter((region, index) => regions.indexOf(region) === index).map(region => region.toLowerCase());
 
-  if ((title == null || title.length === 0) && (author == null || author.length === 0) && (narrator == null || narrator.length === 0) && (keywords == null || keywords.length === 0)) {
+  if (
+    (title == null || title.length === 0) &&
+    (author == null || author.length === 0) &&
+    (narrator == null || narrator.length === 0) &&
+    (keywords == null || keywords.length === 0)
+  ) {
     const inputs = {
       localTitle,
       localAuthor,
@@ -110,7 +115,7 @@ app.get('/search', async (req, res) => {
         reqParams['narrator'] = narrator;
       }
       if (keywords) {
-        reqParams['keywords'] = keywords
+        reqParams['keywords'] = keywords;
       }
       if (page) {
         reqParams['page'] = page.toString();

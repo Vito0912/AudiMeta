@@ -1,4 +1,4 @@
-import { Book } from '@prisma/client';
+import { Book, Prisma } from '@prisma/client';
 import { logger, prisma } from '../app';
 import { BookModel, mapBook } from '../models/type_model';
 
@@ -128,8 +128,9 @@ export class BookInputFactory {
 /**
  * Inserts a book into the database.
  * @param data
+ * @param retries
  */
-export async function insertBook(data: BookInput) {
+export async function insertBook(data: BookInput, retries = 0): Promise<void> {
   if (!data.asin) {
     logger.warn('Cannot insert book without an ASIN.');
     return;
@@ -174,12 +175,12 @@ export async function insertBook(data: BookInput) {
 
   const authorsCreatePayload = uniqueAuthors.length
     ? uniqueAuthors.map(author => {
-        const authorAsin = author.asin || author.name;
+        const authorKey = author.asin || author.name;
         return {
           author: {
             connectOrCreate: {
-              where: { asin_region: { asin: authorAsin, region: data.authorRegion } },
-              create: { asin: authorAsin, region: data.authorRegion, name: author.name, description: author.description },
+              where: { asin_region: { asin: authorKey, region: data.authorRegion } },
+              create: { asin: authorKey, region: data.authorRegion, name: author.name, description: author.description },
             },
           },
         };
@@ -208,24 +209,42 @@ export async function insertBook(data: BookInput) {
       }))
     : undefined;
 
-  await prisma.book.upsert({
-    where: { asin: data.asin },
-    create: {
-      asin: data.asin,
-      ...commonBookData,
-      series: seriesCreatePayload ? { create: seriesCreatePayload } : undefined,
-      authors: authorsCreatePayload ? { create: authorsCreatePayload } : undefined,
-      narrators: narratorsCreatePayload ? { create: narratorsCreatePayload } : undefined,
-      genres: genresCreatePayload ? { create: genresCreatePayload } : undefined,
-    },
-    update: {
-      ...commonBookData,
-      series: seriesCreatePayload ? { deleteMany: {}, create: seriesCreatePayload } : { deleteMany: {} },
-      authors: authorsCreatePayload ? { deleteMany: {}, create: authorsCreatePayload } : { deleteMany: {} },
-      narrators: narratorsCreatePayload ? { deleteMany: {}, create: narratorsCreatePayload } : { deleteMany: {} },
-      genres: genresCreatePayload ? { deleteMany: {}, create: genresCreatePayload } : { deleteMany: {} },
-    },
-  });
+  try {
+    await prisma.book.upsert({
+      where: { asin: data.asin },
+      create: {
+        asin: data.asin,
+        ...commonBookData,
+        series: seriesCreatePayload ? { create: seriesCreatePayload } : undefined,
+        authors: authorsCreatePayload ? { create: authorsCreatePayload } : undefined,
+        narrators: narratorsCreatePayload ? { create: narratorsCreatePayload } : undefined,
+        genres: genresCreatePayload ? { create: genresCreatePayload } : undefined,
+      },
+      update: {
+        ...commonBookData,
+        series: seriesCreatePayload ? { deleteMany: {}, create: seriesCreatePayload } : { deleteMany: {} },
+        authors: authorsCreatePayload ? { deleteMany: {}, create: authorsCreatePayload } : { deleteMany: {} },
+        narrators: narratorsCreatePayload ? { deleteMany: {}, create: narratorsCreatePayload } : { deleteMany: {} },
+        genres: genresCreatePayload ? { deleteMany: {}, create: genresCreatePayload } : { deleteMany: {} },
+      },
+    });
+    if (retries > 0) {
+      logger.info(`Successfully upserted book ${data.asin} after ${retries} retries.`);
+    }
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      logger.warn(`Unique constraint failed for book ${data.asin}. Potential race condition. Retries left: ${5 - retries}`);
+      if (retries < 5) {
+        return insertBook(data, retries + 1);
+      } else {
+        logger.error(`Failed to upsert book ${data.asin} after 3 retries due to persistent P2002 error.`);
+        throw error;
+      }
+    } else {
+      logger.error(`Failed to upsert book ${data.asin}:`, error);
+      throw error;
+    }
+  }
 }
 
 /**
