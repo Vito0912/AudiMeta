@@ -7,6 +7,7 @@ import { getBooks } from './bookDB';
 import { generateSearchKey, getSearchCacheResult, insertSearchCacheResult } from './searchCache';
 import { checkAsin } from './validationMiddleware';
 import { generateRandomCookie, generateScrapingHeaders } from './audible_scraping';
+import { bookInclude } from './book';
 
 export async function getBooksInSeries(seriesAsin: string, limit?: number, page?: number): Promise<BookModel[]> {
   logger.info('Getting books in series ' + seriesAsin);
@@ -20,20 +21,7 @@ export async function getBooksInSeries(seriesAsin: string, limit?: number, page?
         },
       },
     },
-    include: {
-      series: {
-        include: {
-          series: true,
-        },
-      },
-      authors: {
-        include: {
-          author: true,
-        },
-      },
-      narrators: true,
-      genres: true,
-    },
+    include: bookInclude,
     ...(limit ? { take: limit } : {}),
     ...(page ? { skip: page * limit } : {}),
   });

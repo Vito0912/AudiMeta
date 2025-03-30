@@ -111,15 +111,15 @@ export function mapBook(book: any): BookModel {
       : null,
     narrators: book.narrators
       ? book.narrators.map(narrator => ({
-          name: narrator.narrator.name,
-          id: narrator.narrator.id,
+          name: narrator.name || (narrator.narrator && narrator.narrator.name),
+          id: narrator.id || (narrator.narrator && narrator.narrator.id),
         }))
       : null,
     genres: book.genres
       ? book.genres.map(genre => ({
-          asin: genre.genre.asin,
-          name: genre.genre.name,
-          type: genre.genre.type,
+          asin: genre.asin || genre.genre.asin,
+          name: genre.name || genre.genre.name,
+          type: genre.type || genre.genre.type,
         }))
       : null,
   };

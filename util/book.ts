@@ -2,7 +2,7 @@ import { Book } from '@prisma/client';
 import { logger, prisma } from '../app';
 import { BookModel, mapBook } from '../models/type_model';
 
-const bookInclude = {
+export const bookInclude = {
   series: {
     include: {
       series: true,
@@ -16,12 +16,12 @@ const bookInclude = {
   narrators: {
     include: {
       narrator: true,
-    }
+    },
   },
   genres: {
     include: {
       genre: true,
-    }
+    },
   },
 };
 
