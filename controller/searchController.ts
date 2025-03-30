@@ -87,7 +87,7 @@ app.get('/search', async (req, res) => {
       return;
     }
 
-    const key = generateSearchKey('search', title, author, region, String(limit), String(page));
+    const key = generateSearchKey('search', title, author, region, narrator, keywords, String(limit), String(page));
 
     let asins: string[] = [];
 
