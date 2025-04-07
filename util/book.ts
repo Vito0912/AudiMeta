@@ -109,7 +109,7 @@ export class BookInputFactory {
       bookFormat: product.format_type,
       lengthMin: product.runtime_length_min,
       image: product.product_images ? product.product_images['500'] : undefined,
-      explicit: false, // not provided explicitly in data
+      explicit: product.is_adult_product ?? false,
       isbn: product.isbn,
       language: product.language,
       publisherName: product.publisher_name,
