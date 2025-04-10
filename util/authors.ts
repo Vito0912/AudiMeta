@@ -75,13 +75,15 @@ export async function getAuthorDetails(asin: string, region: string): Promise<Au
         imageLink = imageSrc.replace('SX120_CR0,0,120,120', 'SX512_CR0,0,512,512');
       }
 
+      console.log('Author:', name, 'ASIN:', asin, 'Region:', region, imageLink);
+
       return {
         asin: asin,
         name: name,
         region: region,
         genres: genres,
-        image: imageLink,
-        description: seriesInfoHtml.length > 0 ? seriesInfoHtml.trim() : undefined,
+        image: imageLink ?? 'N/A',
+        description: seriesInfoHtml.length > 0 ? seriesInfoHtml.trim() : 'N/A',
       };
     } else if (response.status >= 500) {
       throw new Error('Failed to fetch series data');

@@ -22,16 +22,16 @@ app.get('/author/:asin', async (req, res) => {
   if (authors && authors.length > 0) {
     for (let author of authors) {
       if (author.region.toLowerCase() === region) {
-        if (author.description === undefined || author.description === null) {
+        if (author.description === undefined || author.description === null || author.image === undefined || author.image === null) {
           const authorModel = await getAuthorDetails(asin, region);
           author = await upsertAuthor(authorModel);
         }
 
-        res.send(author);
+        res.send(mapAuthors(author, true));
         return;
       }
     }
-    res.send(authors[0]);
+    res.send(mapAuthors(authors[0], true));
     return;
   }
 
@@ -150,7 +150,7 @@ app.get('/author', async (req, res) => {
   if (results && results.length > 0) {
     const authors = await getAuthors(results, region);
     if (authors && authors.length > 0) {
-      res.send(authors);
+      res.send(authors.map(author => mapAuthors(author, true)));
       return;
     }
   }
@@ -159,7 +159,7 @@ app.get('/author', async (req, res) => {
   let bookAuthors = await searchAudibleAuthorViaBook(name, region);
   if (bookAuthors && bookAuthors.length > 0) {
     await insertSearchCacheResult(key, bookAuthors.map(author => author.asin));
-    res.send(bookAuthors);
+    res.send(bookAuthors.map(author => mapAuthors(author, true)));
     return;
   }
 
@@ -190,7 +190,7 @@ app.get('/author', async (req, res) => {
     await upsertAuthor(editedAuthor);
 
     await insertSearchCacheResult(key, [editedAuthor.asin]);
-    res.send([editedAuthor]);
+    res.send([mapAuthors(editedAuthor, true)]);
     return;
   }
 
@@ -216,5 +216,5 @@ app.get('/author', async (req, res) => {
   }
 
   await insertSearchCacheResult(key, [author.asin]);
-  res.send([mapAuthors(author)]);
+  res.send([mapAuthors(author, true)]);
 });

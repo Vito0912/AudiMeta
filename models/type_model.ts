@@ -140,13 +140,13 @@ export function mapChapter(chapter: any): ChapterModel {
   };
 }
 
-export function mapAuthors(author: any): AuthorModel {
+export function mapAuthors(author: any, hideNA?: boolean): AuthorModel {
   return {
     asin: author.asin,
     region: author.region,
     name: author.name,
-    description: author.description,
-    image: author.image,
+    description: (hideNA && author.description == 'N/A') ? null : author.description,
+    image: (hideNA && author.image == 'N/A') ? null : author.image,
     genres: author.genres
       ? author.genres.map(genre => ({
           asin: genre.genre.asin,

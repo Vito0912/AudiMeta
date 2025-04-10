@@ -1553,6 +1553,7 @@
       "get": {
         "tags": ["author"],
         "summary": "Search for authors",
+        "description": "Note: This endpoint does not only return authors; it may also include authors related to the name you searched for. Index 0 is the closest match to your search, meaning this author is the most relevant. For lesser-known authors, it could be a completely different author.",
         "parameters": [
           {
             "name": "region",
@@ -1607,7 +1608,10 @@
                       },
                       "description": {
                         "type": "string",
-                        "description": "The description of the author"
+                        "description": "The description of the author. Will be N/A when null",
+                        "default": "N/A",
+                        "example": "N/A",
+                        "required": true
                       },
                       "image": {
                         "type": "string",
