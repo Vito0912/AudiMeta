@@ -75,13 +75,15 @@ export async function getAuthorDetails(asin: string, region: string): Promise<Au
         imageLink = imageSrc.replace('SX120_CR0,0,120,120', 'SX512_CR0,0,512,512');
       }
 
+      console.log('Author:', name, 'ASIN:', asin, 'Region:', region, imageLink);
+
       return {
         asin: asin,
         name: name,
         region: region,
         genres: genres,
-        image: imageLink,
-        description: seriesInfoHtml.length > 0 ? seriesInfoHtml.trim() : undefined,
+        image: imageLink ?? 'N/A',
+        description: seriesInfoHtml.length > 0 ? seriesInfoHtml.trim() : 'N/A',
       };
     } else if (response.status >= 500) {
       throw new Error('Failed to fetch series data');
@@ -159,10 +161,10 @@ export async function upsertAuthor(author: AuthorModel): Promise<AuthorModel | u
   return undefined;
 }
 
-export async function getAuthors(asin: string, region?: string): Promise<AuthorModel[]> {
+export async function getAuthors(asins: string[] | string, region?: string): Promise<AuthorModel[]> {
   const authors = await prisma.author.findMany({
     where: {
-      asin: asin,
+      asin: Array.isArray(asins) ? { in: asins } : asins,
       ...(region ? { region: region.toUpperCase() } : {}),
     },
     include: {
@@ -173,7 +175,7 @@ export async function getAuthors(asin: string, region?: string): Promise<AuthorM
       },
     },
   });
-  return authors.map(author => mapAuthors(author));
+  return authors.map(author => mapAuthors(author)).filter(author => author !== null) as AuthorModel[];
 }
 
 /**
@@ -222,9 +224,9 @@ export async function searchAudibleAuthor(query: string, region: string) {
 /**
  *
  */
-export async function searchAudibleAuthorViaBook(query: string, region: string): Promise<AuthorModel> {
+export async function searchAudibleAuthorViaBook(query: string, region: string): Promise<AuthorModel[]> {
   const reqParams = {
-    num_results: '5',
+    num_results: '20',
     products_sort_by: 'Relevance',
     author: query,
   };
@@ -256,28 +258,39 @@ export async function searchAudibleAuthorViaBook(query: string, region: string):
       {} as Record<string, number>
     );
 
-    const authorAsin = Object.entries(authorAsinCounts).sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0]?.[0] || null;
+    const authorAsinWeight: [string, number][] = Object.entries(authorAsinCounts).sort((a: [string, number], b: [string, number]) => b[1] - a[1]) || null;
+    const authorAsins: string[] = authorAsinWeight.map((author: [string, number]) => author[0]).filter((asin: string) => /^[A-Z0-9]{10}$/.test(asin)).slice(0, 5);
 
-    if (authorAsin) {
-      let authors: AuthorModel[] = await getAuthors(authorAsin);
+    let authors: AuthorModel[] = await getAuthors(authorAsins);
 
-      if (authors && authors.length > 0) {
-        for (let author of authors) {
-          if (author.region.toLowerCase() === region) {
-            if (author.description === undefined || author.description === null) {
-              const authorModel = await getAuthorDetails(authorAsin, region);
-              author = await upsertAuthor(authorModel);
-            }
-
-            return author;
+    let found: boolean = false
+    for (const author of authors) {
+      const index = authors.indexOf(author);
+      if (author.region.toLowerCase() === region) {
+        found = true;
+        if (author.description === undefined || author.description === null) {
+          const authorModel = await getAuthorDetails(author.asin, region);
+          if (authorModel) {
+            await upsertAuthor(authorModel);
+            authors[index] = authorModel
           }
+          break;
         }
-        return authors[0];
       }
-
-      const authorModel = await getAuthorDetails(authorAsin, region);
-      return await upsertAuthor(authorModel);
     }
+
+    if (!found && authors.length > 0) {
+      authors[0] = await getAuthorDetails(authors[0].asin, region) ?? authors[0];
+    }
+
+    authors.sort((a, b) => {
+      const indexA = authorAsins.indexOf(a.asin);
+      const indexB = authorAsins.indexOf(b.asin);
+      return indexA - indexB;
+    });
+
+    return authors;
+
   }
 
   return undefined;
