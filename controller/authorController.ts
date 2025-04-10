@@ -148,7 +148,7 @@ app.get('/author', async (req, res) => {
 
   // Check if author is in cache
   if (results && results.length > 0) {
-    const authors = await getAuthors(results[0], region);
+    const authors = await getAuthors(results, region);
     if (authors && authors.length > 0) {
       res.send(authors);
       return;
@@ -156,17 +156,10 @@ app.get('/author', async (req, res) => {
   }
 
   // Works the best
-  let bookAuthor = await searchAudibleAuthorViaBook(name, region);
-  if (bookAuthor) {
-    await insertSearchCacheResult(key, [bookAuthor.asin]);
-    if (!bookAuthor.description || !bookAuthor.image) {
-      const detailedAuthor = await getAuthorDetails(bookAuthor.asin, region);
-      if (detailedAuthor) {
-        await upsertAuthor(detailedAuthor);
-        bookAuthor = detailedAuthor;
-      }
-    }
-    res.send(bookAuthor);
+  let bookAuthors = await searchAudibleAuthorViaBook(name, region);
+  if (bookAuthors && bookAuthors.length > 0) {
+    await insertSearchCacheResult(key, bookAuthors.map(author => author.asin));
+    res.send(bookAuthors);
     return;
   }
 
@@ -197,7 +190,7 @@ app.get('/author', async (req, res) => {
     await upsertAuthor(editedAuthor);
 
     await insertSearchCacheResult(key, [editedAuthor.asin]);
-    res.send(editedAuthor);
+    res.send([editedAuthor]);
     return;
   }
 
@@ -223,5 +216,5 @@ app.get('/author', async (req, res) => {
   }
 
   await insertSearchCacheResult(key, [author.asin]);
-  res.send(mapAuthors(author));
+  res.send([mapAuthors(author)]);
 });

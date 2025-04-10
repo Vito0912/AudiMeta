@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
 
-npx prisma db push --skip-generate --force-reset
+npx prisma db push --skip-generate
 
 exec "$@"
