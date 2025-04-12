@@ -78,6 +78,7 @@ if (process.env.DATASET_NAME && process.env.AXIOM_API_TOKEN) {
     format: winston.format.json(),
     defaultMeta: { service: 'user-service' },
     transports: [
+      // @ts-ignore
       new AxiomTransport({
         dataset: datasetName,
         token: axiomsAPIToken,
@@ -91,6 +92,10 @@ if (process.env.DATASET_NAME && process.env.AXIOM_API_TOKEN) {
     res.on('finish', () => {
       const duration = Date.now() - start;
       const ipAddress = req.headers['cf-connecting-ip'] || req.ip;
+
+      if (ipAddress && typeof ipAddress === 'string' && ipAddress.includes('10.0.0')) {
+        return;
+      } 
 
       const filteredQueryParams = {};
       Object.keys(req.query).forEach((key) => {
