@@ -5,6 +5,7 @@ import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./models/openAPI.json');
+import { WinstonTransport as AxiomTransport } from '@axiomhq/winston';
 import winston = require('winston');
 
 export const prisma = new PrismaClient();
@@ -65,6 +66,55 @@ logger.add(
 app.get('/ping', (req, res) => {
   res.send({ reachable: true });
 });
+
+if (process.env.DATASET_NAME && process.env.AXIOM_API_TOKEN) {
+  const datasetName = process.env.DATASET_NAME;
+  const axiomsAPIToken = process.env.AXIOM_API_TOKEN;
+
+  const allowedQueryParams = ['region', 'limit', 'page', 'title', 'subtitle', 'author', 'narrator', 'keywords', 'localTitle', 'localAuthor', 'localNarrator', 'localGenre', 'localSeries', 'localSeriesPosition', 'localIsbn', 'update', 'asin', 'asins', 'cache'];
+
+  const requestLogger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    defaultMeta: { service: 'user-service' },
+    transports: [
+      new AxiomTransport({
+        dataset: datasetName,
+        token: axiomsAPIToken,
+      }),
+    ],
+  });
+
+  app.use((req, res, next) => {
+    const start = Date.now();
+
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      const ipAddress = req.headers['cf-connecting-ip'] || req.ip;
+
+      const filteredQueryParams = {};
+      Object.keys(req.query).forEach((key) => {
+        if (allowedQueryParams.includes(key)) {
+          filteredQueryParams[key] = req.query[key];
+        }
+      });
+
+      void requestLogger.info({
+        ip_address: ipAddress,
+        query_parameters: filteredQueryParams,
+        url: req.path,
+        method: req.method,
+        time_taken: duration,
+        response_status: res.statusCode,
+        user_agent: req.get('User-Agent')
+      });
+    });
+
+    next();
+  });
+}
+
+
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

@@ -1,6 +1,6 @@
-# Privacy Policy for AudiMeta API
+# Privacy Policy for AudiMeta API and Imprint
 
-**Last Updated:** 31.03.2025
+**Last Updated:** 12.04.2025
 
 This Privacy Policy describes how AudiMeta ("we," "us," or "our") collects, uses, and shares information when you use our Application Programming Interface (AudiMeta API) hosted at https://audimeta.de.
 
@@ -64,6 +64,11 @@ We do not sell or rent your personal information. We may share information under
 
 Our API is routed through Cloudflare's network. Cloudflare provides security services, including DDoS protection and a Web Application Firewall, as well as performance optimization like CDN services. As part of this, Cloudflare processes traffic data, including your IP address and request details, subject to their own Privacy Policy. This processing is essential for the security and performance of our API.
 
+**8. Use of Axiom**
+
+We use Axiom to store and analyze our logs. Axiom is a third-party service that helps us manage and analyze our log data. Axiom's Privacy Policy can be found here: [https://axiom.co/privacy](https://axiom.co/privacy). As part of this, Axiom.co get's send logs that includes your IP address and other request details you make.
+Data is automatically deleted after 30 days. Axiom is used to analyze our logs and improve our service.
+
 **9. Your Rights**
 
 Depending on your location (e.g., within the EU/EEA), you may have certain data protection rights:
@@ -88,3 +93,5 @@ If you have any questions about this Privacy Policy, please contact us:
 AudiMeta
 fito0912@duck.com
 https://audimeta.de
+
+To view the Imprint, please visit https://dittmar-ldk.de
