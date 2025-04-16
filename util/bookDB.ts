@@ -17,6 +17,7 @@ export async function getBook(asin: string, region: string, req: any, cache: str
   const reqParams = {
     response_groups:
       'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
+    image_sizes: '500,1024,2400',
   };
 
   const url = `https://api.audible${regionMap[region]}/1.0/catalog/products/`;
@@ -72,6 +73,7 @@ export async function getBooks(asins: string[], region: string, limit?: number, 
     response_groups:
       'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
     asins: notFoundAsins.join(','),
+    image_sizes: '500,1024,2400',
   };
 
   const url = `https://api.audible${regionMap[region.toLowerCase()]}/1.0/catalog/products`;

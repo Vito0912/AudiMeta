@@ -99,6 +99,17 @@ export class BookInputFactory {
       });
     }
 
+    let image: string = undefined;
+
+    if (product.product_images) {
+      const imageSizes = Object.keys(product.product_images);
+      const biggestImageSize = Math.max(...imageSizes.map(size => parseInt(size)));
+
+      image = product.product_images[biggestImageSize];
+
+      image = image.replace(/\._.*_/g, '');
+    }
+
     return {
       asin: product.asin,
       title: product.title,
@@ -108,7 +119,7 @@ export class BookInputFactory {
       summary: product.publisher_summary,
       bookFormat: product.format_type,
       lengthMin: product.runtime_length_min,
-      image: product.product_images ? product.product_images['500'] : undefined,
+      image: image ? image : undefined,
       explicit: product.is_adult_product ?? false,
       isbn: product.isbn,
       language: product.language,
