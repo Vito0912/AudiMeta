@@ -1,0 +1,70 @@
+import vine from '@vinejs/vine'
+import { regionMap } from '#config/app'
+
+export const pageValidation = vine
+  .number()
+  .positive()
+  .withoutDecimals()
+  .min(1)
+  .max(10)
+  .optional()
+  .transform((val) => val || 1)
+
+export const limitValidation = vine
+  .number()
+  .positive()
+  .withoutDecimals()
+  .min(1)
+  .max(50)
+  .optional()
+  .transform((val) => val || 10)
+
+export const regionValidation = vine
+  .enum([
+    'us',
+    'ca',
+    'uk',
+    'au',
+    'fr',
+    'de',
+    'jp',
+    'it',
+    'in',
+    'es',
+    'br',
+    'US',
+    'CA',
+    'UK',
+    'AU',
+    'FR',
+    'DE',
+    'JP',
+    'IT',
+    'IN',
+    'ES',
+    'BR',
+  ])
+  .optional()
+  // @ts-ignore
+  .transform((val): keyof typeof regionMap => (val && val.length > 0 ? val.toLowerCase() : 'us'))
+
+export const asinValidation = vine.string().regex(/^[A-Z0-9]{10}|[0-9]{10,12}$/)
+
+export const cacheValidation = vine
+  .boolean()
+  .optional()
+  .transform((val) => (val !== undefined ? val : true))
+
+export const commonValidator = vine.object({
+  page: pageValidation,
+  limit: limitValidation,
+  region: regionValidation,
+})
+
+export const getBooksValidator = vine.compile(
+  vine.object({
+    region: regionValidation,
+    asins: vine.array(asinValidation),
+    cache: cacheValidation,
+  })
+)

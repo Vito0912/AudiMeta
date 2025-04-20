@@ -9,8 +9,13 @@
 
 import router from '@adonisjs/core/services/router'
 
+const SearchesController = () => import('#controllers/searches_controller')
+const BooksController = () => import('#controllers/books_controller')
+
 router.get('/', async () => {
   return {
     hello: 'world',
   }
 })
+
+router.get('/book', [BooksController, 'index'])

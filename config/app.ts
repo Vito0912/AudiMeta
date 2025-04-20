@@ -38,3 +38,25 @@ export const http = defineConfig({
     sameSite: 'lax',
   },
 })
+
+export const regionMap = {
+  us: '.com',
+  ca: '.ca',
+  uk: '.co.uk',
+  au: '.com.au',
+  fr: '.fr',
+  de: '.de',
+  jp: '.co.jp',
+  it: '.it',
+  in: '.in',
+  es: '.es',
+  br: '.com.br',
+}
+
+export const audibleHeaders = {
+  'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 15); com.audible.application',
+  'Content-Type': 'application/json',
+  'Accept-Encoding': 'gzip',
+  'Accept-Charset': 'utf-8',
+  'Accept': 'application/json',
+}
