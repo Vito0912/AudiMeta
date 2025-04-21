@@ -119,3 +119,18 @@ export const paginationValidator = vine.compile(
     cache: cacheValidation,
   })
 )
+
+export const authorBookValidator = vine.compile(
+  vine.object({
+    asin: asinValidation,
+    region: regionValidation,
+    cache: cacheValidation,
+  })
+)
+
+export const searchAuthorValidator = vine.compile(
+  vine.object({
+    region: regionValidation,
+    name: vine.string().minLength(3),
+  })
+)

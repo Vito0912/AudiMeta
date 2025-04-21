@@ -24,6 +24,8 @@ router.get('/book/:asin', [BooksController, 'index'])
 
 router.get('/search', [SearchesController, 'index'])
 
+router.get('/author', [AuthorsController, 'search'])
+
 router.get('/author/:asin', [AuthorsController, 'index'])
 
 router.get('/author/:asin/books', [AuthorsController, 'books'])

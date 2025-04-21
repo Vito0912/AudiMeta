@@ -1,5 +1,5 @@
 import { Infer } from '@vinejs/vine/types'
-import { getAuthorsValidator, paginationValidator } from '#validators/common'
+import { authorBookValidator, getAuthorsValidator, searchAuthorValidator } from '#validators/common'
 import Author from '#models/author'
 import axios from 'axios'
 import { audibleHeaders, getAudibleExtraHeaders, regionMap } from '#config/app'
@@ -109,13 +109,14 @@ export class AuthorHelper {
     const sections = json.sections
     for (const section of sections) {
       if (section?.model?.person_image_url) {
-        author.image = section.model.person_image_url
+        author.image = section.model.person_image_url.replace(/\._.*_/, '')
       }
       for (const item of section.model.items || []) {
         if (item.view.template === 'ExpandableText' && item.model.expandable_content) {
           author.description = item.model.expandable_content.value
         }
       }
+      author.noDescription = true
     }
     if (json.page_details?.model?.title) {
       author.name = json.page_details.model.title
@@ -123,14 +124,13 @@ export class AuthorHelper {
     if (!author.region) {
       author.region = payload.region
     }
-    author.noDescription = true
     author.asin = payload.asin
 
     return await author.save()
   }
 
   static async getBooksByAuthor(
-    payload: Infer<typeof paginationValidator>
+    payload: Infer<typeof authorBookValidator>
   ): Promise<Book[] | null> {
     let author = await Author.query().where('asin', payload.asin).first()
 
@@ -186,5 +186,64 @@ export class AuthorHelper {
     }
 
     return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
+  }
+
+  static async search(payload: Infer<typeof searchAuthorValidator>) {
+    const ctx = HttpContext.get()
+
+    const startTime = DateTime.now()
+
+    const response = await axios.get(
+      `https://api.audible${regionMap[payload.region]}/1.0/searchsuggestions`,
+      {
+        headers: { ...getAudibleExtraHeaders(), ...audibleHeaders },
+        params: {
+          keywords: payload.name,
+          key_strokes: payload.name,
+          site_variant: 'android-mshop',
+          session_id: AudibleHelper.generateRandomSessionId(),
+          local_time: new Date().toISOString(),
+          surface: 'Android',
+        },
+      }
+    )
+
+    if (ctx)
+      void ctx.logger.info({
+        message: `Requested Audible Author Search`,
+        search_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
+
+    const asins: string[] = []
+
+    if (response.status === 200) {
+      const json = response.data
+
+      if (json) {
+        const items = json.model.items
+        for (const item of items) {
+          if (item.view?.template && item.view?.template === 'AuthorItemV2') {
+            if (item.model?.person_metadata?.asin) {
+              asins.push(item.model.person_metadata.asin)
+            }
+          }
+        }
+      }
+
+      if (asins.length === 0) {
+        return []
+      }
+
+      return await Promise.all(
+        asins.map(async (asin) => {
+          const author = await AuthorHelper.get({
+            asin: asin,
+            region: payload.region,
+            cache: true,
+          })
+          return author || null
+        })
+      ).then((results) => results.filter((author) => author !== null))
+    }
   }
 }
