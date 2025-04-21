@@ -19,3 +19,6 @@ router.get('/', async () => {
 })
 
 router.get('/book', [BooksController, 'index'])
+router.get('/book/:asin', [BooksController, 'index'])
+
+router.get('/search', [SearchesController, 'index'])

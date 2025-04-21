@@ -9,6 +9,7 @@ import Series from '#models/series'
 import Narrator from '#models/narrator'
 import Author from '#models/author'
 import { ModelObject } from '@adonisjs/lucid/types/model'
+import { HttpContext } from '@adonisjs/core/http'
 
 export class BookHelper {
   public async getOrFetchBooks(
@@ -16,33 +17,38 @@ export class BookHelper {
     region: Infer<typeof regionValidation>,
     cache: boolean
   ) {
+    const startTime = DateTime.now()
+    const ctx = HttpContext.get()
+
     const books: Book[] = await Book.query()
       .whereIn('asin', asins)
-      .orderByRaw(
-        `
-        CASE asin
-          ${asins.map((a, index) => `WHEN '${a}' THEN ${index + 1}`).join('\n      ')}
-          ELSE ${asins.length + 1}
-        END
-        `
-      )
       .preload('narrators')
       .preload('genres')
       .preload('series', (q) => q.pivotColumns(['position']))
       .preload('authors')
+
+    if (ctx)
+      void ctx.logger.info({
+        message: `Fetched ${books.length} books from the database`,
+        db_num: asins.length,
+        db_got: books.length,
+        db_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
 
     const missingAsins = asins.filter((asin) => !books.some((book) => book.asin === asin))
 
     const fetchedBooks: Book[] = await this.getBooksFromAudible(
       missingAsins,
       region,
-      cache ? books : []
+      cache ? [] : books
     )
 
-    if (cache) {
-      return fetchedBooks
+    if (!cache) {
+      return fetchedBooks.sort((a, b) => asins.indexOf(a.asin) - asins.indexOf(b.asin))
     } else {
-      return [...books, ...fetchedBooks]
+      return [...books, ...fetchedBooks].sort(
+        (a, b) => asins.indexOf(a.asin) - asins.indexOf(b.asin)
+      )
     }
   }
 
@@ -53,24 +59,39 @@ export class BookHelper {
   ): Promise<Book[]> {
     if ((!asins || asins.length === 0) && updateBooks.length === 0) return []
 
+    const ctx = HttpContext.get()
+
     asins = [...asins, ...updateBooks.map((book) => book.asin)]
+
+    const startTime = DateTime.now()
 
     const reqParams = {
       response_groups:
         'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
-      asins: asins.join(','),
+      ...(asins.length > 1 ? { asins: asins.join(',') } : {}),
+      image_sizes: '500,1000,2400,3200',
     }
 
-    const url = `https://api.audible${regionMap[region]}/1.0/catalog/products/`
+    const url =
+      `https://api.audible${regionMap[region]}/1.0/catalog/products/` +
+      (asins.length === 1 ? String(asins[0]) : '')
 
     const response = await axios.get(url, {
       headers: audibleHeaders,
       params: reqParams,
     })
 
+    if (ctx)
+      void ctx.logger.info({
+        message: `Requested ${asins.length} books from Audible`,
+        requested_num: asins.length,
+        requested_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
+
     if (response.status === 200 && response.data !== undefined) {
       const json: any = response.data
-      const products: any = json.products
+      const products: any = json.products ?? [json.product]
+
       const books: Book[] = []
       const genres: Genre[] = []
       const authors: Author[] = []
@@ -143,6 +164,23 @@ export class BookHelper {
         }
       }
 
+      const [authorsWithAsin, authorsWithoutAsin] = authors.reduce(
+        (acc, author) => {
+          const key = `${author.asin ?? 'null'}-${author.name}-${author.region}`
+          if (author.asin) {
+            if (!acc[0].some((a) => `${a.asin}-${a.name}-${a.region}` === key)) {
+              acc[0].push(author)
+            }
+          } else {
+            if (!acc[1].some((a) => `${a.asin}-${a.name}-${a.region}` === key)) {
+              acc[1].push(author)
+            }
+          }
+          return acc
+        },
+        [[], []] as [Author[], Author[]]
+      )
+
       const results = await Promise.all([
         Genre.updateOrCreateMany(
           'asin',
@@ -154,7 +192,14 @@ export class BookHelper {
         Author.updateOrCreateMany(
           ['asin', 'name', 'region'],
           Array.from(
-            new Map(authors.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])).values()
+            new Map(authorsWithAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])).values()
+          ).map((a) => a.serialize()),
+          { allowExtraProperties: true }
+        ),
+        Author.updateOrCreateMany(
+          ['name', 'region'],
+          Array.from(
+            new Map(authorsWithoutAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])).values()
           ).map((a) => a.serialize()),
           { allowExtraProperties: true }
         ),
@@ -170,7 +215,7 @@ export class BookHelper {
         ),
       ])
 
-      const createdAuthors = results[1]
+      const createdAuthors = [...results[1], ...results[2]]
 
       for (const [asin, authorsRecord] of authorMap.entries()) {
         const authorIds: Record<string, ModelObject> = {}
@@ -222,8 +267,10 @@ export class BookHelper {
             .map(Number)
             .reduce((max, current) => Math.max(max, current), -Infinity)
 
-          book.image = imageMap[highestNumericKey.toString()]
+          book.image = imageMap[highestNumericKey.toString()]?.replace(/\._\w+_/g, '') ?? null
         }
+
+        const asin = product.asin
 
         promises.push(
           book.save().then(async () => {
@@ -235,6 +282,58 @@ export class BookHelper {
             ])
           })
         )
+
+        if (genreMap.has(asin)) {
+          const genreAsins = [...new Set(Object.keys(genreMap.get(asin)!))]
+          const bookGenres = genreAsins
+            .map((key) => genres.find((g) => String(g.asin) === key))
+            .filter(Boolean)
+            .filter((n) => n !== undefined)
+          book.$setRelated('genres', bookGenres)
+        }
+
+        if (authorMap.has(asin)) {
+          const authorIds = [...new Set(Object.keys(authorMap.get(asin)!))] as unknown as number[]
+          const bookAuthors = authorIds
+            .map((id) => createdAuthors.find((a) => String(a.id) === String(id)))
+            .filter(Boolean)
+            .filter((n) => n !== undefined)
+          book.$setRelated('authors', bookAuthors)
+        }
+
+        if (narratorMap.has(asin)) {
+          const narratorNames = [...new Set(Object.keys(narratorMap.get(asin)!))]
+          const bookNarrators = narratorNames
+            .map((name) => narrators.find((n) => n.name === name))
+            .filter(Boolean)
+            .filter((n) => n !== undefined)
+          book.$setRelated('narrators', bookNarrators)
+        }
+
+        if (seriesMap.has(asin)) {
+          const seriesObj = seriesMap.get(asin)!
+          const seriesAsins = [...new Set(Object.keys(seriesObj))]
+
+          const bookSeries = seriesAsins
+            .map((asinKey) => {
+              const original = series.find((s) => s.asin === asinKey)
+              if (!original) return null
+              const clone = Object.create(Object.getPrototypeOf(original))
+              Object.assign(clone, original)
+              clone.$extras = { ...(original.$extras || {}) }
+              return clone
+            })
+            .filter(Boolean)
+
+          for (const [i, seriesAsin] of seriesAsins.entries()) {
+            const position = seriesObj[seriesAsin].position ?? null
+            if (position !== null) {
+              bookSeries[i].$extras.pivot_position = position
+            }
+          }
+
+          book.$setRelated('series', bookSeries)
+        }
 
         books.push(book)
       }

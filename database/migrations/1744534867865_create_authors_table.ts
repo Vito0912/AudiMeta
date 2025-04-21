@@ -15,7 +15,7 @@ export default class extends BaseSchema {
       table.text('description')
       table.text('image')
 
-      table.unique(['asin', 'region'])
+      table.unique(['asin', 'region', 'name'])
       table.unique('id')
 
       table.index(['asin', 'region', 'name'])

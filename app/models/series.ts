@@ -23,7 +23,6 @@ export default class Series extends BaseModel {
   declare updatedAt: DateTime
 
   serializeExtras() {
-    console.log('extra', this.$extras)
     return {
       position: this.$extras.pivot_position,
     }

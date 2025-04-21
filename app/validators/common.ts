@@ -44,6 +44,15 @@ export const regionValidation = vine
     'ES',
     'BR',
   ])
+  .parse((v) => {
+    if (!v) {
+      return 'us'
+    }
+    if (typeof v !== 'string') {
+      return v
+    }
+    return v
+  })
   .optional()
   // @ts-ignore
   .transform((val): keyof typeof regionMap => (val && val.length > 0 ? val.toLowerCase() : 'us'))
@@ -52,6 +61,15 @@ export const asinValidation = vine.string().regex(/^[A-Z0-9]{10}|[0-9]{10,12}$/)
 
 export const cacheValidation = vine
   .boolean()
+  .parse((v) => {
+    if (v === undefined) {
+      return true
+    }
+    if (typeof v !== 'boolean') {
+      return v
+    }
+    return v
+  })
   .optional()
   .transform((val) => (val !== undefined ? val : true))
 
@@ -64,7 +82,14 @@ export const commonValidator = vine.object({
 export const getBooksValidator = vine.compile(
   vine.object({
     region: regionValidation,
-    asins: vine.array(asinValidation),
+    asins: vine
+      .array(asinValidation)
+      .compact()
+      .maxLength(50)
+      .distinct()
+      .optional()
+      .requiredIfMissing('asin'),
+    asin: asinValidation.optional().requiredIfMissing('asins'),
     cache: cacheValidation,
   })
 )
