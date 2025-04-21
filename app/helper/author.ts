@@ -1,5 +1,5 @@
 import { Infer } from '@vinejs/vine/types'
-import { getAuthorsValidator, pageValidator } from '#validators/common'
+import { getAuthorsValidator, paginationValidator } from '#validators/common'
 import Author from '#models/author'
 import axios from 'axios'
 import { audibleHeaders, getAudibleExtraHeaders, regionMap } from '#config/app'
@@ -8,6 +8,7 @@ import { HttpContext } from '@adonisjs/core/http'
 import NotFoundException from '#exceptions/not_found_exception'
 import { BookHelper } from './book.js'
 import Book from '#models/book'
+import { DateTime } from 'luxon'
 
 export class AuthorHelper {
   static async get(payload: Infer<typeof getAuthorsValidator>) {
@@ -43,7 +44,10 @@ export class AuthorHelper {
     return author
   }
 
-  private static async getAuthorPage(payload: Infer<typeof getAuthorsValidator>) {
+  private static async getAuthorPage(
+    payload: Infer<typeof getAuthorsValidator>,
+    token?: string | null
+  ) {
     // The region is not important for authors.
     // Only the language is actually important
     // Still, as it's simple to do, we keep the region here. Also for legacy reasons
@@ -62,6 +66,7 @@ export class AuthorHelper {
           response_groups: 'always-returned',
           surface: 'Android',
           language: 'de-DE',
+          pageSectionContinuationToken: token,
         },
       }
     )
@@ -124,7 +129,9 @@ export class AuthorHelper {
     return await author.save()
   }
 
-  static async getBooksByAuthor(payload: Infer<typeof pageValidator>): Promise<Book[] | null> {
+  static async getBooksByAuthor(
+    payload: Infer<typeof paginationValidator>
+  ): Promise<Book[] | null> {
     let author = await Author.query().where('asin', payload.asin).first()
 
     if (!author) {
@@ -135,52 +142,49 @@ export class AuthorHelper {
       throw new NotFoundException()
     }
 
-    const authorResponse = await AuthorHelper.getAuthorPage(payload)
-
     const asins: string[] = []
+    let paginationToken: string | null = null
+    let page: number = 0
+    let firstRun: boolean = true
 
-    if (authorResponse.data) {
-      for (const section of authorResponse.data.sections) {
-        if (section?.model?.rows) {
-          for (const item of section.model.rows) {
-            if (item.product_metadata && item.product_metadata.asin) {
-              asins.push(item.product_metadata.asin)
+    const startTime = DateTime.now()
+    const ctx = HttpContext.get()
+
+    while ((firstRun || paginationToken) && page <= 10) {
+      firstRun = false
+      const authorResponse = await AuthorHelper.getAuthorPage(payload, paginationToken)
+
+      if (authorResponse.data) {
+        let found = false
+        for (const section of authorResponse.data.sections) {
+          if (section?.model?.rows) {
+            found = true
+            for (const item of section.model.rows) {
+              if (item.product_metadata && item.product_metadata.asin) {
+                asins.push(item.product_metadata.asin)
+              }
             }
+          }
+          if (found) {
+            paginationToken = section.pagination
+            break
           }
         }
       }
+      page++
     }
+
+    if (ctx)
+      void ctx.logger.info({
+        message: `Requested Audible Author Books`,
+        author_book_num: asins.length,
+        author_book_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
 
     if (asins.length === 0) {
       throw new NotFoundException()
     }
-<
-    console.log(asins.length)
 
-    const response = await axios.get(
-      // @ts-ignore
-      `https://api.audible${regionMap[payload.region]}/1.0/catalog/products/` + asins[0] + '/sims',
-      {
-        headers: { ...getAudibleExtraHeaders(), ...audibleHeaders },
-        params: {
-          similarity_type: 'ByTheSameAuthor',
-          num_results: payload.limit ?? 10,
-          page: payload.page ?? 0,
-          response_groups:
-            'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
-        },
-      }
-    )
-
-    if (response.status === 200) {
-      const books = response.data.similar_products
-      if (books.length === 0) {
-        throw new NotFoundException()
-      }
-      const bookAsins = books.map((book: any) => book.asin)
-
-      return await new BookHelper().getOrFetchBooks(bookAsins, payload.region, payload.cache)
-    }
-    return null
+    return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
   }
 }

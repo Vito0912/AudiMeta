@@ -65,7 +65,6 @@ export function getAudibleExtraHeaders() {
   return {
     'ACCEPTED-LANGUAGE': 'en-US',
     'accept-language': 'en-US',
-    'Host': 'api.audible.de',
     'X-ADP-SW': Math.floor(Math.random() * 89999999) + 10000000,
     'X-Device-Type-Id': env.get('DEVICE_ID'),
     'User-Agent':

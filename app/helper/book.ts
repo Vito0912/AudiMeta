@@ -37,11 +37,18 @@ export class BookHelper {
 
     const missingAsins = asins.filter((asin) => !books.some((book) => book.asin === asin))
 
-    const fetchedBooks: Book[] = await this.getBooksFromAudible(
-      missingAsins,
-      region,
-      cache ? [] : books
+    const mergedAsins = Array.from(
+      new Set([...missingAsins, ...(cache ? [] : books.map((book) => book.asin))])
     )
+
+    const splitted50Chunks = []
+    for (let i = 0; i < mergedAsins.length; i += 50) {
+      splitted50Chunks.push(mergedAsins.slice(i, i + 50))
+    }
+
+    const fetchedBooks = await Promise.all(
+      splitted50Chunks.map((chunk) => this.getBooksFromAudible(chunk, region, cache ? [] : books))
+    ).then((results) => results.flat())
 
     if (!cache) {
       return fetchedBooks.sort((a, b) => asins.indexOf(a.asin) - asins.indexOf(b.asin))
