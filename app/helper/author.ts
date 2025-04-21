@@ -9,6 +9,7 @@ import NotFoundException from '#exceptions/not_found_exception'
 import { BookHelper } from './book.js'
 import Book from '#models/book'
 import { DateTime } from 'luxon'
+import retryOnUniqueViolation from './parallel_helper.js'
 
 export class AuthorHelper {
   static async get(payload: Infer<typeof getAuthorsValidator>) {
@@ -126,7 +127,18 @@ export class AuthorHelper {
     }
     author.asin = payload.asin
 
-    return await author.save()
+    return await retryOnUniqueViolation(async () => {
+      const serializedAuthor = author.serialize()
+      const { asin, region, name, ...rest } = serializedAuthor
+
+      return await Author.updateOrCreate(
+        { asin, region, name },
+        { ...rest },
+        {
+          allowExtraProperties: true,
+        }
+      )
+    })
   }
 
   static async getBooksByAuthor(

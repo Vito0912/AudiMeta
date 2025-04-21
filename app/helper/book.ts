@@ -10,6 +10,7 @@ import Narrator from '#models/narrator'
 import Author from '#models/author'
 import { ModelObject } from '@adonisjs/lucid/types/model'
 import { HttpContext } from '@adonisjs/core/http'
+import retryOnUniqueViolation from './parallel_helper.js'
 
 export class BookHelper {
   public async getOrFetchBooks(
@@ -188,39 +189,45 @@ export class BookHelper {
         [[], []] as [Author[], Author[]]
       )
 
-      const results = await Promise.all([
-        Genre.updateOrCreateMany(
-          'asin',
-          Array.from(new Map(genres.map((g) => [g.asin, g])).values()).map((g) => g.serialize()),
-          {
-            allowExtraProperties: true,
-          }
-        ),
-        Author.updateOrCreateMany(
-          ['asin', 'name', 'region'],
-          Array.from(
-            new Map(authorsWithAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])).values()
-          ).map((a) => a.serialize()),
-          { allowExtraProperties: true }
-        ),
-        Author.updateOrCreateMany(
-          ['name', 'region'],
-          Array.from(
-            new Map(authorsWithoutAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])).values()
-          ).map((a) => a.serialize()),
-          { allowExtraProperties: true }
-        ),
-        Narrator.updateOrCreateMany(
-          'name',
-          Array.from(new Map(narrators.map((n) => [n.name, n])).values()).map((n) => n.serialize()),
-          { allowExtraProperties: true }
-        ),
-        Series.updateOrCreateMany(
-          'asin',
-          Array.from(new Map(series.map((s) => [s.asin, s])).values()).map((s) => s.serialize()),
-          { allowExtraProperties: true }
-        ),
-      ])
+      const results = await retryOnUniqueViolation(async () => {
+        return await Promise.all([
+          Genre.updateOrCreateMany(
+            'asin',
+            Array.from(new Map(genres.map((g) => [g.asin, g])).values()).map((g) => g.serialize()),
+            {
+              allowExtraProperties: true,
+            }
+          ),
+          Author.updateOrCreateMany(
+            ['asin', 'name', 'region'],
+            Array.from(
+              new Map(authorsWithAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])).values()
+            ).map((a) => a.serialize()),
+            { allowExtraProperties: true }
+          ),
+          Author.updateOrCreateMany(
+            ['name', 'region'],
+            Array.from(
+              new Map(
+                authorsWithoutAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])
+              ).values()
+            ).map((a) => a.serialize()),
+            { allowExtraProperties: true }
+          ),
+          Narrator.updateOrCreateMany(
+            'name',
+            Array.from(new Map(narrators.map((n) => [n.name, n])).values()).map((n) =>
+              n.serialize()
+            ),
+            { allowExtraProperties: true }
+          ),
+          Series.updateOrCreateMany(
+            'asin',
+            Array.from(new Map(series.map((s) => [s.asin, s])).values()).map((s) => s.serialize()),
+            { allowExtraProperties: true }
+          ),
+        ])
+      })
 
       const createdAuthors = [...results[1], ...results[2]]
 
@@ -344,8 +351,9 @@ export class BookHelper {
 
         books.push(book)
       }
-
-      await Promise.all(promises)
+      await retryOnUniqueViolation(async () => {
+        return await Promise.all(promises)
+      })
 
       if (books.length > 0) {
         return books
