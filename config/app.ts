@@ -60,3 +60,15 @@ export const audibleHeaders = {
   'Accept-Charset': 'utf-8',
   'Accept': 'application/json',
 }
+
+export function getAudibleExtraHeaders() {
+  return {
+    'ACCEPTED-LANGUAGE': 'en-US',
+    'accept-language': 'en-US',
+    'Host': 'api.audible.de',
+    'X-ADP-SW': Math.floor(Math.random() * 89999999) + 10000000,
+    'X-Device-Type-Id': env.get('DEVICE_ID'),
+    'User-Agent':
+      'Dalvik/2.1.0 (Linux; U; Android 15; good_phone Build/AAAA.240000.005); com.audible.application',
+  }
+}

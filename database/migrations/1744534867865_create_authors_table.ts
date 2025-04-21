@@ -15,6 +15,8 @@ export default class extends BaseSchema {
       table.text('description')
       table.text('image')
 
+      table.boolean('no_description').defaultTo(false)
+
       table.unique(['asin', 'region', 'name'])
       table.unique('id')
 

@@ -18,6 +18,9 @@ export default class Author extends BaseModel {
   @column()
   declare name: string
 
+  @column()
+  declare noDescription: boolean
+
   @computed()
   get regions() {
     return [this.region]

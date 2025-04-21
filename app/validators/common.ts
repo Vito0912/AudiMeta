@@ -93,3 +93,29 @@ export const getBooksValidator = vine.compile(
     cache: cacheValidation,
   })
 )
+
+export const getAuthorsValidator = vine.compile(
+  vine.object({
+    region: regionValidation,
+    asin: asinValidation,
+    cache: cacheValidation,
+  })
+)
+
+export const getSeriesValidator = vine.compile(
+  vine.object({
+    region: regionValidation,
+    asin: asinValidation,
+    cache: cacheValidation,
+  })
+)
+
+export const paginationValidator = vine.compile(
+  vine.object({
+    asin: asinValidation,
+    page: pageValidation,
+    limit: limitValidation,
+    region: regionValidation,
+    cache: cacheValidation,
+  })
+)
