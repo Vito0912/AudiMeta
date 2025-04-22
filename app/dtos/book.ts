@@ -71,3 +71,57 @@ export default class BookDto extends BaseModelDto {
     this.updatedAt = book.updatedAt && book.updatedAt.toISO()!
   }
 }
+
+export class AbsBookDto extends BaseModelDto {
+  declare asin: string
+  declare title: string
+  declare subtitle: string | null
+  declare description: string | null
+  declare cover: string | null
+
+  declare publisher: string | null
+  declare publishedYear: string | null
+  declare isbn: string | null
+  declare language: string | null
+  declare duration: string | null
+
+  declare author: string | null
+  declare narrator: string | null
+
+  declare tags: string[] | null
+  declare genres: string[] | null
+
+  declare series: { series: string; sequence: string }[] | null
+
+  constructor(book?: Book) {
+    super()
+
+    if (!book) return
+
+    this.asin = book.asin
+    this.title = book.title
+    this.subtitle = book.subtitle
+
+    this.description = book.description
+
+    this.publisher = book.publisher
+    this.publishedYear = book.releaseDate?.toFormat('yyyy') ?? null
+    this.duration = book.lengthMinutes?.toString() ?? null
+    this.author = book.authors.map((author) => author.name).join(', ')
+    this.narrator = book.narrators.map((narrator) => narrator.name).join(', ')
+    this.tags = book.genres.filter((genre) => genre.type === 'Tags').map((genre) => genre.name)
+    this.genres = book.genres.filter((genre) => genre.type === 'Genres').map((genre) => genre.name)
+    this.isbn = book.isbn
+    this.language = book.language
+    this.cover = book.image
+
+    this.series =
+      book.series &&
+      book.series.map((series) => {
+        return {
+          series: series.title,
+          sequence: series.$extras.pivot_position,
+        }
+      })
+  }
+}

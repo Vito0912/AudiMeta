@@ -36,6 +36,16 @@ export default class BooksController {
   async chapters({ request }: HttpContext) {
     const payload = await getBasicValidator.validate({ ...request.qs(), ...request.params() })
 
-    return new BookHelper().getOrFetchChapters(payload.asin, payload.region, payload.cache)
+    const chapter = await new BookHelper().getOrFetchChapters(
+      payload.asin,
+      payload.region,
+      payload.cache
+    )
+
+    if (!chapter) {
+      throw new NotFoundException()
+    }
+
+    return chapter.chapters
   }
 }

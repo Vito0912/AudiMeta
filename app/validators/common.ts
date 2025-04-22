@@ -134,3 +134,9 @@ export const searchAuthorValidator = vine.compile(
     name: vine.string().minLength(3),
   })
 )
+
+export const searchSeriesValidator = vine.compile(
+  vine.object({
+    name: vine.string().minLength(3),
+  })
+)

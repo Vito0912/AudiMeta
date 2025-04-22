@@ -9,6 +9,7 @@ export const basicSearchValidator = vine.compile(
     publisher: vine.string().optional(),
     title: vine.string().optional(),
     region: regionValidation,
+    query: vine.string().optional(),
     limit: vine
       .number()
       .parse((v) => {
