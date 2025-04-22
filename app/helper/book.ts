@@ -104,7 +104,14 @@ export class BookHelper {
 
     if (response.status === 200 && response.data !== undefined) {
       const json: any = response.data
-      const products: any = json.products ?? [json.product]
+      const products: any = (json.products ?? [json.product]).filter(
+        (product: { title: string | null; publication_datetime: string | null }) =>
+          product.title &&
+          product.publication_datetime &&
+          product.publication_datetime !== '2200-01-01T00:00:00Z'
+      )
+
+      if (products.length <= 0) throw new NotFoundException()
 
       const books: Book[] = []
       const genres: Genre[] = []

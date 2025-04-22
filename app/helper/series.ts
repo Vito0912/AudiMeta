@@ -49,6 +49,14 @@ export class SeriesHelper {
 
     const response = await SeriesHelper.getSeriesPage(payload)
 
+    if (
+      !response?.data ||
+      !response.data.response_groups ||
+      response.data.response_groups.length === 1
+    ) {
+      throw new NotFoundException()
+    }
+
     if (ctx)
       void ctx.logger.info({
         message: `Requested Audible Series`,

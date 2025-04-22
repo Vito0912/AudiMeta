@@ -94,8 +94,8 @@ export class AuthorHelper {
 
     if (response.status === 200) {
       const json: any = response.data
-      if (!json) {
-        return null
+      if (!json || Object.keys(response.data.page_details?.model || {}).length === 0) {
+        throw new NotFoundException()
       }
 
       return await AuthorHelper.saveResponse(json, payload, author)
