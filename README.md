@@ -2,12 +2,16 @@
 
 A fast and flexible Audible metadata provider with extensive querying options and bulk search capabilities.
 
+> [!IMPORTANT]
+> New update!
+> AudiMeta should be faster now. No scraping is done anymore. And features have higher limits.
+
 ## Instance
 
 The public instance of AudiMeta is available at [audimeta.de](https://audimeta.de).  
 An uptime status page is available at [status.audimeta.de](https://status.audimeta.de).
 
-Rate limits are in place to ensure fair usage of the service. The RPM (Requests per Minute) limit is 150.
+Rate limits are in place to ensure fair usage of the service. The RPM (Requests per Minute) limit is 300. If you push the limit to far you will be blocked for 5 minutes.
 
 ## Overview
 
