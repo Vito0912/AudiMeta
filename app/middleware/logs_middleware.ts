@@ -18,6 +18,10 @@ export default class LogsMiddleware {
       status: ctx.response.getStatus(),
       userAgent: ctx.request.header('user-agent'),
       took: Math.abs(startTime.diffNow().as('milliseconds')),
+      ip:
+        ctx.request.header('CF-Connecting-IP') ||
+        ctx.request.header('x-real-ip') ||
+        ctx.request.ip(),
     })
 
     return output
