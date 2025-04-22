@@ -1,10 +1,11 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, computed, manyToMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column, computed, hasOne, manyToMany } from '@adonisjs/lucid/orm'
 import Author from '#models/author'
-import type { ManyToMany } from '@adonisjs/lucid/types/relations'
+import type { HasOne, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Narrator from '#models/narrator'
 import Genre from '#models/genre'
 import Series from '#models/series'
+import Track from '#models/track'
 
 export default class Book extends BaseModel {
   @column({ isPrimary: true })
@@ -59,6 +60,9 @@ export default class Book extends BaseModel {
 
   @column()
   declare hasPdf: boolean
+
+  @hasOne(() => Track)
+  declare track: HasOne<typeof Track>
 
   @manyToMany(() => Author, {
     pivotTable: 'author_book',

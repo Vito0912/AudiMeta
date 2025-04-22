@@ -94,7 +94,7 @@ export const getBooksValidator = vine.compile(
   })
 )
 
-export const getAuthorsValidator = vine.compile(
+export const getBasicValidator = vine.compile(
   vine.object({
     region: regionValidation,
     asin: asinValidation,

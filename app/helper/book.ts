@@ -11,6 +11,8 @@ import Author from '#models/author'
 import { ModelObject } from '@adonisjs/lucid/types/model'
 import { HttpContext } from '@adonisjs/core/http'
 import retryOnUniqueViolation from './parallel_helper.js'
+import Track from '#models/track'
+import NotFoundException from '#exceptions/not_found_exception'
 
 export class BookHelper {
   public async getOrFetchBooks(
@@ -361,5 +363,69 @@ export class BookHelper {
     }
 
     throw new Error('Failed to fetch book data')
+  }
+
+  public async getOrFetchChapters(
+    asin: string,
+    region: Infer<typeof regionValidation>,
+    cache: boolean
+  ) {
+    let startTime = DateTime.now()
+    const ctx = HttpContext.get()
+
+    let track: Track | null = await Track.query().where('asin', asin).first()
+
+    if (ctx && track)
+      void ctx.logger.info({
+        message: `Fetched chapters from the database`,
+        db_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
+
+    if (track && cache) {
+      return track
+    }
+    if (!track) track = new Track()
+
+    startTime = DateTime.now()
+
+    const reqParams = {
+      response_groups: 'chapter_info, always-returned, content_reference, content_url',
+      quality: 'High',
+    }
+
+    const url = `https://api.audible${regionMap[region]}/1.0/content/` + asin + '/metadata'
+
+    const response = await axios.get(url, {
+      headers: audibleHeaders,
+      params: reqParams,
+    })
+
+    if (ctx)
+      void ctx.logger.info({
+        message: `Requested chapters from Audible`,
+        chapters_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
+
+    if (response.status === 200 && response.data !== undefined) {
+      if (response.data?.content_metadata?.chapter_info) {
+        track.chapters = response.data.content_metadata.chapter_info
+      } else {
+        throw new NotFoundException()
+      }
+    }
+
+    const book = await Book.query().where('asin', asin).first()
+
+    if (!book) {
+      await retryOnUniqueViolation(async () => {
+        return await new BookHelper().getOrFetchBooks([asin], region, true)
+      })
+    }
+
+    track.asin = asin
+
+    return retryOnUniqueViolation(async () => {
+      return await track.save()
+    })
   }
 }

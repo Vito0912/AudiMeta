@@ -19,10 +19,18 @@ router.get('/ping', async () => {
   }
 })
 
+// Book
+
 router.get('/book', [BooksController, 'index'])
 router.get('/book/:asin', [BooksController, 'index'])
+router.get('/book/:asin/chapters', [BooksController, 'chapters'])
 
 router.get('/search', [SearchesController, 'index'])
+
+// Legacy route for backward compatibility
+router.get('/chapters/:asin', [BooksController, 'chapters'])
+
+// Author
 
 router.get('/author', [AuthorsController, 'search'])
 

@@ -1,7 +1,7 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
 import { HttpContext } from '@adonisjs/core/http'
-import { getBooksValidator } from '#validators/common'
+import { getBasicValidator, getBooksValidator } from '#validators/common'
 import { BookHelper } from '../helper/book.js'
 
 export default class BooksController {
@@ -20,5 +20,11 @@ export default class BooksController {
     }
 
     return new BookHelper().getOrFetchBooks(asins, payload.region, payload.cache)
+  }
+
+  async chapters({ request }: HttpContext) {
+    const payload = await getBasicValidator.validate({ ...request.qs(), ...request.params() })
+
+    return new BookHelper().getOrFetchChapters(payload.asin, payload.region, payload.cache)
   }
 }

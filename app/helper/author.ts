@@ -1,5 +1,5 @@
 import { Infer } from '@vinejs/vine/types'
-import { authorBookValidator, getAuthorsValidator, searchAuthorValidator } from '#validators/common'
+import { authorBookValidator, getBasicValidator, searchAuthorValidator } from '#validators/common'
 import Author from '#models/author'
 import axios from 'axios'
 import { audibleHeaders, getAudibleExtraHeaders, regionMap } from '#config/app'
@@ -12,7 +12,7 @@ import { DateTime } from 'luxon'
 import retryOnUniqueViolation from './parallel_helper.js'
 
 export class AuthorHelper {
-  static async get(payload: Infer<typeof getAuthorsValidator>) {
+  static async get(payload: Infer<typeof getBasicValidator>) {
     let authors = await Author.query().where('asin', payload.asin)
 
     const region = payload.region
@@ -49,7 +49,7 @@ export class AuthorHelper {
   }
 
   private static async getAuthorPage(
-    payload: Infer<typeof getAuthorsValidator>,
+    payload: Infer<typeof getBasicValidator>,
     token?: string | null
   ) {
     // The region is not important for authors.
@@ -76,7 +76,7 @@ export class AuthorHelper {
   }
 
   private static async fetchFromAudible(
-    payload: Infer<typeof getAuthorsValidator>,
+    payload: Infer<typeof getBasicValidator>,
     author?: Author | null
   ) {
     const startTime = new Date()
@@ -106,7 +106,7 @@ export class AuthorHelper {
 
   private static async saveResponse(
     json: any,
-    payload: Infer<typeof getAuthorsValidator>,
+    payload: Infer<typeof getBasicValidator>,
     author: Author
   ) {
     const sections = json.sections
