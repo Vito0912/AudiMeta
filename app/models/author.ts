@@ -22,7 +22,7 @@ export default class Author extends BaseModel {
   declare fetchedDescription: boolean
 
   @computed()
-  get regions() {
+  get regions(): (typeof this.region)[] {
     return [this.region]
   }
 

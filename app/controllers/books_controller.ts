@@ -3,6 +3,8 @@
 import { HttpContext } from '@adonisjs/core/http'
 import { getBasicValidator, getBooksValidator } from '#validators/common'
 import { BookHelper } from '../helper/book.js'
+import BookDto from '#dtos/book'
+import NotFoundException from '#exceptions/not_found_exception'
 
 export default class BooksController {
   async index({ request }: HttpContext) {
@@ -19,7 +21,16 @@ export default class BooksController {
       return []
     }
 
-    return new BookHelper().getOrFetchBooks(asins, payload.region, payload.cache)
+    const books = await new BookHelper().getOrFetchBooks(asins, payload.region, payload.cache)
+
+    if (books.length === 0) {
+      throw new NotFoundException()
+    }
+
+    if (payload.asin) {
+      return new BookDto(books[0])
+    }
+    return BookDto.fromArray(books)
   }
 
   async chapters({ request }: HttpContext) {

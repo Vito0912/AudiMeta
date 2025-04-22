@@ -20,8 +20,10 @@ export default class extends BaseSchema {
       table.string('language')
       table.double('rating')
       table.datetime('release_date')
+      table.integer('length_minutes')
 
       table.boolean('explicit').defaultTo(false)
+      table.boolean('whisper_sync').defaultTo(false)
 
       table.timestamp('created_at')
       table.timestamp('updated_at')

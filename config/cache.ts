@@ -9,7 +9,7 @@ const cacheConfig = defineConfig({
         drivers.memory({
           maxEntrySize: '100kb',
           maxItems: 100000,
-          maxSize: '1gb',
+          maxSize: '100mb',
         })
       )
       .useL2Layer(

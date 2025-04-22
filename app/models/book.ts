@@ -61,6 +61,12 @@ export default class Book extends BaseModel {
   @column()
   declare hasPdf: boolean
 
+  @column()
+  declare lengthMinutes: number | null
+
+  @column()
+  declare whisperSync: boolean
+
   @hasOne(() => Track)
   declare track: HasOne<typeof Track>
 

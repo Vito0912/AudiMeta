@@ -14,6 +14,10 @@ import retryOnUniqueViolation from './parallel_helper.js'
 import Track from '#models/track'
 import NotFoundException from '#exceptions/not_found_exception'
 
+function filterNulls(obj: ModelObject | ArrayLike<unknown>) {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== null))
+}
+
 export class BookHelper {
   public async getOrFetchBooks(
     asins: string[],
@@ -195,7 +199,9 @@ export class BookHelper {
         return await Promise.all([
           Genre.updateOrCreateMany(
             'asin',
-            Array.from(new Map(genres.map((g) => [g.asin, g])).values()).map((g) => g.serialize()),
+            Array.from(new Map(genres.map((g) => [g.asin, g])).values()).map((g) =>
+              filterNulls(g.serialize())
+            ),
             {
               allowExtraProperties: true,
             }
@@ -204,7 +210,7 @@ export class BookHelper {
             ['asin', 'name', 'region'],
             Array.from(
               new Map(authorsWithAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])).values()
-            ).map((a) => a.serialize()),
+            ).map((a) => filterNulls(a.serialize())),
             { allowExtraProperties: true }
           ),
           Author.updateOrCreateMany(
@@ -213,19 +219,21 @@ export class BookHelper {
               new Map(
                 authorsWithoutAsin.map((a) => [`${a.asin}-${a.name}-${a.region}`, a])
               ).values()
-            ).map((a) => a.serialize()),
+            ).map((a) => filterNulls(a.serialize())),
             { allowExtraProperties: true }
           ),
           Narrator.updateOrCreateMany(
             'name',
             Array.from(new Map(narrators.map((n) => [n.name, n])).values()).map((n) =>
-              n.serialize()
+              filterNulls(n.serialize())
             ),
             { allowExtraProperties: true }
           ),
           Series.updateOrCreateMany(
             'asin',
-            Array.from(new Map(series.map((s) => [s.asin, s])).values()).map((s) => s.serialize()),
+            Array.from(new Map(series.map((s) => [s.asin, s])).values()).map((s) =>
+              filterNulls(s.serialize())
+            ),
             { allowExtraProperties: true }
           ),
         ])
@@ -276,6 +284,8 @@ export class BookHelper {
         book.releaseDate = product.release_date ? DateTime.fromISO(product.release_date) : null
         book.explicit = product.is_adult_product ?? false
         book.hasPdf = product.is_pdf_url_available ?? false
+        book.lengthMinutes = product.runtime_length_min ?? null
+        book.whisperSync = product.read_along_support ?? false
 
         const imageMap = product.product_images
         if (imageMap && Object.keys(imageMap).length > 0) {
