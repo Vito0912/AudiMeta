@@ -11,7 +11,7 @@ export default class extends BaseSchema {
 
       table.index('asin', 'series_asin_index')
 
-      table.boolean('no_description').defaultTo(false)
+      table.boolean('fetched_description').defaultTo(false)
 
       table.timestamp('created_at')
       table.timestamp('updated_at')

@@ -17,7 +17,7 @@ export default class LogsMiddleware {
       url: ctx.request.url(),
       status: ctx.response.getStatus(),
       userAgent: ctx.request.header('user-agent'),
-      took: Math.abs(startTime.diffNow().as('millisecond')),
+      took: Math.abs(startTime.diffNow().as('milliseconds')),
     })
 
     return output

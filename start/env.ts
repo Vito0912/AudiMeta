@@ -29,5 +29,13 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string(),
 
-  DEVICE_ID: Env.schema.string()
+  DEVICE_ID: Env.schema.string(),
+
+  REDIS_HOST: Env.schema.string({ format: 'host' }),
+  REDIS_PORT: Env.schema.number(),
+  REDIS_PASSWORD: Env.schema.string.optional(),
+
+  AXIOM_DATASET: Env.schema.string(),
+
+  AXIOM_TOKEN: Env.schema.string()
 })

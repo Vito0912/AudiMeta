@@ -2,6 +2,8 @@ import env from '#start/env'
 import app from '@adonisjs/core/services/app'
 import { Secret } from '@adonisjs/core/helpers'
 import { defineConfig } from '@adonisjs/core/http'
+import { Infer } from '@vinejs/vine/types'
+import { regionValidation } from '#validators/common'
 
 /**
  * The app key is used for encrypting cookies, generating signed URLs,
@@ -53,6 +55,20 @@ export const regionMap = {
   br: '.com.br',
 }
 
+export const localRegionMap = {
+  us: 'en-US',
+  ca: 'en-CA',
+  uk: 'en-GB',
+  au: 'en-AU',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  jp: 'ja-JP',
+  it: 'it-IT',
+  in: 'en-IN',
+  es: 'es-ES',
+  br: 'pt-BR',
+}
+
 export const audibleHeaders = {
   'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 15); com.audible.application',
   'Content-Type': 'application/json',
@@ -61,10 +77,10 @@ export const audibleHeaders = {
   'Accept': 'application/json',
 }
 
-export function getAudibleExtraHeaders() {
+export function getAudibleExtraHeaders(region?: Infer<typeof regionValidation>) {
   return {
-    'ACCEPTED-LANGUAGE': 'en-US',
-    'accept-language': 'en-US',
+    'ACCEPTED-LANGUAGE': region ? localRegionMap[region] : 'en-US',
+    'accept-language': region ? localRegionMap[region] : 'en-US',
     'X-ADP-SW': Math.floor(Math.random() * 89999999) + 10000000,
     'X-Device-Type-Id': env.get('DEVICE_ID'),
     'User-Agent':

@@ -17,7 +17,7 @@ export default class Series extends BaseModel {
   declare books: ManyToMany<typeof Book>
 
   @column()
-  declare noDescription: boolean
+  declare fetchedDescription: boolean
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

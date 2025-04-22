@@ -19,7 +19,7 @@ export default class Author extends BaseModel {
   declare name: string
 
   @column()
-  declare noDescription: boolean
+  declare fetchedDescription: boolean
 
   @computed()
   get regions() {

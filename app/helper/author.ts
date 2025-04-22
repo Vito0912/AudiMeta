@@ -34,9 +34,12 @@ export class AuthorHelper {
       !payload.cache ||
       !author ||
       author.region !== payload.region ||
-      ((!author.description || author.image) && !author.noDescription)
+      ((!author.description || author.image) && !author.fetchedDescription)
     ) {
-      const newAuthor = await AuthorHelper.fetchFromAudible(payload, author)
+      const newAuthor = await AuthorHelper.fetchFromAudible(
+        payload,
+        !author || author.region !== payload.region ? null : author
+      )
       if (newAuthor) {
         author = newAuthor
       }
@@ -56,7 +59,7 @@ export class AuthorHelper {
       `https://api.audible${regionMap[payload.region]}/1.0/screens/audible-android-author-detail/` +
         payload.asin,
       {
-        headers: { ...getAudibleExtraHeaders(), ...audibleHeaders },
+        headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
         params: {
           tabId: 'titles',
           author_asin: payload.asin,
@@ -66,7 +69,6 @@ export class AuthorHelper {
           local_time: new Date().toISOString(),
           response_groups: 'always-returned',
           surface: 'Android',
-          language: 'de-DE',
           pageSectionContinuationToken: token,
         },
       }
@@ -117,7 +119,7 @@ export class AuthorHelper {
           author.description = item.model.expandable_content.value
         }
       }
-      author.noDescription = true
+      author.fetchedDescription = true
     }
     if (json.page_details?.model?.title) {
       author.name = json.page_details.model.title
@@ -208,7 +210,7 @@ export class AuthorHelper {
     const response = await axios.get(
       `https://api.audible${regionMap[payload.region]}/1.0/searchsuggestions`,
       {
-        headers: { ...getAudibleExtraHeaders(), ...audibleHeaders },
+        headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
         params: {
           keywords: payload.name,
           key_strokes: payload.name,
