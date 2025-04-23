@@ -31,6 +31,7 @@ export default class AuthorsController {
 
     if (!authors || authors.length === 0) throw new NotFoundException()
 
+    // @ts-ignore
     return AuthorDto.fromArray(authors)
   }
 }

@@ -2,7 +2,7 @@ import { HttpContext } from '@adonisjs/core/http'
 
 export default async function retryOnUniqueViolation<T>(
   operation: () => Promise<T>,
-  maxRetries = 3,
+  maxRetries = 4,
   delay = 150
 ): Promise<T> {
   let lastError: any
@@ -15,14 +15,19 @@ export default async function retryOnUniqueViolation<T>(
     } catch (error) {
       lastError = error
 
-      if (error.message.includes('violates unique constraint')) {
+      if (
+        error.message.includes('violates unique constraint') ||
+        error.message.includes('deadlock')
+      ) {
         if (ctx)
           void ctx.logger.warn({
             message: `Unique constraint violation, retrying...`,
             attempt,
           })
 
-        await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, attempt)))
+        let randomDelay = Math.floor(Math.random() * 100) + delay
+
+        await new Promise((resolve) => setTimeout(resolve, randomDelay * Math.pow(2, attempt)))
         continue
       }
 

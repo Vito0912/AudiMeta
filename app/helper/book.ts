@@ -322,6 +322,7 @@ export class BookHelper {
             .map((key) => genres.find((g) => String(g.asin) === key))
             .filter(Boolean)
             .filter((n) => n !== undefined)
+          // @ts-ignore
           book.$setRelated('genres', bookGenres)
         }
 
@@ -331,6 +332,7 @@ export class BookHelper {
             .map((id) => createdAuthors.find((a) => String(a.id) === String(id)))
             .filter(Boolean)
             .filter((n) => n !== undefined)
+          // @ts-ignore
           book.$setRelated('authors', bookAuthors)
         }
 
@@ -340,6 +342,7 @@ export class BookHelper {
             .map((name) => narrators.find((n) => n.name === name))
             .filter(Boolean)
             .filter((n) => n !== undefined)
+          // @ts-ignore
           book.$setRelated('narrators', bookNarrators)
         }
 
@@ -364,7 +367,7 @@ export class BookHelper {
               bookSeries[i].$extras.pivot_position = position
             }
           }
-
+          // @ts-ignore
           book.$setRelated('series', bookSeries)
         }
 
@@ -442,6 +445,7 @@ export class BookHelper {
     track.asin = asin
 
     return retryOnUniqueViolation(async () => {
+      // @ts-ignore
       return await track.save()
     })
   }
