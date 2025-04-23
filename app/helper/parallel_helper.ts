@@ -2,7 +2,7 @@ import { HttpContext } from '@adonisjs/core/http'
 
 export default async function retryOnUniqueViolation<T>(
   operation: () => Promise<T>,
-  maxRetries = 4,
+  maxRetries = 6,
   delay = 150
 ): Promise<T> {
   let lastError: any
@@ -27,7 +27,7 @@ export default async function retryOnUniqueViolation<T>(
 
         let randomDelay = Math.floor(Math.random() * 100) + delay
 
-        await new Promise((resolve) => setTimeout(resolve, randomDelay * Math.pow(2, attempt)))
+        await new Promise((resolve) => setTimeout(resolve, randomDelay * attempt + 1))
         continue
       }
 
