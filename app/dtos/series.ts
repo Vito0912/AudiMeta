@@ -3,7 +3,7 @@ import Series from '#models/series'
 
 export class MinimalSeriesDto extends BaseModelDto {
   declare asin: string
-  declare title: string
+  declare name: string
   declare position: string
   declare updatedAt: string
 
@@ -12,7 +12,7 @@ export class MinimalSeriesDto extends BaseModelDto {
 
     if (!series) return
     this.asin = series.asin
-    this.title = series.title
+    this.name = series.title
     if (series.$extras.pivot_position) {
       this.position = series.$extras.pivot_position
     }

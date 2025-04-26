@@ -84,6 +84,13 @@ export const getBooksValidator = vine.compile(
     region: regionValidation,
     asins: vine
       .array(asinValidation)
+      .parse((v) => {
+        if (v === undefined || v === null) return v
+        if (typeof v !== 'object') return [v]
+        if (!Array.isArray(v)) return [v]
+
+        return v
+      })
       .compact()
       .maxLength(50)
       .distinct()
