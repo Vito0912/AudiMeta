@@ -1,15 +1,37 @@
-import vine from '@vinejs/vine'
 import { cacheValidation, regionValidation } from '#validators/common'
+
+import vine from '@vinejs/vine'
+
+export const stringValidation = vine
+  .string()
+  .parse((v) => {
+    if (v === undefined || v === null) return v
+    if (typeof v !== 'string') return v
+
+    let result = v
+
+    const pairRegex = /\[[^\[\]]*]/g
+    while (pairRegex.test(result)) {
+      result = result.replace(pairRegex, '')
+    }
+
+    result = result.replace(/\[.*$/, '')
+
+    result = result.replace(/]/g, '')
+
+    return result
+  })
+  .optional()
 
 export const basicSearchValidator = vine.compile(
   vine.object({
-    author: vine.string().optional(),
-    keywords: vine.string().optional(),
-    narrator: vine.string().optional(),
-    publisher: vine.string().optional(),
-    title: vine.string().optional(),
+    author: stringValidation,
+    keywords: stringValidation,
+    narrator: stringValidation,
+    publisher: stringValidation,
+    title: stringValidation,
     region: regionValidation,
-    query: vine.string().optional(),
+    query: stringValidation,
     limit: vine
       .number()
       .parse((v) => {

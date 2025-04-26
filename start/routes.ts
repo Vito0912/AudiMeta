@@ -8,7 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import { extremeLimit, itemLimit, searchLimit } from '#start/limiter'
+import { cacheLimit, extremeLimit, itemLimit, searchLimit } from '#start/limiter'
 
 const SearchesController = () => import('#controllers/searches_controller')
 const BooksController = () => import('#controllers/books_controller')
@@ -23,33 +23,49 @@ router.get('/ping', async () => {
 
 // Book
 
-router.get('/book', [BooksController, 'index']).use(itemLimit)
-router.get('/book/:asin', [BooksController, 'index']).use(itemLimit)
-router.get('/book/:asin/chapters', [BooksController, 'chapters']).use(itemLimit)
+router.get('/book', [BooksController, 'index']).use(cacheLimit).use(itemLimit)
+router.get('/book/:asin', [BooksController, 'index']).use(cacheLimit).use(itemLimit)
+router.get('/book/:asin/chapters', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
 
-router.get('/search', [SearchesController, 'index']).use(itemLimit).use(searchLimit)
+router.get('/search', [SearchesController, 'index']).use(cacheLimit).use(itemLimit).use(searchLimit)
 
 // Legacy route for backward compatibility
-router.get('/chapters/:asin', [BooksController, 'chapters']).use(itemLimit)
+router.get('/chapters/:asin', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
 
 // Author
 
-router.get('/author', [AuthorsController, 'search']).use(itemLimit)
+router.get('/author', [AuthorsController, 'search']).use(cacheLimit).use(itemLimit)
 
-router.get('/author/:asin', [AuthorsController, 'index']).use(itemLimit)
+router.get('/author/:asin', [AuthorsController, 'index']).use(cacheLimit).use(itemLimit)
 
-router.get('/author/:asin/books', [AuthorsController, 'books']).use(itemLimit).use(extremeLimit)
+router
+  .get('/author/:asin/books', [AuthorsController, 'books'])
+  .use(cacheLimit)
+  .use(itemLimit)
+  .use(extremeLimit)
 // Legacy route for backward compatibility
-router.get('/author/books/:asin', [AuthorsController, 'books']).use(itemLimit).use(extremeLimit)
+router
+  .get('/author/books/:asin', [AuthorsController, 'books'])
+  .use(cacheLimit)
+  .use(itemLimit)
+  .use(extremeLimit)
 
 // Series
-router.get('/series', [SeriesController, 'search']).use(itemLimit).use(searchLimit)
+router.get('/series', [SeriesController, 'search']).use(cacheLimit).use(itemLimit).use(searchLimit)
 
-router.get('/series/:asin', [SeriesController, 'index']).use(itemLimit)
+router.get('/series/:asin', [SeriesController, 'index']).use(cacheLimit).use(itemLimit)
 
-router.get('/series/:asin/books', [SeriesController, 'books']).use(itemLimit).use(extremeLimit)
+router
+  .get('/series/:asin/books', [SeriesController, 'books'])
+  .use(cacheLimit)
+  .use(itemLimit)
+  .use(extremeLimit)
 
 // Legacy route for backward compatibility
-router.get('/series/books/:asin', [SeriesController, 'books']).use(itemLimit).use(extremeLimit)
+router
+  .get('/series/books/:asin', [SeriesController, 'books'])
+  .use(cacheLimit)
+  .use(itemLimit)
+  .use(extremeLimit)
 
-router.get(':region/search', [SearchesController, 'abs'])
+router.get(':region/search', [SearchesController, 'abs']).use(cacheLimit).use(searchLimit)

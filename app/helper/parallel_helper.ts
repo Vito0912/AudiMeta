@@ -1,8 +1,9 @@
 import { HttpContext } from '@adonisjs/core/http'
+import InternalErrorException from '#exceptions/internal_error_exception'
 
 export default async function retryOnUniqueViolation<T>(
   operation: () => Promise<T>,
-  maxRetries = 6,
+  maxRetries = 10,
   delay = 150
 ): Promise<T> {
   let lastError: any
@@ -31,9 +32,15 @@ export default async function retryOnUniqueViolation<T>(
         continue
       }
 
-      throw error
+      ctx?.logger.error(error)
+      throw new InternalErrorException(
+        `There was an internal error. If you open an issue on GitHub, please provide a requestId: ${ctx?.request.id()}`
+      )
     }
   }
 
-  throw lastError
+  ctx?.logger.error(lastError)
+  throw new InternalErrorException(
+    `There was an internal error. If you open an issue on GitHub, please provide a requestId: ${ctx?.request.id()}`
+  )
 }
