@@ -3,6 +3,9 @@
 A fast and flexible Audible metadata provider with extensive querying options and bulk search capabilities.
 
 > [!IMPORTANT]
+> The current beta channel at https://beta.audimeta.de does not have an OpenAPI specification. It shares many features with the current main channel, and the responses should be the same for backwards compatibility. However, some query parameters have changed, and new ones have been added. To test you should be able to just replace the base-URL. This version has better support for authors and series
+
+> [!IMPORTANT]
 > New update!
 > AudiMeta should be faster now. No scraping is done anymore. And features have higher limits.
 
