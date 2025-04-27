@@ -93,7 +93,7 @@ router.get('/api-docs', async (ctx) => {
 				<script>
 						window.onload = function() {
 							SwaggerUIBundle({
-								url: "./openapi.json",
+								url: "https://raw.githubusercontent.com/Vito0912/AudiMeta/refs/heads/v2/openAPI.json",
 								dom_id: '#swagger-ui',
 								presets: [
 									SwaggerUIBundle.presets.apis,
