@@ -24,10 +24,12 @@ export default class CacheMiddleware {
       return cachedRequest
     }
 
-    const cachedResponse = await cache.get({ key: cacheKey })
-    if (cachedResponse) {
-      ctx.logger.info({ cacheKey }, 'Serving from cache')
-      return ctx.response.send(JSON.parse(cachedResponse))
+    if (!ctx.request.url().includes('api-docs') && !ctx.request.url().includes('openapi')) {
+      const cachedResponse = await cache.get({ key: cacheKey })
+      if (cachedResponse) {
+        ctx.logger.info({ cacheKey }, 'Serving from cache')
+        return ctx.response.send(JSON.parse(cachedResponse))
+      }
     }
 
     const response = await next()
