@@ -107,10 +107,12 @@ export class AbsBookDto extends BaseModelDto {
     this.publisher = book.publisher
     this.publishedYear = book.releaseDate?.toFormat('yyyy') ?? null
     this.duration = book.lengthMinutes?.toString() ?? null
-    this.author = book.authors.map((author) => author.name).join(', ')
-    this.narrator = book.narrators.map((narrator) => narrator.name).join(', ')
-    this.tags = book.genres.filter((genre) => genre.type === 'Tags').map((genre) => genre.name)
-    this.genres = book.genres.filter((genre) => genre.type === 'Genres').map((genre) => genre.name)
+    this.author = book.authors?.map((author) => author.name).join(', ') || null
+    this.narrator = book.narrators?.map((narrator) => narrator.name).join(', ') || null
+    this.tags =
+      book.genres?.filter((genre) => genre.type === 'Tags').map((genre) => genre.name) || null
+    this.genres =
+      book.genres?.filter((genre) => genre.type === 'Genres').map((genre) => genre.name) || null
     this.isbn = book.isbn
     this.language = book.language
     this.cover = book.image
