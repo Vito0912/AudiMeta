@@ -18,8 +18,7 @@ const dbConfig = defineConfig({
         paths: ['database/migrations'],
       },
       pool: {
-        min: 3,
-        max: 15,
+        min: 0,
       },
     },
   },
