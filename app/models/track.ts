@@ -8,7 +8,7 @@ export default class Track extends BaseModel {
   declare asin: string
 
   @column()
-  declare chapters: string
+  declare chapters: object
 
   @belongsTo(() => Book)
   declare book: BelongsTo<typeof Book>

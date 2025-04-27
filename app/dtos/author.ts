@@ -16,12 +16,12 @@ export class MinimalAuthorDto extends BaseModelDto {
     super()
 
     if (!author) return
-    this.asin = author.asin
-    this.name = author.name
-    this.region = author.region
-    this.regions = author.regions
-    this.image = author.image
-    this.updatedAt = author.updatedAt && author.updatedAt.toISO()!
+    this.asin = author.asin ?? null
+    this.name = author.name ?? null
+    this.region = author.region ?? null
+    this.regions = author.regions ?? null
+    this.image = author.image ?? null
+    this.updatedAt = (author.updatedAt && author.updatedAt.toISO()!) ?? null
   }
 }
 

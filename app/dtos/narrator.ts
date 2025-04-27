@@ -3,13 +3,13 @@ import Narrator from '#models/narrator'
 
 export default class NarratorDto extends BaseModelDto {
   declare name: string
-  declare updatedAt: string
+  declare updatedAt: string | null
 
   constructor(narrator?: Narrator) {
     super()
 
     if (!narrator) return
-    this.name = narrator.name
-    this.updatedAt = narrator.updatedAt && narrator.updatedAt.toISO()!
+    this.name = narrator.name ?? null
+    this.updatedAt = (narrator.updatedAt && narrator.updatedAt.toISO()!) ?? null
   }
 }

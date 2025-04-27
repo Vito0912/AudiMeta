@@ -5,6 +5,7 @@ import { getBasicValidator, getBooksValidator } from '#validators/common'
 import { BookHelper } from '../helper/book.js'
 import BookDto from '#dtos/book'
 import NotFoundException from '#exceptions/not_found_exception'
+import { TrackContentDto } from '#dtos/track'
 
 export default class BooksController {
   async index({ request }: HttpContext) {
@@ -45,7 +46,8 @@ export default class BooksController {
     if (!chapter) {
       throw new NotFoundException()
     }
+    console.log(typeof chapter.chapters)
 
-    return chapter.chapters
+    return new TrackContentDto(chapter.chapters)
   }
 }

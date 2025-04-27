@@ -8,18 +8,18 @@ export default class GenreDto extends BaseModelDto {
   declare type: 'Genres' | 'Tags'
   declare betterType: 'genre' | 'tag'
   declare books: BookDto[]
-  declare updatedAt: string
+  declare updatedAt: string | null
 
   constructor(genre?: Genre) {
     super()
 
     if (!genre) return
     this.asin = genre.asin
-    this.name = genre.name
-    this.type = genre.type
+    this.name = genre.name ?? null
+    this.type = genre.type ?? null
     // @ts-ignore
-    this.betterType = genre.betterType
+    this.betterType = genre.betterType ?? null
 
-    this.updatedAt = genre.updatedAt && genre.updatedAt.toISO()!
+    this.updatedAt = (genre.updatedAt && genre.updatedAt.toISO()!) ?? null
   }
 }

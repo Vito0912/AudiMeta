@@ -30,9 +30,9 @@ export default class BookDto extends BaseModelDto {
   declare series: MinimalSeriesDto[]
   declare imageUrl: string | null
   declare lengthMinutes: number | null
-  declare updatedAt: string
+  declare updatedAt: string | null
   declare whisperSync: boolean
-  declare link: string
+  declare link: string | null
 
   constructor(book?: Book) {
     super()
@@ -99,12 +99,12 @@ export class AbsBookDto extends BaseModelDto {
     if (!book) return
 
     this.asin = book.asin
-    this.title = book.title
-    this.subtitle = book.subtitle
+    this.title = book.title ?? null
+    this.subtitle = book.subtitle ?? null
 
-    this.description = book.description
+    this.description = book.description ?? null
 
-    this.publisher = book.publisher
+    this.publisher = book.publisher ?? null
     this.publishedYear = book.releaseDate?.toFormat('yyyy') ?? null
     this.duration = book.lengthMinutes?.toString() ?? null
     this.author = book.authors?.map((author) => author.name).join(', ') || null
@@ -113,17 +113,18 @@ export class AbsBookDto extends BaseModelDto {
       book.genres?.filter((genre) => genre.type === 'Tags').map((genre) => genre.name) || null
     this.genres =
       book.genres?.filter((genre) => genre.type === 'Genres').map((genre) => genre.name) || null
-    this.isbn = book.isbn
-    this.language = book.language
-    this.cover = book.image
+    this.isbn = book.isbn ?? null
+    this.language = book.language ?? null
+    this.cover = book.image ?? null
 
     this.series =
-      book.series &&
-      book.series.map((series) => {
-        return {
-          series: series.title,
-          sequence: series.$extras.pivot_position,
-        }
-      })
+      (book.series &&
+        book.series.map((series) => {
+          return {
+            series: series.title,
+            sequence: series.$extras.pivot_position,
+          }
+        })) ??
+      null
   }
 }

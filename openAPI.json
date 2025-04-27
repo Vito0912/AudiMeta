@@ -1,0 +1,1441 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "AudiMeta API",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "Book"
+    },
+    {
+      "name": "Search"
+    },
+    {
+      "name": "Chapter"
+    },
+    {
+      "name": "Author"
+    },
+    {
+      "name": "Series"
+    }
+  ],
+  "paths": {
+    "/book/{asin}": {
+      "get": {
+        "summary": "Get Book",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getBook",
+        "tags": [
+          "Book"
+        ],
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "B0F192YJGQ",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "true",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "de",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/book": {
+      "get": {
+        "summary": "Get Books",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getBooks",
+        "tags": [
+          "Book"
+        ],
+        "parameters": [
+          {
+            "name": "asins",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Search books",
+        "deprecated": false,
+        "description": "",
+        "operationId": "search",
+        "tags": [
+          "Book",
+          "Search"
+        ],
+        "parameters": [
+          {
+            "name": "keywords",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "narrator",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "publisher",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Same as title",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 9,
+              "default": 0
+            }
+          },
+          {
+            "name": "products_sort_by",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Relevance",
+                "-ReleaseDate",
+                "ContentLevel",
+                "-Title",
+                "AmazonEnglish",
+                "AvgRating",
+                "BestSellers",
+                "-RuntimeLength",
+                "ReleaseDate",
+                "ProductSiteLaunchDate",
+                "-ContentLevel",
+                "Title",
+                "RuntimeLength"
+              ],
+              "default": "Relevance"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/chapters/{asin}": {
+      "get": {
+        "summary": "Get Chapters",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getChapters",
+        "tags": [
+          "Book",
+          "Chapter"
+        ],
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/author": {
+      "get": {
+        "summary": "Search Authors",
+        "deprecated": false,
+        "description": "",
+        "operationId": "searchAuthor",
+        "tags": [
+          "Author",
+          "Search"
+        ],
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Author"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/series": {
+      "get": {
+        "summary": "Search Series",
+        "deprecated": false,
+        "description": "",
+        "operationId": "searchSeries",
+        "tags": [
+          "Search",
+          "Series"
+        ],
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Series"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/author/{asin}": {
+      "get": {
+        "summary": "Get author",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getAuthor",
+        "tags": [
+          "Author"
+        ],
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Author"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/series/{asin}": {
+      "get": {
+        "summary": "Get Series",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getSeries",
+        "tags": [
+          "Series"
+        ],
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Series"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/author/{asin}/books": {
+      "get": {
+        "summary": "Get books of an author",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getBooksByAuthor",
+        "tags": [
+          "Author",
+          "Book"
+        ],
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/series/{asin}/books": {
+      "get": {
+        "summary": "Get Books of a Series",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getBooksBySeries",
+        "tags": [
+          "Book",
+          "Series"
+        ],
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "us",
+                "ca",
+                "uk",
+                "au",
+                "fr",
+                "de",
+                "jp",
+                "it",
+                "in",
+                "es",
+                "br"
+              ],
+              "default": "us"
+            }
+          },
+          {
+            "name": "cache",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "asin": {
+        "type": "string",
+        "description": "An ASIN for Books, Series or Genres",
+        "pattern": "[A-Z0-9]{10}|[0-9]{10,12}"
+      },
+      "region": {
+        "type": "string",
+        "enum": [
+          "us",
+          "ca",
+          "uk",
+          "au",
+          "fr",
+          "de",
+          "jp",
+          "it",
+          "in",
+          "es",
+          "br"
+        ],
+        "default": "us",
+        "description": "The region of the requested item. This region is not always the only option; it simply represents the first region for books. For authors and series, there is only one ASIN per region. "
+      },
+      "Book": {
+        "type": "object",
+        "properties": {
+          "asin": {
+            "$ref": "#/components/schemas/asin"
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the book"
+          },
+          "subtitle": {
+            "type": "string",
+            "description": "The subtitle of the book",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the book that is being requested",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "description": "A short description of the book that is being requested",
+            "nullable": true
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "us",
+              "ca",
+              "uk",
+              "au",
+              "fr",
+              "de",
+              "jp",
+              "it",
+              "in",
+              "es",
+              "br"
+            ],
+            "default": "us"
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/region"
+            },
+            "deprecated": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "copyright": {
+            "type": "string",
+            "nullable": true
+          },
+          "isbn": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          },
+          "rating": {
+            "type": "number"
+          },
+          "bookFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "releaseDate": {
+            "type": "string"
+          },
+          "explicit": {
+            "type": "boolean"
+          },
+          "hasPdf": {
+            "type": "boolean"
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "The url of the book",
+            "nullable": true
+          },
+          "lengthMinutes": {
+            "type": "number",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "whisperSync": {
+            "type": "boolean"
+          },
+          "link": {
+            "type": "string",
+            "description": "Product link"
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Author"
+            }
+          },
+          "narrators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Narrator"
+            }
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "asin": {
+                  "$ref": "#/components/schemas/asin"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "position": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "asin",
+                "name"
+              ]
+            }
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Genre"
+            }
+          }
+        },
+        "required": [
+          "asin",
+          "title",
+          "subtitle",
+          "description",
+          "summary",
+          "region",
+          "regions",
+          "publisher",
+          "copyright",
+          "isbn",
+          "language",
+          "rating",
+          "bookFormat",
+          "releaseDate",
+          "explicit",
+          "hasPdf",
+          "imageUrl",
+          "lengthMinutes",
+          "updatedAt",
+          "whisperSync",
+          "link",
+          "series",
+          "narrators",
+          "authors",
+          "genres"
+        ]
+      },
+      "Author": {
+        "type": "object",
+        "properties": {
+          "asin": {
+            "type": "string",
+            "description": "An ASIN for Books, Series or Genres",
+            "pattern": "[A-Z0-9]{10}|[0-9]{10,12}"
+          },
+          "name": {
+            "type": "string",
+            "description": "name"
+          },
+          "region": {
+            "$ref": "#/components/schemas/region"
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/region"
+            },
+            "deprecated": true
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "asin",
+          "image",
+          "regions",
+          "region",
+          "name"
+        ]
+      },
+      "Narrator": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Series": {
+        "type": "object",
+        "properties": {
+          "asin": {
+            "$ref": "#/components/schemas/asin"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "asin",
+          "name"
+        ]
+      },
+      "Track": {
+        "type": "object",
+        "properties": {
+          "chapters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "The title of the chapter"
+                },
+                "lengthMs": {
+                  "type": "number",
+                  "description": "The length of the chapter in milliseconds"
+                },
+                "startOffsetMs": {
+                  "type": "number",
+                  "description": "The start offset of the chapter in milliseconds"
+                },
+                "startOffsetSec": {
+                  "type": "number",
+                  "description": "The start offset of the chapter in seconds"
+                }
+              },
+              "required": [
+                "title",
+                "lengthMs",
+                "startOffsetMs",
+                "startOffsetSec"
+              ]
+            }
+          },
+          "isAccurate": {
+            "type": "boolean",
+            "description": "Whether the chapter information is accurate"
+          },
+          "runtimeLengthMs": {
+            "type": "number",
+            "description": "The runtime length of the book in milliseconds"
+          },
+          "runtimeLengthSec": {
+            "type": "number",
+            "description": "The runtime length of the book in seconds"
+          },
+          "brandOutroDurationMs": {
+            "type": "number"
+          },
+          "brandIntroDurationMs": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "chapters",
+          "isAccurate",
+          "runtimeLengthMs",
+          "runtimeLengthSec",
+          "brandIntroDurationMs",
+          "brandOutroDurationMs"
+        ]
+      },
+      "Genre": {
+        "type": "object",
+        "properties": {
+          "asin": {
+            "$ref": "#/components/schemas/asin"
+          },
+          "name": {
+            "type": "string",
+            "description": "name"
+          },
+          "type": {
+            "type": "string",
+            "deprecated": true,
+            "enum": [
+              "Tags",
+              "Genres"
+            ]
+          },
+          "betterType": {
+            "type": "string",
+            "enum": [
+              "tag",
+              "genre"
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "asin",
+          "betterType",
+          "type",
+          "name"
+        ]
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [
+    {
+      "url": "https://audimeta.de/",
+      "description": "Public Instance"
+    },
+    {
+      "url": "https://beta.audimeta.de/",
+      "description": "Public Beta Instance"
+    }
+  ],
+  "security": []
+}

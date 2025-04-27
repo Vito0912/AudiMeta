@@ -4,19 +4,21 @@ import Series from '#models/series'
 export class MinimalSeriesDto extends BaseModelDto {
   declare asin: string
   declare name: string
-  declare position: string
-  declare updatedAt: string
+  declare position: string | null
+  declare updatedAt: string | null
 
   constructor(series?: Series) {
     super()
 
     if (!series) return
     this.asin = series.asin
-    this.name = series.title
+    this.name = series.title ?? null
     if (series.$extras.pivot_position) {
       this.position = series.$extras.pivot_position
+    } else {
+      this.position = null
     }
-    this.updatedAt = series.updatedAt && series.updatedAt.toISO()!
+    this.updatedAt = (series.updatedAt && series.updatedAt.toISO()!) ?? null
   }
 }
 
