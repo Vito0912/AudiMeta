@@ -1,11 +1,12 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
 import { HttpContext } from '@adonisjs/core/http'
-import { getBasicValidator, getBooksValidator } from '#validators/common'
+import { getBasicValidator, getBooksValidator, skuValidation } from '#validators/common'
 import { BookHelper } from '../helper/book.js'
 import BookDto from '#dtos/book'
 import NotFoundException from '#exceptions/not_found_exception'
 import { TrackContentDto } from '#dtos/track'
+import Book from '#models/book'
 
 export default class BooksController {
   async index({ request }: HttpContext) {
@@ -49,5 +50,26 @@ export default class BooksController {
     console.log(typeof chapter.chapters)
 
     return new TrackContentDto(chapter.chapters)
+  }
+
+  async sku({ request }: HttpContext) {
+    const payload = await skuValidation.validate({ ...request.qs(), ...request.params() })
+
+    if (/[A-Za-z]{2}$/.test(payload.sku)) {
+      payload.sku = payload.sku.slice(0, -2)
+    }
+
+    const books = await Book.query()
+      .where('sku_group', payload.sku)
+      .preload('narrators')
+      .preload('genres')
+      .preload('series', (q) => q.pivotColumns(['position']))
+      .preload('authors')
+
+    if (!books) {
+      throw new NotFoundException()
+    }
+
+    return BookDto.fromArray(books)
   }
 }

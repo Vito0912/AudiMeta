@@ -79,6 +79,12 @@ export default class Book extends BaseModel {
   @column()
   declare episodeType: string | null
 
+  @column()
+  declare sku: string | null
+
+  @column()
+  declare skuGroup: string | null
+
   @hasOne(() => Track)
   declare track: HasOne<typeof Track>
 

@@ -109,6 +109,13 @@ export const getBasicValidator = vine.compile(
   })
 )
 
+export const skuValidation = vine.compile(
+  vine.object({
+    sku: vine.string().regex(new RegExp('[A-Z0-9]{2}_[A-Z0-9]{4}_[0-9]{6}[A-Z]{0,2}')),
+    cache: cacheValidation,
+  })
+)
+
 export const getSeriesValidator = vine.compile(
   vine.object({
     region: regionValidation,

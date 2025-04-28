@@ -37,6 +37,8 @@ export default class BookDto extends BaseModelDto {
   declare contentDeliveryType: string | null
   declare episodeNumber: string | null
   declare episodeType: string | null
+  declare sku: string | null
+  declare skuGroup: string | null
 
   constructor(book?: Book) {
     super()
@@ -67,6 +69,9 @@ export default class BookDto extends BaseModelDto {
     this.explicit = book.explicit
     this.hasPdf = book.hasPdf
     this.link = `https://audible${regionMap[book.region ?? 'us']}/pd/${book.asin}`
+
+    this.sku = book.sku ?? null
+    this.skuGroup = book.skuGroup ?? null
 
     this.contentType = book.contentType
     this.contentDeliveryType = book.contentDeliveryType

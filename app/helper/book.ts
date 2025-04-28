@@ -322,6 +322,8 @@ export class BookHelper {
         book.contentDeliveryType = product.content_delivery_type ?? null
         book.episodeNumber = product.episode_number ? String(product.episode_number) : null
         book.episodeType = product.episode_type ?? null
+        book.sku = product.sku ?? null
+        book.skuGroup = product.sku_lite ?? null
 
         const imageMap = product.product_images
         if (imageMap && Object.keys(imageMap).length > 0) {
