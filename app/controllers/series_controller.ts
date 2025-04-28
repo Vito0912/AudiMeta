@@ -24,6 +24,12 @@ export default class SeriesController {
     return BookDto.fromArray((await SeriesHelper.getBooksBySeries(payload)) ?? [])
   }
 
+  async podcast({ request }: HttpContext) {
+    const payload = await paginationValidator.validate({ ...request.qs(), ...request.params() })
+
+    return BookDto.fromArray((await SeriesHelper.getBooksBySeries(payload, true)) ?? [])
+  }
+
   async search({ request }: HttpContext) {
     const payload = await searchSeriesValidator.validate({ ...request.qs() })
 

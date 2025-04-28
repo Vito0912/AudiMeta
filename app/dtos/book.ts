@@ -33,6 +33,10 @@ export default class BookDto extends BaseModelDto {
   declare updatedAt: string | null
   declare whisperSync: boolean
   declare link: string | null
+  declare contentType: string | null
+  declare contentDeliveryType: string | null
+  declare episodeNumber: string | null
+  declare episodeType: string | null
 
   constructor(book?: Book) {
     super()
@@ -63,6 +67,14 @@ export default class BookDto extends BaseModelDto {
     this.explicit = book.explicit
     this.hasPdf = book.hasPdf
     this.link = `https://audible${regionMap[book.region ?? 'us']}/pd/${book.asin}`
+
+    this.contentType = book.contentType
+    this.contentDeliveryType = book.contentDeliveryType
+
+    if (this.contentType && this.contentType.toLowerCase() === 'podcast') {
+      this.episodeNumber = book.episodeNumber
+      this.episodeType = book.episodeType
+    }
 
     this.authors = MinimalAuthorDto.fromArray(book.authors)
     this.narrators = NarratorDto.fromArray(book.narrators)

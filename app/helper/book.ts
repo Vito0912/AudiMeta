@@ -22,7 +22,8 @@ export class BookHelper {
   public async getOrFetchBooks(
     asins: string[],
     region: Infer<typeof regionValidation>,
-    cache: boolean
+    cache: boolean,
+    sortByEpisode: boolean = false
   ) {
     const startTime = DateTime.now()
     const ctx = HttpContext.get()
@@ -57,13 +58,19 @@ export class BookHelper {
       splitted50Chunks.map((chunk) => this.getBooksFromAudible(chunk, region, cache ? [] : books))
     ).then((results) => results.flat())
 
-    if (!cache) {
-      return fetchedBooks.sort((a, b) => asins.indexOf(a.asin) - asins.indexOf(b.asin))
-    } else {
-      return [...books, ...fetchedBooks].sort(
-        (a, b) => asins.indexOf(a.asin) - asins.indexOf(b.asin)
-      )
+    const compareByEpisode = (a: Book, b: Book) => {
+      const aEpisode = a.episodeNumber ? Number.parseFloat(a.episodeNumber) : Infinity
+      const bEpisode = b.episodeNumber ? Number.parseFloat(b.episodeNumber) : Infinity
+      return aEpisode - bEpisode || asins.indexOf(a.asin) - asins.indexOf(b.asin)
     }
+
+    const compareByAsinOrder = (a: Book, b: Book) => asins.indexOf(a.asin) - asins.indexOf(b.asin)
+
+    const booksToSort = cache ? [...books, ...fetchedBooks] : fetchedBooks
+
+    const compareFunc = sortByEpisode ? compareByEpisode : compareByAsinOrder
+
+    return booksToSort.sort(compareFunc)
   }
 
   private async getBooksFromAudible(
@@ -166,8 +173,8 @@ export class BookHelper {
           }
           authorMap.set(product.asin, localAuthors)
         }
+        const localSeries: Record<string, ModelObject> = {}
         if (product.series) {
-          const localSeries: Record<string, ModelObject> = {}
           for (const seriesData of product.series) {
             const seriesModel = new Series()
             seriesModel.asin = seriesData.asin
@@ -181,6 +188,24 @@ export class BookHelper {
             }
             series.push(seriesModel)
           }
+        }
+        if (product.content_type && product.content_type.toLowerCase() === 'podcast') {
+          for (const seriesData of product.relationships) {
+            if (seriesData.asin && seriesData.title) {
+              const seriesModel = new Series()
+              seriesModel.asin = seriesData.asin
+              seriesModel.title = seriesData.title.trim()
+
+              if (seriesData.sort && seriesData.sort.length > 0) {
+                localSeries[seriesData.asin] = { position: seriesData.sort }
+              } else {
+                localSeries[seriesData.asin] = {}
+              }
+              series.push(seriesModel)
+            }
+          }
+        }
+        if (localSeries && Object.keys(localSeries).length > 0) {
           seriesMap.set(product.asin, localSeries)
         }
       }
@@ -293,6 +318,10 @@ export class BookHelper {
         book.hasPdf = product.is_pdf_url_available ?? false
         book.lengthMinutes = product.runtime_length_min ?? null
         book.whisperSync = product.read_along_support ?? false
+        book.contentType = product.content_type ?? null
+        book.contentDeliveryType = product.content_delivery_type ?? null
+        book.episodeNumber = product.episode_number ? String(product.episode_number) : null
+        book.episodeType = product.episode_type ?? null
 
         const imageMap = product.product_images
         if (imageMap && Object.keys(imageMap).length > 0) {

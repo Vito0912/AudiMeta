@@ -87,7 +87,8 @@ export class SeriesHelper {
   }
 
   static async getBooksBySeries(
-    payload: Infer<typeof authorBookValidator>
+    payload: Infer<typeof authorBookValidator>,
+    sortByEpisode: boolean = false
   ): Promise<Book[] | null> {
     let series = await Series.query().where('asin', payload.asin).first()
 
@@ -140,7 +141,7 @@ export class SeriesHelper {
       throw new NotFoundException()
     }
 
-    return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
+    return await new BookHelper().getOrFetchBooks(asins, payload.region, true, sortByEpisode)
   }
 
   static async search(payload: Infer<typeof searchSeriesValidator>) {

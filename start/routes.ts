@@ -62,6 +62,12 @@ router
   .use(itemLimit)
   .use(extremeLimit)
 
+router
+  .get('/podcast/:asin', [SeriesController, 'podcast'])
+  .use(cacheLimit)
+  .use(itemLimit)
+  .use(extremeLimit)
+
 // Legacy route for backward compatibility
 router
   .get('/series/books/:asin', [SeriesController, 'books'])

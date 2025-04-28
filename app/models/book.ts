@@ -67,6 +67,18 @@ export default class Book extends BaseModel {
   @column()
   declare whisperSync: boolean
 
+  @column()
+  declare contentType: string | null
+
+  @column()
+  declare contentDeliveryType: string | null
+
+  @column()
+  declare episodeNumber: string | null
+
+  @column()
+  declare episodeType: string | null
+
   @hasOne(() => Track)
   declare track: HasOne<typeof Track>
 
