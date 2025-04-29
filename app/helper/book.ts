@@ -82,7 +82,7 @@ export class BookHelper {
 
     const ctx = HttpContext.get()
 
-    asins = [...asins, ...updateBooks.map((book) => book.asin)]
+    asins = Array.from(new Set([...asins, ...updateBooks.map((book) => book.asin)]))
 
     const startTime = DateTime.now()
 
@@ -138,8 +138,8 @@ export class BookHelper {
             for (const [index, genre] of genreLadder.ladder.entries()) {
               const genreModel: Genre = new Genre()
 
-              genreModel.asin = genre.id
-              genreModel.name = genre.name
+              genreModel.asin = genre.id?.trim() ?? null
+              genreModel.name = genre.name?.trim() ?? null
               genreModel.type = index === 0 ? 'Genres' : 'Tags'
 
               genres.push(genreModel)
@@ -162,8 +162,8 @@ export class BookHelper {
           const localAuthors: Record<string, ModelObject> = {}
           for (const author of product.authors) {
             const authorModel = new Author()
-            authorModel.name = author.name.trim()
-            authorModel.asin = author.asin ?? null
+            authorModel.name = author.name?.replace('\t', '').trim() ?? null
+            authorModel.asin = author.asin?.replace('\t', '').trim() ?? null
             authorModel.region = region
             authorModel.image = author.image ?? null
             authorModel.description = author.description ?? null
@@ -177,8 +177,8 @@ export class BookHelper {
         if (product.series) {
           for (const seriesData of product.series) {
             const seriesModel = new Series()
-            seriesModel.asin = seriesData.asin
-            seriesModel.title = seriesData.title.trim()
+            seriesModel.asin = seriesData.asin ? seriesData.asin.replace('\t', '').trim() : null
+            seriesModel.title = seriesData.title ? seriesData.title.replace('\t', '').trim() : null
             seriesModel.description = seriesData.description ?? null
 
             if (seriesData.sequence && seriesData.sequence.length > 0) {
@@ -193,8 +193,10 @@ export class BookHelper {
           for (const seriesData of product.relationships) {
             if (seriesData.asin && seriesData.title) {
               const seriesModel = new Series()
-              seriesModel.asin = seriesData.asin
-              seriesModel.title = seriesData.title.trim()
+              seriesModel.asin = seriesData.asin ? seriesData.asin.replace('\t', '').trim() : null
+              seriesModel.title = seriesData.title
+                ? seriesData.title.replace('\t', '').trim()
+                : null
 
               if (seriesData.sort && seriesData.sort.length > 0) {
                 localSeries[seriesData.asin] = { position: seriesData.sort }
@@ -301,7 +303,7 @@ export class BookHelper {
 
       for (const product of products) {
         const book: Book = updateBooks.find((b) => b.asin === product.asin) ?? new Book()
-        book.asin = product.asin
+        book.asin = product.asin?.replace('\t', '').trim() ?? null
         book.region = region
         book.title = product.title
         book.subtitle = product.subtitle ?? null

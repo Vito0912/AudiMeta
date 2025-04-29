@@ -47,7 +47,6 @@ export default class BooksController {
     if (!chapter) {
       throw new NotFoundException()
     }
-    console.log(typeof chapter.chapters)
 
     return new TrackContentDto(chapter.chapters)
   }
@@ -65,6 +64,7 @@ export default class BooksController {
       .preload('genres')
       .preload('series', (q) => q.pivotColumns(['position']))
       .preload('authors')
+      .limit(20)
 
     if (!books) {
       throw new NotFoundException()

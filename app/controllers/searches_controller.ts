@@ -4,12 +4,19 @@ import { HttpContext } from '@adonisjs/core/http'
 import { basicSearchValidator } from '#validators/search'
 import { SearchHelper } from '../helper/search.js'
 import BookDto, { AbsBookDto } from '#dtos/book'
+import NotFoundException from '#exceptions/not_found_exception'
 
 export default class SearchesController {
   async index({ request }: HttpContext) {
     const payload = await basicSearchValidator.validate({ ...request.qs(), ...request.params() })
 
-    return BookDto.fromArray((await SearchHelper.search(payload)) ?? [])
+    const books = (await SearchHelper.search(payload)) ?? []
+
+    if (!books || books.length === 0) {
+      return new NotFoundException()
+    }
+
+    return BookDto.fromArray(books)
   }
 
   async abs({ request }: HttpContext) {
@@ -21,6 +28,12 @@ export default class SearchesController {
 
     payload.limit = 5
 
-    return { matches: AbsBookDto.fromArray((await SearchHelper.search(payload)) ?? []) }
+    const books = (await SearchHelper.search(payload)) ?? []
+
+    if (!books || books.length === 0) {
+      return new NotFoundException()
+    }
+
+    return { matches: AbsBookDto.fromArray(books) }
   }
 }

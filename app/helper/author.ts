@@ -116,18 +116,18 @@ export class AuthorHelper {
       }
       for (const item of section.model.items || []) {
         if (item.view.template === 'ExpandableText' && item.model.expandable_content) {
-          author.description = item.model.expandable_content.value
+          author.description = item.model.expandable_content?.value?.replace('\t', '').trim() || ''
         }
       }
       author.fetchedDescription = true
     }
     if (json.page_details?.model?.title) {
-      author.name = json.page_details.model.title
+      author.name = json.page_details?.model?.title?.replace('\t', '').trim() || ''
     }
     if (!author.region) {
       author.region = payload.region
     }
-    author.asin = payload.asin
+    author.asin = payload.asin?.replace('\t', '').trim() || ''
 
     return await retryOnUniqueViolation(async () => {
       const serializedAuthor = author.serialize()
