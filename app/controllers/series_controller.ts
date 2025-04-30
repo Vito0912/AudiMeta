@@ -1,7 +1,7 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
 import { HttpContext } from '@adonisjs/core/http'
-import { getBasicValidator, paginationValidator, searchSeriesValidator } from '#validators/common'
+import { authorBookValidator, getBasicValidator, searchSeriesValidator } from '#validators/common'
 import NotFoundException from '#exceptions/not_found_exception'
 import SeriesDto from '#dtos/series'
 import { SeriesHelper } from '../helper/series.js'
@@ -19,13 +19,13 @@ export default class SeriesController {
   }
 
   async books({ request }: HttpContext) {
-    const payload = await paginationValidator.validate({ ...request.qs(), ...request.params() })
+    const payload = await authorBookValidator.validate({ ...request.qs(), ...request.params() })
 
     return BookDto.fromArray((await SeriesHelper.getBooksBySeries(payload)) ?? [])
   }
 
   async podcast({ request }: HttpContext) {
-    const payload = await paginationValidator.validate({ ...request.qs(), ...request.params() })
+    const payload = await authorBookValidator.validate({ ...request.qs(), ...request.params() })
 
     return BookDto.fromArray((await SeriesHelper.getBooksBySeries(payload, true)) ?? [])
   }

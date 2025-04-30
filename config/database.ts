@@ -19,6 +19,7 @@ const dbConfig = defineConfig({
       },
       pool: {
         min: 0,
+        max: 200,
       },
     },
   },

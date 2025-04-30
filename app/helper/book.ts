@@ -55,7 +55,15 @@ export class BookHelper {
     }
 
     const fetchedBooks = await Promise.all(
-      splitted50Chunks.map((chunk) => this.getBooksFromAudible(chunk, region, cache ? [] : books))
+      splitted50Chunks.map(
+        (chunk, index) =>
+          new Promise((resolve) =>
+            setTimeout(
+              () => resolve(this.getBooksFromAudible(chunk, region, cache ? [] : books)),
+              index * 250
+            )
+          )
+      )
     ).then((results) => results.flat())
 
     const compareByEpisode = (a: Book, b: Book) => {
