@@ -347,13 +347,15 @@ export class BookHelper {
         const asin = product.asin
 
         promises.push(
-          book.save().then(async () => {
-            await Promise.all([
-              book.related('genres').sync(genreMap.get(product.asin) ?? {}),
-              book.related('series').sync(seriesMap.get(product.asin) ?? {}),
-              book.related('narrators').sync(narratorMap.get(product.asin) ?? {}),
-              book.related('authors').sync(authorMap.get(product.asin) ?? {}),
-            ])
+          retryOnUniqueViolation(async () => {
+            return await book.save().then(async () => {
+              await Promise.all([
+                book.related('genres').sync(genreMap.get(product.asin) ?? {}),
+                book.related('series').sync(seriesMap.get(product.asin) ?? {}),
+                book.related('narrators').sync(narratorMap.get(product.asin) ?? {}),
+                book.related('authors').sync(authorMap.get(product.asin) ?? {}),
+              ])
+            })
           })
         )
 
@@ -414,9 +416,8 @@ export class BookHelper {
 
         books.push(book)
       }
-      await retryOnUniqueViolation(async () => {
-        return await Promise.all(promises)
-      })
+
+      await Promise.all(promises)
 
       if (books.length > 0) {
         return books
