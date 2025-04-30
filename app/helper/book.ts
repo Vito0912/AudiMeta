@@ -348,7 +348,9 @@ export class BookHelper {
 
         promises.push(
           retryOnUniqueViolation(async () => {
-            return await book.save().then(async () => {
+            return await Book.updateOrCreate({ asin: book.asin }, filterNulls(book.serialize()), {
+              allowExtraProperties: true,
+            }).then(async () => {
               await Promise.all([
                 book.related('genres').sync(genreMap.get(product.asin) ?? {}),
                 book.related('series').sync(seriesMap.get(product.asin) ?? {}),
