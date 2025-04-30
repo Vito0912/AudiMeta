@@ -24,7 +24,7 @@ export class BookHelper {
     region: Infer<typeof regionValidation>,
     cache: boolean,
     sortByEpisode: boolean = false
-  ) {
+  ): Promise<Book[]> {
     const startTime = DateTime.now()
     const ctx = HttpContext.get()
 
@@ -74,7 +74,7 @@ export class BookHelper {
 
     const compareByAsinOrder = (a: Book, b: Book) => asins.indexOf(a.asin) - asins.indexOf(b.asin)
 
-    const booksToSort = cache ? [...books, ...fetchedBooks] : fetchedBooks
+    const booksToSort: Book[] = (cache ? [...books, ...fetchedBooks] : fetchedBooks) as Book[]
 
     const compareFunc = sortByEpisode ? compareByEpisode : compareByAsinOrder
 
