@@ -23,7 +23,8 @@ export class BookHelper {
     asins: string[],
     region: Infer<typeof regionValidation>,
     cache: boolean,
-    sortByEpisode: boolean = false
+    sortByEpisode: boolean = false,
+    shouldThrow: boolean = true
   ): Promise<Book[]> {
     const startTime = DateTime.now()
     const ctx = HttpContext.get()
@@ -59,7 +60,8 @@ export class BookHelper {
         (chunk, index) =>
           new Promise((resolve) =>
             setTimeout(
-              () => resolve(this.getBooksFromAudible(chunk, region, cache ? [] : books)),
+              () =>
+                resolve(this.getBooksFromAudible(chunk, region, cache ? [] : books, shouldThrow)),
               index * 250
             )
           )
@@ -84,7 +86,8 @@ export class BookHelper {
   private async getBooksFromAudible(
     asins: string[],
     region: Infer<typeof regionValidation>,
-    updateBooks: Book[]
+    updateBooks: Book[],
+    shouldThrow: boolean = true
   ): Promise<Book[]> {
     if ((!asins || asins.length === 0) && updateBooks.length === 0) return []
 
@@ -126,7 +129,7 @@ export class BookHelper {
           product.publication_datetime !== '2200-01-01T00:00:00Z'
       )
 
-      if (products.length <= 0) throw new NotFoundException()
+      if (products.length <= 0 && shouldThrow) throw new NotFoundException()
 
       const books: Book[] = []
       const genres: Genre[] = []
@@ -426,7 +429,11 @@ export class BookHelper {
       }
     }
 
-    throw new Error('Failed to fetch book data')
+    if (shouldThrow) {
+      throw new Error('Failed to fetch book data')
+    } else {
+      return []
+    }
   }
 
   public async getOrFetchChapters(

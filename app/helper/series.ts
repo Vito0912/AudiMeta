@@ -141,7 +141,26 @@ export class SeriesHelper {
       throw new NotFoundException()
     }
 
-    return await new BookHelper().getOrFetchBooks(asins, payload.region, true, sortByEpisode)
+    let books
+
+    try {
+      books = await new BookHelper().getOrFetchBooks(
+        asins,
+        payload.region,
+        true,
+        sortByEpisode,
+        false
+      )
+    } catch (error) {
+      console.error('Error fetching books:', error)
+      if (ctx) ctx.logger.error('Error fetching books')
+    }
+
+    if (!books || books.length === 0) {
+      throw new NotFoundException()
+    }
+
+    return books
   }
 
   static async search(payload: Infer<typeof searchSeriesValidator>) {
