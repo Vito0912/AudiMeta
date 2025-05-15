@@ -99,7 +99,7 @@ export class BookHelper {
 
     const reqParams = {
       response_groups:
-        'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders',
+        'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders, customer_rights',
       ...(asins.length > 1 ? { asins: asins.join(',') } : {}),
       image_sizes: '500,1000,2400,3200',
     }
@@ -337,6 +337,8 @@ export class BookHelper {
         book.episodeType = product.episode_type ?? null
         book.sku = product.sku ?? null
         book.skuGroup = product.sku_lite ?? null
+        book.isBuyable = product.is_buyable
+        book.isListenable = product.is_listenable
 
         const imageMap = product.product_images
         if (imageMap && Object.keys(imageMap).length > 0) {

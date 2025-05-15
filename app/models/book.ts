@@ -85,6 +85,12 @@ export default class Book extends BaseModel {
   @column()
   declare skuGroup: string | null
 
+  @column()
+  declare isListenable: boolean
+
+  @column()
+  declare isBuyable: boolean
+
   @hasOne(() => Track)
   declare track: HasOne<typeof Track>
 

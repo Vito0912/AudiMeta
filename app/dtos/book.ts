@@ -39,6 +39,8 @@ export default class BookDto extends BaseModelDto {
   declare episodeType: string | null
   declare sku: string | null
   declare skuGroup: string | null
+  declare isListenable: boolean
+  declare isAvailable: boolean
 
   constructor(book?: Book) {
     super()
@@ -72,6 +74,9 @@ export default class BookDto extends BaseModelDto {
 
     this.sku = book.sku ?? null
     this.skuGroup = book.skuGroup ?? null
+
+    this.isListenable = book.isListenable
+    this.isAvailable = book.isBuyable
 
     this.contentType = book.contentType
     this.contentDeliveryType = book.contentDeliveryType

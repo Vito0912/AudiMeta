@@ -5,15 +5,15 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.string('sku', 20)
-      table.string('sku_group', 20)
+      table.boolean('is_listenable').defaultTo(true).after('is_published')
+      table.boolean('is_buyable').defaultTo(true).after('is_listenable')
     })
   }
 
   async down() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.dropColumn('sku')
-      table.dropColumn('sku_group')
+      table.dropColumn('is_listenable')
+      table.dropColumn('is_buyable')
     })
   }
 }
