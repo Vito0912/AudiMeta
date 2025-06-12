@@ -8,7 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import { cacheLimit, extremeLimit, itemLimit, searchLimit } from '#start/limiter'
+import { cacheLimit, extremeLimit, itemLimit, searchLimit, seriesLimit } from '#start/limiter'
 import app from '@adonisjs/core/services/app'
 
 const SearchesController = () => import('#controllers/searches_controller')
@@ -61,20 +61,20 @@ router
   .get('/series/:asin/books', [SeriesController, 'books'])
   .use(cacheLimit)
   .use(itemLimit)
-  .use(extremeLimit)
+  .use(seriesLimit)
 
 router
   .get('/podcast/:asin', [SeriesController, 'podcast'])
   .use(cacheLimit)
   .use(itemLimit)
-  .use(extremeLimit)
+  .use(seriesLimit)
 
 // Legacy route for backward compatibility
 router
   .get('/series/books/:asin', [SeriesController, 'books'])
   .use(cacheLimit)
   .use(itemLimit)
-  .use(extremeLimit)
+  .use(seriesLimit)
 
 router.get(':region/search', [SearchesController, 'abs']).use(cacheLimit).use(searchLimit)
 
