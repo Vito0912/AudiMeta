@@ -174,7 +174,10 @@ export class BookHelper {
           for (const author of product.authors) {
             const authorModel = new Author()
             authorModel.name = author.name?.replace('\t', '').trim() ?? null
-            authorModel.asin = author.asin?.replace('\t', '').trim() ?? null
+            authorModel.asin =
+              author.asin && author.asin.replace('\t', '').trim().length <= 12
+                ? author.asin.replace('\t', '').trim()
+                : null
             authorModel.region = region
             authorModel.image = author.image ?? null
             authorModel.description = author.description ?? null
