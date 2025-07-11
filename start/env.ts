@@ -54,5 +54,7 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   RATE_CACHE: Env.schema.number(),
 
-  RATE_SERIES: Env.schema.number()
+  RATE_SERIES: Env.schema.number(),
+
+  BLACKLISTED_USER_AGENTS: Env.schema.string()
 })
