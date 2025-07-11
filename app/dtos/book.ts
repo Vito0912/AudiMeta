@@ -124,7 +124,7 @@ export class AbsBookDto extends BaseModelDto {
     this.title = book.title ?? null
     this.subtitle = book.subtitle ?? null
 
-    this.description = book.description ?? null
+    this.description = book.summary ?? book.description ?? null
 
     this.publisher = book.publisher ?? null
     this.publishedYear = book.releaseDate?.toFormat('yyyy') ?? null
