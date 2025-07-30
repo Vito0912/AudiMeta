@@ -28,6 +28,9 @@ export default class CacheMiddleware {
       const cachedResponse = await cache.get({ key: cacheKey })
       if (cachedResponse) {
         ctx.logger.info({ cacheKey }, 'Serving from cache')
+        ctx.response.header('x-ratelimit-limit', 10000)
+        ctx.response.header('x-ratelimit-remaining', 10000)
+        ctx.response.header('x-cached', true)
         return ctx.response.send(JSON.parse(cachedResponse))
       }
     }
