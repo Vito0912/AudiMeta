@@ -1,10 +1,29 @@
 import { BaseModelDto } from '@adocasts.com/dto/base'
 import Series from '#models/series'
+import {
+  asinApiProperty,
+  descriptionApiProperty,
+  nameApiProperty,
+  updatedAtApiProperty,
+} from '#config/openapi'
+import { ApiProperty } from '@foadonis/openapi/decorators'
 
 export class MinimalSeriesDto extends BaseModelDto {
+  @asinApiProperty()
   declare asin: string
+
+  @nameApiProperty()
   declare name: string
+
+  @ApiProperty({
+    description: 'The position of the series in the list. Can be a string!',
+    type: 'string',
+    example: '1',
+    nullable: true,
+  })
   declare position: string | null
+
+  @updatedAtApiProperty()
   declare updatedAt: string | null
 
   constructor(series?: Series) {
@@ -23,6 +42,7 @@ export class MinimalSeriesDto extends BaseModelDto {
 }
 
 export default class SeriesDto extends MinimalSeriesDto {
+  @descriptionApiProperty()
   declare description: string
 
   constructor(series?: Series) {

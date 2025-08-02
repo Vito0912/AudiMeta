@@ -9,7 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { cacheLimit, extremeLimit, itemLimit, searchLimit, seriesLimit } from '#start/limiter'
-import app from '@adonisjs/core/services/app'
+import openapi from '@foadonis/openapi/services/main'
 
 const SearchesController = () => import('#controllers/searches_controller')
 const BooksController = () => import('#controllers/books_controller')
@@ -21,6 +21,8 @@ router.get('/ping', async () => {
     version: process.env.npm_package_version,
   }
 })
+
+openapi.registerRoutes('/api-docs')
 
 // Book
 
@@ -77,45 +79,3 @@ router
   .use(seriesLimit)
 
 router.get(':region/search', [SearchesController, 'abs']).use(cacheLimit).use(searchLimit)
-
-router.get('/openapi.json', async (ctx) => {
-  const filePath = app.makePath('openapi.json')
-  return ctx.response.download(filePath, true)
-})
-
-router.get('/api-docs', async (ctx) => {
-  ctx.response.send(`<!DOCTYPE html>
-		<html lang="en">
-		<head>
-				<meta charset="UTF-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<meta http-equiv="X-UA-Compatible" content="ie=edge">
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.21.0/swagger-ui-standalone-preset.js"></script>
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.21.0/swagger-ui-bundle.js"></script>
-				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.21.0/swagger-ui.css" />
-				<title>Documentation</title>
-		</head>
-		<body>
-				<div id="swagger-ui"></div>
-				<script>
-						window.onload = function() {
-							SwaggerUIBundle({
-								url: "https://raw.githubusercontent.com/Vito0912/AudiMeta/refs/heads/v2/openAPI.json",
-								dom_id: '#swagger-ui',
-								presets: [
-									SwaggerUIBundle.presets.apis,
-									SwaggerUIStandalonePreset
-								],
-								layout: "StandaloneLayout"
-							})
-						}
-				</script>
-<style>
-  body, div {
-    padding: 0;
-    margin: 0;
-  }
-</style>
-		</body>
-		</html>`)
-})

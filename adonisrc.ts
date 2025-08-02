@@ -40,6 +40,7 @@ export default defineConfig({
     () => import('@adonisjs/redis/redis_provider'),
     () => import('@adonisjs/cache/cache_provider'),
     () => import('@adonisjs/limiter/limiter_provider'),
+    () => import('@foadonis/openapi/openapi_provider')
   ],
 
   /*

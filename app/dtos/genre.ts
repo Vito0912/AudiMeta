@@ -1,13 +1,32 @@
 import { BaseModelDto } from '@adocasts.com/dto/base'
 import Genre from '#models/genre'
-import BookDto from '#dtos/book'
+import { genreAsinApiProperty, nameApiProperty, updatedAtApiProperty } from '#config/openapi'
+import { ApiProperty } from '@foadonis/openapi/decorators'
 
 export default class GenreDto extends BaseModelDto {
+  @genreAsinApiProperty()
   declare asin: string
+
+  @nameApiProperty()
   declare name: string
+
+  @ApiProperty({
+    description: 'The type of the genre or tag.',
+    type: 'string',
+    enum: ['Genres', 'Tags'],
+    example: 'Genres',
+  })
   declare type: 'Genres' | 'Tags'
+
+  @ApiProperty({
+    description: 'The better type of the genre or tag.',
+    type: 'string',
+    enum: ['genre', 'tag'],
+    example: 'genre',
+  })
   declare betterType: 'genre' | 'tag'
-  declare books: BookDto[]
+
+  @updatedAtApiProperty()
   declare updatedAt: string | null
 
   constructor(genre?: Genre) {

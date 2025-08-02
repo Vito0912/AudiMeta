@@ -1,0 +1,41 @@
+diff --git a/node_modules/openapi-metadata/dist/decorators/index.d.mts b/node_modules/openapi-metadata/dist/decorators/index.d.mts
+index 3f16a58..9c2abca 100644
+--- a/node_modules/openapi-metadata/dist/decorators/index.d.mts
++++ b/node_modules/openapi-metadata/dist/decorators/index.d.mts
+@@ -92,7 +92,7 @@ type ApiQueryOptions = Omit<OperationParameterMetadata, "in">;
+  */
+ declare function ApiQuery(options: ApiQueryOptions): (target: Object, propertyKey?: string | symbol) => void;
+ 
+-type ApiResponseOptions = SetOptional<OperationResponseMetadata, "status" | "mediaType">;
++export type ApiResponseOptions = SetOptional<OperationResponseMetadata, "status" | "mediaType">;
+ /**
+  * Configures a response.
+  * Can be applied to Controllers and Operations.
+diff --git a/node_modules/openapi-metadata/dist/index.mjs b/node_modules/openapi-metadata/dist/index.mjs
+index 81ae082..b207fa4 100644
+--- a/node_modules/openapi-metadata/dist/index.mjs
++++ b/node_modules/openapi-metadata/dist/index.mjs
+@@ -82,7 +82,8 @@ const ClassTypeLoader = async (context, value) => {
+   };
+   const properties = PropertyMetadataStorage.getMetadata(value.prototype);
+   if (!properties) {
+-    context.logger.warn(`You tried to use '${model}' as a type but it does not contain any ApiProperty.`);
++    context.logger.warn(`You tried to use '${model}' as a type but it does not contain any ApiProperty. (${value})`);
++    return;
+   }
+   context.schemas[model] = schema;
+   for (const [key, property] of Object.entries(properties)) {
+@@ -114,7 +115,12 @@ async function loadType(context, options) {
+     return;
+   }
+   const thunk = isThunk(options.type);
+-  const value = thunk ? options.type(context) : options.type;
++  let value;
++  try {
++    value = thunk ? options.type(context) : options.type;
++  } catch(e) {
++    value = options.type
++  }
+   for (const loader of [PrimitiveTypeLoader, ArrayTypeLoader, ...context.typeLoaders, ClassTypeLoader]) {
+     const result = await loader(context, value, options.type);
+     if (result) {

@@ -1,0 +1,17 @@
+diff --git a/node_modules/@foadonis/openapi/build/src/loader.js b/node_modules/@foadonis/openapi/build/src/loader.js
+index aede789..803d54b 100644
+--- a/node_modules/@foadonis/openapi/build/src/loader.js
++++ b/node_modules/@foadonis/openapi/build/src/loader.js
+@@ -33,10 +33,10 @@ export class RouterLoader {
+             return;
+         const [target, propertyKey] = reference;
+         const name = stringHelpers.create(target.name).removeSuffix('Controller').toString();
+-        OperationMetadataStorage.defineMetadata(target.prototype, {
++        OperationMetadataStorage.mergeMetadata(target.prototype, {
+             path: route.pattern,
+             methods: route.methods.filter((m) => m !== 'HEAD').map((r) => r.toLowerCase()),
+-            tags: [name],
++            //tags: [name],
+         }, propertyKey);
+         return target;
+     }

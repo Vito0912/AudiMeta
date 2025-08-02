@@ -4,6 +4,10 @@ import cache from '@adonisjs/cache/services/main'
 
 export default class CacheMiddleware {
   public async handle(ctx: HttpContext, next: NextFn) {
+    if (ctx.request.completeUrl(false).endsWith('api-docs')) {
+      return next()
+    }
+
     const queryParams = ctx.request.qs()
 
     const { cache1, ...filteredQueries } = queryParams
