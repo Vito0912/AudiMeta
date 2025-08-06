@@ -7,7 +7,7 @@ import BookDto from '#dtos/book'
 import NotFoundException from '#exceptions/not_found_exception'
 import { TrackContentDto } from '#dtos/track'
 import Book from '#models/book'
-import { ApiOperation, ApiQuery, ApiTags } from '@foadonis/openapi/decorators'
+import { ApiOperation, ApiQuery, ApiTags, ApiParam } from '@foadonis/openapi/decorators'
 import {
   asinApiQuery,
   cacheApiQuery,
@@ -90,7 +90,7 @@ export default class BooksController {
       'This endpoint returns all books that share the same SKU group. This only queries the database, so it will only return books that are already in the database.',
     operationId: 'getBooksBySku',
   })
-  @ApiQuery({
+  @ApiParam({
     name: 'sku',
     description: 'The SKU group to search for.',
     type: 'string',

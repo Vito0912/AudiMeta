@@ -27,29 +27,29 @@ openapi.registerRoutes('/api-docs')
 // Book
 
 router.get('/book', [BooksController, 'index']).use(cacheLimit).use(itemLimit)
-router.get('/book/:asin', [BooksController, 'index']).use(cacheLimit).use(itemLimit)
-router.get('/book/sku/:sku', [BooksController, 'sku']).use(cacheLimit).use(itemLimit)
-router.get('/book/:asin/chapters', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
+router.get('/book/{asin}', [BooksController, 'index']).use(cacheLimit).use(itemLimit)
+router.get('/book/sku/{sku}', [BooksController, 'sku']).use(cacheLimit).use(itemLimit)
+router.get('/book/{asin}/chapters', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
 
 router.get('/search', [SearchesController, 'index']).use(cacheLimit).use(itemLimit).use(searchLimit)
 
 // Legacy route for backward compatibility
-router.get('/chapters/:asin', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
+router.get('/chapters/{asin}', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
 
 // Author
 
 router.get('/author', [AuthorsController, 'search']).use(cacheLimit).use(itemLimit)
 
-router.get('/author/:asin', [AuthorsController, 'index']).use(cacheLimit).use(itemLimit)
+router.get('/author/{asin}', [AuthorsController, 'index']).use(cacheLimit).use(itemLimit)
 
 router
-  .get('/author/:asin/books', [AuthorsController, 'books'])
+  .get('/author/{asin}/books', [AuthorsController, 'books'])
   .use(cacheLimit)
   .use(itemLimit)
   .use(extremeLimit)
 // Legacy route for backward compatibility
 router
-  .get('/author/books/:asin', [AuthorsController, 'books'])
+  .get('/author/books/{asin}', [AuthorsController, 'books'])
   .use(cacheLimit)
   .use(itemLimit)
   .use(extremeLimit)
@@ -57,23 +57,23 @@ router
 // Series
 router.get('/series', [SeriesController, 'search']).use(cacheLimit).use(itemLimit).use(searchLimit)
 
-router.get('/series/:asin', [SeriesController, 'index']).use(cacheLimit).use(itemLimit)
+router.get('/series/{asin}', [SeriesController, 'index']).use(cacheLimit).use(itemLimit)
 
 router
-  .get('/series/:asin/books', [SeriesController, 'books'])
+  .get('/series/{asin}/books', [SeriesController, 'books'])
   .use(cacheLimit)
   .use(itemLimit)
   .use(seriesLimit)
 
 router
-  .get('/podcast/:asin', [SeriesController, 'podcast'])
+  .get('/podcast/{asin}', [SeriesController, 'podcast'])
   .use(cacheLimit)
   .use(itemLimit)
   .use(seriesLimit)
 
 // Legacy route for backward compatibility
 router
-  .get('/series/books/:asin', [SeriesController, 'books'])
+  .get('/series/books/{asin}', [SeriesController, 'books'])
   .use(cacheLimit)
   .use(itemLimit)
   .use(seriesLimit)

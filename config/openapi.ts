@@ -4,6 +4,7 @@ import {
   ApiQuery,
   ApiResponse,
   ApiResponseOptions,
+  ApiParam,
 } from '@foadonis/openapi/decorators'
 
 export default defineConfig({
@@ -116,7 +117,7 @@ export const regionApiQuery = (required: boolean = true) =>
   })
 
 export const asinApiQuery = (required: boolean = true) =>
-  ApiQuery({
+  ApiParam({
     name: 'asin',
     description: 'The ASIN (Amazon Standard Identification Number) of the resource.',
     type: 'string',
