@@ -21,100 +21,37 @@ export default class DbController {
       'This endpoint allows you to query the database for books, without any need to makeing a request to Audible. Thus this only returns books indexed in the database. All books that where fetched as part of search, series etc. are stored in the database and can be queried here. This is useful for debugging or to get a list of all books in the database.',
     operationId: 'getDBBooks',
   })
+  @cacheApiQuery()
+  @limitApiQuery()
+  @pageApiQuery()
   @ApiQuery({
-    name: 'title',
-    description: 'Search for books by title',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'subtitle',
-    description: 'Search for books by subtitle',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'region',
-    description: 'Filter books by region',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'description',
-    description: 'Search for books by description',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'summary',
-    description: 'Search for books by summary',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'publisher',
-    description: 'Search for books by publisher',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'copyright',
-    description: 'Search for books by copyright',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'isbn',
-    description: 'Search for books by ISBN',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'language',
-    description: 'Filter books by language. Should be english, german etc.',
-    required: false,
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'rating',
-    description: 'Filter books by rating',
-    required: false,
-    type: 'number',
-  })
-  @ApiQuery({
-    name: 'longer_than',
-    description: 'Filter books by duration, longer than this value in minutes',
-    required: false,
-    type: 'number',
-  })
-  @ApiQuery({
-    name: 'shorter_than',
-    description: 'Filter books by duration, shorter than this value in minutes',
-    required: false,
-    type: 'number',
-  })
-  @ApiQuery({
-    name: 'explicit',
-    description: 'Filter books by explicit content',
+    name: 'is_buyable',
+    description: 'Filter books by buyable status',
     required: false,
     type: 'boolean',
   })
   @ApiQuery({
-    name: 'whisper_sync',
-    description: 'Filter books by whisper sync availability',
+    name: 'is_listenable',
+    description: 'Filter books by listenable status',
     required: false,
     type: 'boolean',
   })
   @ApiQuery({
-    name: 'has_pdf',
-    description: 'Filter books by PDF availability',
-    required: false,
-    type: 'boolean',
-  })
-  @ApiQuery({
-    name: 'book_format',
-    description: 'Filter books by format',
-    enum: ['unabridged', 'abridged', 'original_recording', 'highlights'],
+    name: 'content_delivery_type',
+    description: 'Filter books by content type delivery type',
+    enum: [
+      'AudioPart',
+      'BookSeries',
+      'Bundle',
+      'MultiPartBook',
+      'Periodical',
+      'PodcastEpisode',
+      'PodcastParent',
+      'PodcastSeason',
+      'SinglePartBook',
+      'SinglePartIssue',
+      'Subscription',
+    ],
     required: false,
     type: 'string',
   })
@@ -146,45 +83,108 @@ export default class DbController {
     type: 'string',
   })
   @ApiQuery({
-    name: 'content_delivery_type',
-    description: 'Filter books by content type delivery type',
-    enum: [
-      'AudioPart',
-      'BookSeries',
-      'Bundle',
-      'MultiPartBook',
-      'Periodical',
-      'PodcastEpisode',
-      'PodcastParent',
-      'PodcastSeason',
-      'SinglePartBook',
-      'SinglePartIssue',
-      'Subscription',
-    ],
+    name: 'book_format',
+    description: 'Filter books by format',
+    enum: ['unabridged', 'abridged', 'original_recording', 'highlights'],
     required: false,
     type: 'string',
   })
   @ApiQuery({
-    name: 'is_listenable',
-    description: 'Filter books by listenable status',
+    name: 'has_pdf',
+    description: 'Filter books by PDF availability',
     required: false,
     type: 'boolean',
   })
   @ApiQuery({
-    name: 'is_buyable',
-    description: 'Filter books by buyable status',
+    name: 'whisper_sync',
+    description: 'Filter books by whisper sync availability',
     required: false,
     type: 'boolean',
   })
-  @pageApiQuery()
-  @limitApiQuery()
-  @cacheApiQuery()
+  @ApiQuery({
+    name: 'explicit',
+    description: 'Filter books by explicit content',
+    required: false,
+    type: 'boolean',
+  })
+  @ApiQuery({
+    name: 'shorter_than',
+    description: 'Filter books by duration, shorter than this value in minutes',
+    required: false,
+    type: 'number',
+  })
+  @ApiQuery({
+    name: 'longer_than',
+    description: 'Filter books by duration, longer than this value in minutes',
+    required: false,
+    type: 'number',
+  })
+  @ApiQuery({
+    name: 'rating',
+    description: 'Filter books by rating',
+    required: false,
+    type: 'number',
+  })
+  @ApiQuery({
+    name: 'language',
+    description: 'Filter books by language. Should be english, german etc.',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'isbn',
+    description: 'Search for books by ISBN',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'copyright',
+    description: 'Search for books by copyright',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'publisher',
+    description: 'Search for books by publisher',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'summary',
+    description: 'Search for books by summary',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'description',
+    description: 'Search for books by description',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'region',
+    description: 'Filter books by region',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'subtitle',
+    description: 'Search for books by subtitle',
+    required: false,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'title',
+    description: 'Search for books by title',
+    required: false,
+    type: 'string',
+  })
   @notFoundApiResponse()
   @successApiResponse({ type: [BookDto] })
   async book({ request }: HttpContext) {
     const payload = await dbBookSearchValidator.validate({ ...request.qs(), ...request.params() })
 
-    const isEmptyPayload = Object.keys(payload).length <= 3
+    const isEmptyPayload = Object.keys(payload).length <= 2
     if (isEmptyPayload) {
       throw new NotFoundException('No search parameters provided')
     }
@@ -218,7 +218,7 @@ export default class DbController {
       .preload('series', (q) => q.pivotColumns(['position']))
       .preload('authors')
       .limit(payload.limit ?? 20)
-      .offset((payload.page ?? 0) * (payload.limit ?? 20))
+      .offset(((payload.page ?? 1) - 1) * (payload.limit ?? 20))
 
     if (!books) {
       throw new NotFoundException()

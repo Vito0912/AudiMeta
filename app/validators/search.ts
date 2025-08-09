@@ -93,7 +93,9 @@ export const dbBookSearchValidator = vine.compile(
   vine.object({
     title: stringValidation.optional(),
     subtitle: stringValidation.optional(),
-    region: regionValidation.optional(),
+    region: vine
+      .enum(['us', 'ca', 'uk', 'au', 'fr', 'de', 'jp', 'it', 'in', 'es', 'br'])
+      .optional(),
     description: stringValidation.optional(),
     summary: stringValidation.optional(),
     publisher: stringValidation.optional(),
@@ -167,7 +169,7 @@ export const dbBookSearchValidator = vine.compile(
       .number()
       .parse((v) => {
         if (!v) {
-          return 0
+          return 1
         }
         if (typeof v !== 'number') {
           return v
@@ -175,6 +177,6 @@ export const dbBookSearchValidator = vine.compile(
         return v
       })
       .max(20)
-      .min(0),
+      .min(1),
   })
 )
