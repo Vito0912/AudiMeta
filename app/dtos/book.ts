@@ -233,8 +233,16 @@ export default class BookDto extends BaseModelDto {
     description: 'Whether the book is available for purchase.',
     type: 'boolean',
     example: true,
+    deprecated: true,
   })
   declare isAvailable: boolean
+
+  @ApiProperty({
+    description: 'Whether the book is available for purchase.',
+    type: 'boolean',
+    example: true,
+  })
+  declare isBuyable: boolean
 
   constructor(book?: Book) {
     super()
@@ -271,6 +279,7 @@ export default class BookDto extends BaseModelDto {
 
     this.isListenable = book.isListenable
     this.isAvailable = book.isBuyable
+    this.isBuyable = book.isBuyable
 
     this.contentType = book.contentType
     this.contentDeliveryType = book.contentDeliveryType

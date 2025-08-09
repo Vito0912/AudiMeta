@@ -65,7 +65,7 @@ export class BookHelper {
     const missingAsins = asins.filter((asin) => !books.some((book) => book.asin === asin))
 
     const mergedAsins = Array.from(
-      new Set([...missingAsins, ...(cache ? [] : books.map((book) => book.asin))])
+      new Set([...missingAsins, ...needsUpdate, ...(cache ? [] : books.map((book) => book.asin))])
     )
 
     const splitted50Chunks = []
@@ -221,7 +221,12 @@ export class BookHelper {
             series.push(seriesModel)
           }
         }
-        if (product.content_type && product.content_type.toLowerCase() === 'podcast') {
+        if (
+          product.content_type &&
+          product.content_type.toLowerCase() === 'podcast' &&
+          product.relationships &&
+          product.relationships.length > 0
+        ) {
           for (const seriesData of product.relationships) {
             if (seriesData.asin && seriesData.title) {
               const seriesModel = new Series()
