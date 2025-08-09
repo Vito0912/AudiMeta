@@ -98,7 +98,7 @@ export default class BooksController {
   })
   @cacheApiQuery()
   @notFoundApiResponse()
-  @successApiResponse({ type: TrackContentDto })
+  @successApiResponse({ type: [BookDto] })
   async sku({ request }: HttpContext) {
     const payload = await skuValidation.validate({ ...request.qs(), ...request.params() })
 

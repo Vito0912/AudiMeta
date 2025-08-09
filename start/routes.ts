@@ -10,6 +10,7 @@
 import router from '@adonisjs/core/services/router'
 import { cacheLimit, extremeLimit, itemLimit, searchLimit, seriesLimit } from '#start/limiter'
 import openapi from '@foadonis/openapi/services/main'
+import DbController from '#controllers/db_controller'
 
 const SearchesController = () => import('#controllers/searches_controller')
 const BooksController = () => import('#controllers/books_controller')
@@ -79,3 +80,5 @@ router
   .use(seriesLimit)
 
 router.get(':region/search', [SearchesController, 'abs']).use(cacheLimit).use(searchLimit)
+
+router.get('/db/book', [DbController, 'book']).use(itemLimit)

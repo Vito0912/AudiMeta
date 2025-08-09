@@ -88,3 +88,93 @@ export const basicSearchValidator = vine.compile(
     cache: cacheValidation,
   })
 )
+
+export const dbBookSearchValidator = vine.compile(
+  vine.object({
+    title: stringValidation.optional(),
+    subtitle: stringValidation.optional(),
+    region: regionValidation.optional(),
+    description: stringValidation.optional(),
+    summary: stringValidation.optional(),
+    publisher: stringValidation.optional(),
+    copyright: stringValidation.optional(),
+    isbn: stringValidation.optional(),
+    language: stringValidation.optional(),
+    rating: vine.number().optional(),
+    longer_than: vine.number().optional(),
+    shorter_than: vine.number().optional(),
+    explicit: vine.boolean().optional(),
+    whisper_sync: vine.boolean().optional(),
+    has_pdf: vine.boolean().optional(),
+    book_format: vine
+      .enum(['unabridged', 'abridged', 'original_recording', 'highlights'])
+      .optional(),
+    content_type: vine
+      .enum([
+        'Article',
+        'Book',
+        'Episode',
+        'Excerpt',
+        'Hypnosis',
+        'Language Learning',
+        'Lecture',
+        'Meditation',
+        'Misc',
+        'Newspaper / Magazine',
+        'Performance',
+        'Periodical',
+        'Podcast',
+        'Product',
+        'Radio/TV Program',
+        'Sermon',
+        'Show',
+        'Speech',
+        'Walking Tour',
+      ])
+      .optional(),
+    content_type_delivery_type: vine
+      .enum([
+        'AudioPart',
+        'BookSeries',
+        'Bundle',
+        'MultiPartBook',
+        'Periodical',
+        'PodcastEpisode',
+        'PodcastParent',
+        'PodcastSeason',
+        'SinglePartBook',
+        'SinglePartIssue',
+        'Subscription',
+      ])
+      .optional(),
+    is_listenable: vine.boolean().optional(),
+    is_buyable: vine.boolean().optional(),
+    limit: vine
+      .number()
+      .parse((v) => {
+        if (!v) {
+          return 20
+        }
+        if (typeof v !== 'number') {
+          return v
+        }
+        return v
+      })
+      .min(1)
+      .max(50)
+      .optional(),
+    page: vine
+      .number()
+      .parse((v) => {
+        if (!v) {
+          return 0
+        }
+        if (typeof v !== 'number') {
+          return v
+        }
+        return v
+      })
+      .max(20)
+      .min(0),
+  })
+)
