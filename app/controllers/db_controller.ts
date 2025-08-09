@@ -146,7 +146,7 @@ export default class DbController {
     type: 'string',
   })
   @ApiQuery({
-    name: 'content_type_delivery_type',
+    name: 'content_delivery_type',
     description: 'Filter books by content type delivery type',
     enum: [
       'AudioPart',
@@ -208,8 +208,8 @@ export default class DbController {
         if (payload.has_pdf !== undefined) q.where('has_pdf', payload.has_pdf)
         if (payload.book_format) q.where('book_format', payload.book_format)
         if (payload.content_type) q.where('content_type', payload.content_type)
-        if (payload.content_type_delivery_type)
-          q.where('content_type_delivery_type', payload.content_type_delivery_type)
+        if (payload.content_delivery_type)
+          q.where('content_delivery_type', payload.content_delivery_type)
         if (payload.is_listenable !== undefined) q.where('is_listenable', payload.is_listenable)
         if (payload.is_buyable !== undefined) q.where('is_buyable', payload.is_buyable)
       })

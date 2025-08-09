@@ -132,7 +132,7 @@ export const dbBookSearchValidator = vine.compile(
         'Walking Tour',
       ])
       .optional(),
-    content_type_delivery_type: vine
+    content_delivery_type: vine
       .enum([
         'AudioPart',
         'BookSeries',

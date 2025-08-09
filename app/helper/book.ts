@@ -44,6 +44,24 @@ export class BookHelper {
         db_took: Math.abs(startTime.diffNow().as('milliseconds')),
       })
 
+    // Currently just a test. Update books that where not updated since the release date, or if missing content_type and content_delivery_type or missing sku
+    const needsUpdate = books
+      .filter(
+        (book) =>
+          !book.releaseDate ||
+          (book.releaseDate <= DateTime.now() && book.releaseDate >= book.updatedAt) ||
+          (!book.contentType && !book.contentDeliveryType) ||
+          !book.sku ||
+          !book.skuGroup
+      )
+      .map((book) => book.asin)
+
+    if (needsUpdate.length > 0)
+      void ctx?.logger.info({
+        message: `Found ${needsUpdate.length} books that need to be updated`,
+        needs_update: needsUpdate,
+      })
+
     const missingAsins = asins.filter((asin) => !books.some((book) => book.asin === asin))
 
     const mergedAsins = Array.from(
