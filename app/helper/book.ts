@@ -94,7 +94,16 @@ export class BookHelper {
 
     const compareByAsinOrder = (a: Book, b: Book) => asins.indexOf(a.asin) - asins.indexOf(b.asin)
 
-    const booksToSort: Book[] = (cache ? [...books, ...fetchedBooks] : fetchedBooks) as Book[]
+    let booksToSort: Book[] = (cache ? [...books, ...fetchedBooks] : fetchedBooks) as Book[]
+
+    const uniqueBooksMap = new Map<string, Book>()
+    for (const book of booksToSort) {
+      const existing = uniqueBooksMap.get(book.asin)
+      if (!existing || book.updatedAt > existing.updatedAt) {
+        uniqueBooksMap.set(book.asin, book)
+      }
+    }
+    booksToSort = Array.from(uniqueBooksMap.values())
 
     const compareFunc = sortByEpisode ? compareByEpisode : compareByAsinOrder
 
@@ -365,6 +374,7 @@ export class BookHelper {
         book.skuGroup = product.sku_lite ?? null
         book.isBuyable = product.is_buyable
         book.isListenable = product.is_listenable
+        book.updatedAt = DateTime.now()
 
         const imageMap = product.product_images
         if (imageMap && Object.keys(imageMap).length > 0) {
