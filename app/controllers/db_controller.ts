@@ -120,7 +120,13 @@ export default class DbController {
     type: 'number',
   })
   @ApiQuery({
-    name: 'rating',
+    name: 'rating_better_than',
+    description: 'Filter books by rating',
+    required: false,
+    type: 'number',
+  })
+  @ApiQuery({
+    name: 'rating_worse_than',
     description: 'Filter books by rating',
     required: false,
     type: 'number',
@@ -200,9 +206,10 @@ export default class DbController {
         if (payload.copyright) q.whereILike('copyright', `%${payload.copyright}%`)
         if (payload.isbn) q.whereILike('isbn', `%${payload.isbn}%`)
         if (payload.language) q.where('language', payload.language)
-        if (payload.rating) q.where('rating', payload.rating)
-        if (payload.longer_than) q.where('duration', '>=', payload.longer_than)
-        if (payload.shorter_than) q.where('duration', '<=', payload.shorter_than)
+        if (payload.rating_better_than) q.where('rating', '>=', payload.rating_better_than)
+        if (payload.rating_worse_than) q.where('rating', '<=', payload.rating_worse_than)
+        if (payload.longer_than) q.where('length_minutes', '>=', payload.longer_than)
+        if (payload.shorter_than) q.where('length_minutes', '<=', payload.shorter_than)
         if (payload.explicit !== undefined) q.where('explicit', payload.explicit)
         if (payload.whisper_sync !== undefined) q.where('whisper_sync', payload.whisper_sync)
         if (payload.has_pdf !== undefined) q.where('has_pdf', payload.has_pdf)
