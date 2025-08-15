@@ -35,11 +35,11 @@ class SingleChapterDto {
   constructor(chapter?: object) {
     if (!chapter) return
     // @ts-ignore
-    this.lengthMs = chapter.lengthMs ?? 0
+    this.lengthMs = chapter.length_ms ?? 0
     // @ts-ignore
-    this.startOffsetMs = chapter.startOffsetMs ?? 0
+    this.startOffsetMs = chapter.start_offset_ms ?? 0
     // @ts-ignore
-    this.startOffsetSec = chapter.startOffsetSec ?? 0
+    this.startOffsetSec = chapter.start_offset_sec ?? 0
     // @ts-ignore
     this.title = chapter.title ?? ''
   }
