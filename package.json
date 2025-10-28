@@ -65,7 +65,7 @@
     "@vinejs/vine": "^3.0.0",
     "axios": "^1.12.0",
     "luxon": "^3.6.1",
-    "patch-package": "^8.0.0",
+    "patch-package": "^8.0.1",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2"
   },
