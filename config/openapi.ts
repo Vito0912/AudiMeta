@@ -35,10 +35,6 @@ export default defineConfig({
     },
     servers: [
       {
-        url: 'http://localhost:3333',
-        description: 'dev',
-      },
-      {
         url: 'https://audimeta.de',
         description: 'Public Instance',
       },
