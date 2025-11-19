@@ -31,6 +31,7 @@ router.get('/book', [BooksController, 'index']).use(cacheLimit).use(itemLimit)
 router.get('/book/:asin', [BooksController, 'index']).use(cacheLimit).use(itemLimit)
 router.get('/book/sku/:sku', [BooksController, 'sku']).use(cacheLimit).use(itemLimit)
 router.get('/book/:asin/chapters', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
+router.get('/booksinsameseries/:asin', [BooksController, 'booksinsameseries']).use(cacheLimit).use(itemLimit)
 
 router.get('/search', [SearchesController, 'index']).use(cacheLimit).use(itemLimit).use(searchLimit)
 

@@ -3,10 +3,12 @@ import {
   ApiProperty,
   ApiQuery,
   ApiResponse,
-  ApiResponseOptions,
   ApiParam,
 } from '@foadonis/openapi/decorators'
+import { SetOptional } from 'type-fest'
+import { OperationResponseMetadata } from 'openapi-metadata/metadata'
 
+type ApiResponseOptions = SetOptional<OperationResponseMetadata, 'status' | 'mediaType'>
 export default defineConfig({
   ui: 'swagger',
   document: {
@@ -32,6 +34,10 @@ export default defineConfig({
         'Note: AudiMeta never scrapes HTML data. Everything comes directly from Audible’s publicly accessible API information, including descriptions and author search, to make sure the metadata is current and reliable. This means there is currently no way to search for series using the Audible API.',
     },
     servers: [
+      {
+        url: 'http://localhost:3333',
+        description: 'dev',
+      },
       {
         url: 'https://audimeta.de',
         description: 'Public Instance',

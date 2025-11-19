@@ -538,4 +538,173 @@ export class BookHelper {
       return await track.save()
     })
   }
+
+  public async getBooksInSameSeriesFromAudible(
+    asin: string,
+    region: Infer<typeof regionValidation>,
+    shouldThrow: boolean = true
+  ) {
+    const startTime = DateTime.now()
+    const ctx = HttpContext.get()
+    const reqParams = {
+      response_groups:
+        'media, product_attrs, product_desc, product_details, product_extended_attrs, ' +
+        'product_plans, rating, series, relationships, review_attrs, category_ladders, customer_rights',
+      image_sizes: '500,1000,2400,3200',
+      similarity_type: 'InTheSameSeries',
+      num_results: 50,
+    }
+    const response = await axios.get(
+      `https://api.audible${regionMap[region]}/1.0/catalog/products/` + asin + '/sims',
+      {
+        headers: { ...audibleHeaders },
+        params: reqParams,
+      }
+    )
+    
+    if (ctx)
+      void ctx.logger.info({
+        message: `Requested ${1} books from Audible`,
+        requested_num: 1,
+        requested_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
+
+    if (response.status === 200 && response.data !== undefined) {
+      const json: any = response.data
+      const products: any = (json.similar_products ?? [json.similar_products]).filter(
+        (product: { title: string | null; publication_datetime: string | null }) =>
+          product.title &&
+          product.publication_datetime &&
+          product.publication_datetime !== '2200-01-01T00:00:00Z'
+      )
+
+      if (products.length <= 0 && shouldThrow) throw new NotFoundException()
+
+
+      const books: Book[] = []
+      const genres: Genre[] = []
+      const authors: Author[] = []
+      const narrators: Narrator[] = []
+      const series: Series[] = []
+
+      const genreMap: Map<string, Record<string, any>> = new Map()
+      const authorMap: Map<string, Record<string, any>> = new Map()
+      const seriesMap: Map<string, Record<string, any>> = new Map()
+      const narratorMap: Map<string, Record<string, any>> = new Map()
+
+      for (const product of products) {
+        // Genres
+        if (product.category_ladders) {
+          const localGenres: Record<string, any> = {}
+          for (const ladder of product.category_ladders) {
+            for (const [index, genre] of ladder.ladder.entries()) {
+              const g = new Genre()
+              g.asin = genre.id?.trim() ?? null
+              g.name = genre.name?.trim() ?? null
+              g.type = index === 0 ? 'Genres' : 'Tags'
+              if (g.asin) {
+                genres.push(g)
+                localGenres[g.asin] = g
+              }
+            }
+          }
+          genreMap.set(product.asin, localGenres)
+        }
+
+        // Narrators
+        if (product.narrators) {
+          const localNarrators: Record<string, any> = {}
+          for (const n of product.narrators) {
+            const narr = new Narrator()
+            narr.name = n.name.trim()
+            narrators.push(narr)
+            localNarrators[narr.name] = narr
+          }
+          narratorMap.set(product.asin, localNarrators)
+        }
+
+        // Authors
+        if (product.authors) {
+          const localAuthors: Record<string, Author> = {}
+          for (const a of product.authors) {
+            const author = new Author()
+            author.name = a.name?.replace('\t', '').trim() ?? null
+            author.asin =
+              a.asin && a.asin.replace('\t', '').trim().length <= 12
+                ? a.asin.replace('\t', '').trim()
+                : null
+            author.region = region
+            author.image = a.image ?? null
+            author.description = a.description ?? null
+            author.updatedAt = DateTime.now() // always a Luxon DateTime
+            authors.push(author)
+            // store author object directly so later DTO conversion works
+            localAuthors[`${author.name}-${author.region}-${author.asin}`] = author
+          }
+          // ensure values are always an array when converting to DTO
+          authorMap.set(product.asin, Object.values(localAuthors))
+        }
+
+
+        // Series
+        const localSeries: Record<string, any> = {}
+        if (product.series) {
+          for (const s of product.series) {
+            const seriesModel = new Series()
+            seriesModel.asin = s.asin ? s.asin.replace('\t', '').trim() : null
+            seriesModel.title = s.title ? s.title.replace('\t', '').trim() : null
+            seriesModel.description = s.description ?? null
+            if (seriesModel.asin) {
+              series.push(seriesModel)
+              localSeries[seriesModel.asin] = { position: s.sequence ?? null }
+            }
+          }
+          if (Object.keys(localSeries).length > 0) seriesMap.set(product.asin, localSeries)
+        }
+
+        // Build book object in memory
+        const book: any = {
+          asin: product.asin?.replace('\t', '').trim() ?? null,
+          region,
+          title: product.title,
+          subtitle: product.subtitle ?? null,
+          isbn: product.isbn ?? null,
+          copyright: product.copyright ?? null,
+          description: product.merchandising_summary ?? null,
+          summary: product.publisher_summary ?? null,
+          bookFormat: product.format_type ?? null,
+          publisher: product.publisher_name ?? null,
+          language: product.language ?? null,
+          rating: product.rating?.overall_distribution?.average_rating ?? null,
+          releaseDate: product.release_date ? DateTime.fromISO(product.release_date) : null,
+          explicit: product.is_adult_product ?? false,
+          hasPdf: product.is_pdf_url_available ?? false,
+          lengthMinutes: product.runtime_length_min ?? null,
+          whisperSync: product.read_along_support ?? false,
+          contentType: product.content_type ?? null,
+          contentDeliveryType: product.content_delivery_type ?? null,
+          episodeNumber: product.episode_number ? String(product.episode_number) : null,
+          episodeType: product.episode_type ?? null,
+          sku: product.sku ?? null,
+          skuGroup: product.sku_lite ?? null,
+          isBuyable: product.is_buyable,
+          isListenable: product.is_listenable,
+          image: (() => {
+            const imgMap = product.product_images
+            if (!imgMap) return null
+            const maxKey = Math.max(...Object.keys(imgMap).map(Number))
+            return imgMap[maxKey.toString()]?.replace(/\._\w+_/g, '') ?? null
+          })(),
+          genres: genres,
+          authors: authors,
+          narrators: narrators,
+          series: series,
+        }
+
+        books.push(book)
+      }
+
+      return books
+    }
+  }
 }

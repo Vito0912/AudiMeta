@@ -120,4 +120,34 @@ export default class BooksController {
 
     return BookDto.fromArray(books)
   }
+
+  @ApiOperation({
+    summary: 'Get a books in the same series',
+    operationId: 'booksinsameseries',
+  })
+  @asinApiQuery(false)
+  @regionApiQuery()
+  @notFoundApiResponse()
+  @successApiResponse({ type: [BookDto] })
+  async booksinsameseries({ request }: HttpContext) {
+    const payload = await getBooksValidator.validate({ ...request.qs(), ...request.params() })
+
+    let asin: string = ''
+
+    if (payload.asin) {
+      asin = payload.asin
+    }else {
+      return []
+    }
+
+    const books = await new BookHelper().getBooksInSameSeriesFromAudible(
+      asin,
+      payload.region
+    )
+    
+    if (books===undefined ||books.length === 0) {
+      throw new NotFoundException()
+    }
+    return BookDto.fromArray(books)
+  }
 }

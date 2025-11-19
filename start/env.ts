@@ -23,6 +23,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring database connection
   |----------------------------------------------------------
   */
+  DB_CONNECTION: Env.schema.enum(['postgres', 'mysql'] as const),
   DB_HOST: Env.schema.string({ format: 'host' }),
   DB_PORT: Env.schema.number(),
   DB_USER: Env.schema.string(),
@@ -30,21 +31,33 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_DATABASE: Env.schema.string(),
 
   DEVICE_ID: Env.schema.string(),
+  LIMITER_STORE: Env.schema.enum(['redis', 'memory'] as const),
+
+  REDIS_ENABLE: Env.schema.boolean(),
 
   REDIS_HOST: Env.schema.string({ format: 'host' }),
-  REDIS_PORT: Env.schema.number(),
+
+  REDIS_PORT: Env.schema.number.optionalWhen((_key, _value) => {
+    return !Boolean(process.env.LIMITER_STORE === 'redis')
+  }),
+
   REDIS_PASSWORD: Env.schema.string.optional(),
 
-  AXIOM_DATASET: Env.schema.string(),
+  AXIOM_ENABLE: Env.schema.boolean(),
 
-  AXIOM_TOKEN: Env.schema.string(),
+  AXIOM_DATASET: Env.schema.string.optionalWhen((_key, _value) => {
+    return Boolean(process.env.AXIOM_ENABLE != 'true')
+  }),
+
+  AXIOM_TOKEN: Env.schema.string.optionalWhen((_key, _value) => {
+    return Boolean(process.env.AXIOM_ENABLE != 'true')
+  }),
 
   /*
   |----------------------------------------------------------
   | Variables for configuring the limiter package
   |----------------------------------------------------------
   */
-  LIMITER_STORE: Env.schema.enum(['redis', 'memory'] as const),
 
   RATE_SEARCH: Env.schema.number(),
 
