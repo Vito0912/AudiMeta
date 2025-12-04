@@ -16,6 +16,15 @@ export class MinimalSeriesDto extends BaseModelDto {
   declare name: string
 
   @ApiProperty({
+    description: 'The region of the book, e.g., "us", "ca", "uk".',
+    type: 'string',
+    enum: ['us', 'ca', 'uk', 'au', 'fr', 'de', 'jp', 'it', 'in', 'es', 'br'],
+    example: 'us',
+    nullable: true,
+  })
+  declare region: 'us' | 'ca' | 'uk' | 'au' | 'fr' | 'de' | 'jp' | 'it' | 'in' | 'es' | 'br' | null
+
+  @ApiProperty({
     description: 'The position of the series in the list. Can be a string!',
     type: 'string',
     example: '1',
@@ -32,6 +41,7 @@ export class MinimalSeriesDto extends BaseModelDto {
     if (!series) return
     this.asin = series.asin
     this.name = series.title ?? null
+    this.region = series.region ?? null
     if (series.$extras.pivot_position) {
       this.position = series.$extras.pivot_position
     } else {

@@ -17,13 +17,15 @@ const loggerConfig = defineConfig({
       transport: {
         targets: [
           ...targets().pushIf(!app.inProduction, targets.pretty()).toArray(),
-          {
-            target: '@axiomhq/pino',
-            options: {
-              dataset: process.env.AXIOM_DATASET,
-              token: process.env.AXIOM_TOKEN,
-            },
-          },
+          ...targets()
+            .pushIf(!!process.env.AXIOM_DATASET && !!process.env.AXIOM_TOKEN, {
+              target: '@axiomhq/pino',
+              options: {
+                dataset: process.env.AXIOM_DATASET,
+                token: process.env.AXIOM_TOKEN,
+              },
+            })
+            .toArray(),
         ],
       },
     },

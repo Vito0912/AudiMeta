@@ -52,7 +52,8 @@ export class BookHelper {
           (book.releaseDate <= DateTime.now() && book.releaseDate >= book.updatedAt) ||
           (!book.contentType && !book.contentDeliveryType) ||
           !book.sku ||
-          !book.skuGroup
+          !book.skuGroup ||
+          (book.series && book.series.some((s) => s.region === null || s.region === undefined))
       )
       .map((book) => book.asin)
 
@@ -220,6 +221,7 @@ export class BookHelper {
             const seriesModel = new Series()
             seriesModel.asin = seriesData.asin ? seriesData.asin.replace('\t', '').trim() : null
             seriesModel.title = seriesData.title ? seriesData.title.replace('\t', '').trim() : null
+            seriesModel.region = region
             seriesModel.description = seriesData.description ?? null
 
             if (seriesData.sequence && seriesData.sequence.length > 0) {
@@ -240,6 +242,7 @@ export class BookHelper {
             if (seriesData.asin && seriesData.title) {
               const seriesModel = new Series()
               seriesModel.asin = seriesData.asin ? seriesData.asin.replace('\t', '').trim() : null
+              seriesModel.region = region
               seriesModel.title = seriesData.title
                 ? seriesData.title.replace('\t', '').trim()
                 : null

@@ -13,6 +13,10 @@ export default class Series extends BaseModel {
   @column()
   declare description: string
 
+  @column()
+  // @enum(us, ca, uk, au, fr, de, jp, it, in, es, br)
+  declare region: 'us' | 'ca' | 'uk' | 'au' | 'fr' | 'de' | 'jp' | 'it' | 'in' | 'es' | 'br'
+
   @manyToMany(() => Book)
   declare books: ManyToMany<typeof Book>
 

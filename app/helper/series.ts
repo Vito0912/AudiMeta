@@ -77,7 +77,7 @@ export class SeriesHelper {
       series.fetchedDescription = true
       series.asin = json.product!.asin
       series.title = json.product!.title
-
+      series.region = payload.region
       return retryOnUniqueViolation(async () => {
         return await series!.save()
       })

@@ -35,9 +35,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   REDIS_PORT: Env.schema.number(),
   REDIS_PASSWORD: Env.schema.string.optional(),
 
-  AXIOM_DATASET: Env.schema.string(),
+  AXIOM_DATASET: Env.schema.string.optional(),
 
-  AXIOM_TOKEN: Env.schema.string(),
+  AXIOM_TOKEN: Env.schema.string.optional(),
 
   /*
   |----------------------------------------------------------
