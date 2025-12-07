@@ -171,7 +171,7 @@ export class AuthorHelper {
       if (authorResponse.data) {
         let found = false
         for (const section of authorResponse.data.sections) {
-          if (section?.model?.rows) {
+          if (section?.model?.rows && section?.pagination != null) {
             found = true
             for (const item of section.model.rows) {
               if (item.product_metadata && item.product_metadata.asin) {
