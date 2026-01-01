@@ -34,6 +34,12 @@ router.get('/book/:asin/chapters', [BooksController, 'chapters']).use(cacheLimit
 
 router.get('/search', [SearchesController, 'index']).use(cacheLimit).use(itemLimit).use(searchLimit)
 
+router
+  .get('/quick-search', [SearchesController, 'quickSearch'])
+  .use(cacheLimit)
+  .use(itemLimit)
+  .use(searchLimit)
+
 // Legacy route for backward compatibility
 router.get('/chapters/:asin', [BooksController, 'chapters']).use(cacheLimit).use(itemLimit)
 
@@ -78,6 +84,11 @@ router
   .use(cacheLimit)
   .use(itemLimit)
   .use(seriesLimit)
+
+router
+  .get(':region/quick-search/search', [SearchesController, 'absQuickSearch'])
+  .use(cacheLimit)
+  .use(searchLimit)
 
 router.get(':region/search', [SearchesController, 'abs']).use(cacheLimit).use(searchLimit)
 

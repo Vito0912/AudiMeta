@@ -181,3 +181,18 @@ export const dbBookSearchValidator = vine.compile(
       .min(1),
   })
 )
+
+export const quickSearchValidator = vine.compile(
+  vine.object({
+    keywords: vine.string(),
+    region: regionValidation,
+  })
+)
+
+export const absQuickSearchValidator = vine.compile(
+  vine.object({
+    query: stringValidation,
+    title: stringValidation,
+    region: regionValidation,
+  })
+)

@@ -1,7 +1,11 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
 import { HttpContext } from '@adonisjs/core/http'
-import { basicSearchValidator } from '#validators/search'
+import {
+  basicSearchValidator,
+  quickSearchValidator,
+  absQuickSearchValidator,
+} from '#validators/search'
 import { SearchHelper } from '../helper/search.js'
 import BookDto, { AbsBookDto } from '#dtos/book'
 import NotFoundException from '#exceptions/not_found_exception'
@@ -89,7 +93,7 @@ export default class SearchesController {
     const books = (await SearchHelper.search(payload)) ?? []
 
     if (!books || books.length === 0) {
-      return new NotFoundException()
+      throw new NotFoundException()
     }
 
     return BookDto.fromArray(books)
@@ -108,7 +112,56 @@ export default class SearchesController {
     const books = (await SearchHelper.search(payload)) ?? []
 
     if (!books || books.length === 0) {
-      return new NotFoundException()
+      throw new NotFoundException()
+    }
+
+    return { matches: AbsBookDto.fromArray(books) }
+  }
+
+  @ApiOperation({
+    summary: 'Quick search for books',
+    operationId: 'quickSearchBooks',
+    description:
+      'This endpoint returns lower quality search results, but can return books subject to region locking which would not be findable via the search endpoint due to the server location.',
+  })
+  @regionApiQuery()
+  @ApiQuery({
+    name: 'keywords',
+    description: 'Keywords to search for.',
+    type: 'string',
+    required: true,
+  })
+  @notFoundApiResponse()
+  @successApiResponse({ type: BookDto })
+  async quickSearch({ request }: HttpContext) {
+    const payload = await quickSearchValidator.validate({ ...request.qs(), ...request.params() })
+
+    const books = (await SearchHelper.quickSearch(payload)) ?? []
+
+    if (!books || books.length === 0) {
+      throw new NotFoundException()
+    }
+
+    return BookDto.fromArray(books)
+  }
+
+  @ApiExcludeOperation()
+  async absQuickSearch({ request }: HttpContext) {
+    const payload = await absQuickSearchValidator.validate({
+      ...request.qs(),
+      ...request.params(),
+    })
+
+    let keywords = payload.query || payload.title
+
+    if (!keywords) {
+      throw new NotFoundException()
+    }
+
+    const books = (await SearchHelper.quickSearch({ keywords, region: payload.region })) ?? []
+
+    if (!books || books.length === 0) {
+      throw new NotFoundException()
     }
 
     return { matches: AbsBookDto.fromArray(books) }
