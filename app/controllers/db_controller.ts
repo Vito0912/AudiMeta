@@ -23,7 +23,18 @@ export default class DbController {
   })
   @cacheApiQuery()
   @limitApiQuery()
-  @pageApiQuery()
+  @ApiQuery({
+    name: 'page',
+    description: 'The page number to return. Defaults to 0.',
+    type: 'integer',
+    example: 1,
+    required: false,
+    schema: {
+      type: 'integer',
+      default: 1,
+      minimum: 1,
+    },
+  })
   @ApiQuery({
     name: 'is_buyable',
     description: 'Filter books by buyable status',

@@ -155,14 +155,14 @@ export const nameApiQuery = (required: boolean = false) =>
 export const pageApiQuery = (required: boolean = false) =>
   ApiQuery({
     name: 'page',
-    description: 'The page number to return. Defaults to 1.',
+    description: 'The page number to return. Defaults to 0.',
     type: 'integer',
-    example: 1,
+    example: 0,
     required: required,
     schema: {
       type: 'integer',
-      default: 1,
-      minimum: 1,
+      default: 0,
+      minimum: 0,
     },
   })
 

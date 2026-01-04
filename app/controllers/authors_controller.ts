@@ -6,14 +6,13 @@ import { AuthorHelper } from '../helper/author.js'
 import BookDto from '#dtos/book'
 import { AuthorDto } from '#dtos/author'
 import NotFoundException from '#exceptions/not_found_exception'
-import { ApiOperation, ApiTags } from '@foadonis/openapi/decorators'
+import { ApiOperation, ApiQuery, ApiTags } from '@foadonis/openapi/decorators'
 import {
   asinApiQuery,
   cacheApiQuery,
   limitApiQuery,
   nameApiQuery,
   notFoundApiResponse,
-  pageApiQuery,
   regionApiQuery,
   successApiResponse,
 } from '#config/openapi'
@@ -48,7 +47,18 @@ export default class AuthorsController {
   @asinApiQuery()
   @regionApiQuery()
   @cacheApiQuery()
-  @pageApiQuery()
+  @ApiQuery({
+    name: 'page',
+    description: 'The page number to return. Defaults to 0.',
+    type: 'integer',
+    example: 1,
+    required: false,
+    schema: {
+      type: 'integer',
+      default: 1,
+      minimum: 1,
+    },
+  })
   @limitApiQuery()
   @notFoundApiResponse()
   @successApiResponse({ type: [BookDto] })
