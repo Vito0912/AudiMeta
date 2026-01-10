@@ -131,7 +131,7 @@ export class AuthorHelper {
 
     return await retryOnUniqueViolation(async () => {
       const serializedAuthor = author.serialize()
-      const { asin, region, name, ...rest } = serializedAuthor
+      const { id, asin, region, name, ...rest } = serializedAuthor
 
       return await Author.updateOrCreate(
         { asin, region, name },
