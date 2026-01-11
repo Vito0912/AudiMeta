@@ -47,7 +47,7 @@ export class MinimalAuthorDto extends BaseModelDto {
   declare image: string
 
   @updatedAtApiProperty()
-  declare updatedAt: string
+  declare updatedAt: string | null
 
   constructor(author?: Author) {
     super()
@@ -58,7 +58,14 @@ export class MinimalAuthorDto extends BaseModelDto {
     this.region = author.region ?? null
     this.regions = author.regions ?? null
     this.image = author.image ?? null
-    this.updatedAt = (author.updatedAt && author.updatedAt.toISO()!) ?? null
+    try {
+      this.updatedAt =
+        author.updatedAt && typeof author.updatedAt.toISO === 'function'
+          ? author.updatedAt.toISO()
+          : null
+    } catch {
+      this.updatedAt = null
+    }
   }
 }
 
