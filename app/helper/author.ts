@@ -2,7 +2,7 @@ import { Infer } from '@vinejs/vine/types'
 import { authorBookValidator, getBasicValidator, searchAuthorValidator } from '#validators/common'
 import Author from '#models/author'
 import axios from 'axios'
-import { audibleHeaders, getAudibleExtraHeaders, regionMap } from '#config/app'
+import { audibleHeaders, getAudibleExtraHeaders, localRegionMap, regionMap } from '#config/app'
 import { AudibleHelper } from './audible.js'
 import { HttpContext } from '@adonisjs/core/http'
 import NotFoundException from '#exceptions/not_found_exception'
@@ -75,6 +75,23 @@ export class AuthorHelper {
     )
   }
 
+  private static async getAuthorDetails(payload: Infer<typeof getBasicValidator>) {
+    // Credits for this endpoint to https://github.com/sunbrolynk
+    // The discovered repository did not contain any license, but simple URLs/API endpoints
+    // are not copyrightable. On that note, said  repository infringes this repos copyright (Thus not liking repo).
+    // Since the implementation is not taken from said repository, there's no copyright infringement.
+
+    return await axios.get(
+      `https://api.audible${regionMap[payload.region]}/1.0/catalog/contributors/` + payload.asin,
+      {
+        headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
+        params: {
+          locale: localRegionMap[payload.region ?? 'us'],
+        },
+      }
+    )
+  }
+
   private static async fetchFromAudible(
     payload: Infer<typeof getBasicValidator>,
     author?: Author | null
@@ -82,7 +99,7 @@ export class AuthorHelper {
     const startTime = new Date()
     const ctx = HttpContext.get()
 
-    const response = await AuthorHelper.getAuthorPage(payload)
+    const response = await AuthorHelper.getAuthorDetails(payload)
 
     if (ctx)
       void ctx.logger.info({
@@ -94,11 +111,11 @@ export class AuthorHelper {
 
     if (response.status === 200) {
       const json: any = response.data
-      if (!json || Object.keys(response.data.page_details?.model || {}).length === 0) {
+      if (!json || response.data.contributor?.name == null) {
         throw new NotFoundException()
       }
 
-      return await AuthorHelper.saveResponse(json, payload, author)
+      return await AuthorHelper.saveResponse(json.contributor, payload, author)
     }
 
     return null
@@ -109,25 +126,24 @@ export class AuthorHelper {
     payload: Infer<typeof getBasicValidator>,
     author: Author
   ) {
-    const sections = json.sections
-    for (const section of sections) {
-      if (section?.model?.person_image_url) {
-        author.image = section.model.person_image_url.replace(/\._.*_/, '')
-      }
-      for (const item of section.model.items || []) {
-        if (item.view.template === 'ExpandableText' && item.model.expandable_content) {
-          author.description = item.model.expandable_content?.value?.replace('\t', '').trim() || ''
-        }
-      }
-      author.fetchedDescription = true
+    if (json.bio) {
+      author.description = json.bio.replace('\t', '').trim() || ''
     }
-    if (json.page_details?.model?.title) {
-      author.name = json.page_details?.model?.title?.replace('\t', '').trim() || ''
+    author.fetchedDescription = true
+    if (json.profile_image_url) {
+      author.image = json.profile_image_url
+    }
+    if (json.name) {
+      author.name = json.name?.replace('\t', '').trim() || ''
     }
     if (!author.region) {
       author.region = payload.region
     }
     author.asin = payload.asin?.replace('\t', '').trim() || ''
+
+    if (!json.name) {
+      throw new NotFoundException()
+    }
 
     return await retryOnUniqueViolation(async () => {
       const serializedAuthor = author.serialize()
