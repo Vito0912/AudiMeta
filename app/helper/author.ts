@@ -77,9 +77,6 @@ export class AuthorHelper {
 
   private static async getAuthorDetails(payload: Infer<typeof getBasicValidator>) {
     // Credits for this endpoint to https://github.com/sunbrolynk
-    // The discovered repository did not contain any license, but simple URLs/API endpoints
-    // are not copyrightable. On that note, said  repository infringes this repos copyright (Thus not liking repo).
-    // Since the implementation is not taken from said repository, there's no copyright infringement.
 
     return await axios.get(
       `https://api.audible${regionMap[payload.region]}/1.0/catalog/contributors/` + payload.asin,
